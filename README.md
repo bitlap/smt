@@ -4,9 +4,9 @@ scala macro and abstract syntax tree learning code.
 
 # @toString
 
-- features
-    - Automatically ignore when use on case class.
-    - Constructor parameters which have val/var modifier and class internal fields.
+- NOTE
+    - Automatically ignore when use on `case` class.
+    - Contains constructor parameters which have `val`/`var` modifier and class internal fields.
     - The existing custom `toString` method will fail to compile.
 
 - source code
