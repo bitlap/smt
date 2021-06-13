@@ -61,13 +61,6 @@ object stringMacro {
       case _                       => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
     }
 
-    //    if (annotateeClass.tpe.typeSymbol.asClass.isCaseClass) {
-    //      c.warning(
-    //        c.enclosingPosition,
-    //        "'toString' annotation is used on 'case class'. Ignore"
-    //      )
-    //    }
-
     // For a given class definition, separate the components of the class
     val (isCase, className, annotteeClassParams, annotteeClassDefinitions) = {
       annotateeClass match {
