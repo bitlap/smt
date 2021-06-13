@@ -53,6 +53,6 @@ class ToStringTest extends FlatSpec with Matchers {
     case class TestClass(val i: Int = 0, var j: Int)
     val s = TestClass(1, 2).toString
     println(s)
-    assert(s == "TestClass(1, 2)")
+    assert(s == "TestClass(1,2)")
   }
 }
