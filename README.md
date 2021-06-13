@@ -11,12 +11,12 @@ scala macro and abstract syntax tree learning code.
 
 - source code
 ```scala
-    @toString
-    class TestClass(val i: Int = 0, var j: Int) {
-      val y: Int = 0
-      var z: String = "hello"
-      var x: String = "world"
-    }
+@toString
+class TestClass(val i: Int = 0, var j: Int) {
+  val y: Int = 0
+  var z: String = "hello"
+  var x: String = "world"
+}
 ```
 - result of scalac
 ```scala
@@ -30,7 +30,7 @@ class TestClass extends scala.AnyRef {
   val y: Int = 0;
   var z: String = "hello";
   var x: String = "world";
-  override def toString(): String = scala.collection.immutable.List(i, j, y, z, x).toString.replace("List", "TestClass") // Use crude methods.
+  override def toString(): String = scala.collection.immutable.List(i, j, y, z, x).toString.replace("List", "TestClass") // a crude way, TODO refactor it.
 }
 ```
 
