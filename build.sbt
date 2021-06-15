@@ -9,7 +9,7 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.6"
 lazy val supportedScalaVersions = List(scala213, scala212, scala211)
 
-lazy val core = (project in file("."))
+lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
