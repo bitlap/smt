@@ -23,6 +23,7 @@ lazy val core = (project in file("."))
       }
     },
     releaseIgnoreUntrackedFiles := true,
+    releaseCrossBuild := true,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
