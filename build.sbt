@@ -19,7 +19,7 @@ lazy val core = (project in file("."))
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
-        case _ => List("-Ymacro-annotations", "-Ymacro-debug-verbose")
+        case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     },
     releaseIgnoreUntrackedFiles := true,
@@ -27,10 +27,11 @@ lazy val core = (project in file("."))
       checkSnapshotDependencies,
       inquireVersions,
       runClean,
+      releaseStepCommandAndRemaining("^ +compile"),
       setReleaseVersion,
       commitReleaseVersion,
       tagRelease,
-      releaseStepCommandAndRemaining("^ publishSigned"),
+      releaseStepCommandAndRemaining("^ +publishSigned"),
       setNextVersion,
       commitNextVersion,
       pushChanges
