@@ -27,11 +27,11 @@ lazy val core = (project in file("."))
       checkSnapshotDependencies,
       inquireVersions,
       runClean,
-      releaseStepCommandAndRemaining("^+ compile"),
+      releaseStepCommandAndRemaining("^ compile"),
       setReleaseVersion,
       commitReleaseVersion,
       tagRelease,
-      releaseStepCommandAndRemaining("^+ publishSigned"),
+      releaseStepCommandAndRemaining("^ publishSigned"),
       setNextVersion,
       commitNextVersion,
       pushChanges
