@@ -37,4 +37,4 @@ lazy val root = (project in file("."))
       commitNextVersion,
       pushChanges
     )
-  )
+  ).settings(Publishing.publishSettings)
