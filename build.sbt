@@ -27,7 +27,6 @@ lazy val core = (project in file("."))
       checkSnapshotDependencies,
       inquireVersions,
       runClean,
-      releaseStepCommandAndRemaining("^ scripted"),
       setReleaseVersion,
       commitReleaseVersion,
       tagRelease,
