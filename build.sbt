@@ -1,3 +1,5 @@
+import sbtrelease.ReleaseStateTransformations._
+
 name := "scala-macro-tools"
 scalaVersion := "2.13.6"
 organization := "io.github.jxnu-liguobin"
@@ -19,5 +21,19 @@ lazy val core = (project in file("."))
         case Some((2, n)) if n <= 12 => Nil
         case _ => List("-Ymacro-annotations", "-Ymacro-debug-verbose")
       }
-    }
+    },
+    releaseIgnoreUntrackedFiles := true,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      releaseStepCommandAndRemaining("^ scripted"),
+      setReleaseVersion,
+      commitReleaseVersion,
+      tagRelease,
+      releaseStepCommandAndRemaining("^ publishSigned"),
+      setNextVersion,
+      commitNextVersion,
+      pushChanges
+    )
   )

@@ -1,4 +1,4 @@
-package io.github.liguobin
+package io.github.dreamylost
 
 import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 import scala.language.experimental.macros
