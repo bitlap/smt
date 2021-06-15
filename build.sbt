@@ -1,3 +1,5 @@
+import sbtrelease.ReleaseStateTransformations._
+
 name := "scala-macro-tools"
 scalaVersion := "2.13.6"
 organization := "io.github.jxnu-liguobin"
@@ -7,7 +9,7 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.6"
 lazy val supportedScalaVersions = List(scala213, scala212, scala211)
 
-lazy val core = (project in file("."))
+lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
@@ -17,7 +19,22 @@ lazy val core = (project in file("."))
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
-        case _ => List("-Ymacro-annotations", "-Ymacro-debug-verbose")
+        case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
-    }
-  )
+    },
+    releaseIgnoreUntrackedFiles := true,
+    releaseCrossBuild := true,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      releaseStepCommandAndRemaining("^ compile"),
+      setReleaseVersion,
+      commitReleaseVersion,
+      tagRelease,
+      releaseStepCommandAndRemaining("^ publishSigned"),
+      setNextVersion,
+      commitNextVersion,
+      pushChanges
+    )
+  ).settings(Publishing.publishSettings)

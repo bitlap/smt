@@ -1,6 +1,6 @@
-package io.github.liguobin
+package io.github.dreamylost
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 
 /**
  *
@@ -10,7 +10,7 @@ import org.scalatest.{FlatSpec, Matchers}
  */
 class ToStringTest extends FlatSpec with Matchers {
 
-  "toString1" should "not contains constructors parameters" in {
+  "toString1" should "not contains internal field" in {
     @toString(false, false, false)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -19,10 +19,10 @@ class ToStringTest extends FlatSpec with Matchers {
     }
     val s = new TestClass(1, 2).toString
     println(s)
-    assert(s == "TestClass(0, hello, world)")
+    assert(s == "TestClass(1, 2)")
   }
 
-  "toString2" should "contains constructors parameters" in {
+  "toString2" should "contains internal field and with name" in {
     @toString(true, true, true)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -34,7 +34,7 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s == "TestClass(i=1, j=2, y=0, z=hello, x=world)")
   }
 
-  "toString3" should "not contains constructors parameters but with name" in {
+  "toString3" should "not contains internal field but with name" in {
     @toString(true, false, true)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -43,10 +43,10 @@ class ToStringTest extends FlatSpec with Matchers {
     }
     val s = new TestClass(1, 2).toString
     println(s)
-    assert(s == "TestClass(y=0, z=hello, x=world)")
+    assert(s == "TestClass(i=1, j=2)")
   }
 
-  "toString4" should "contains constructors parameters but without name" in {
+  "toString4" should "contains internal field but without name" in {
     @toString(true, true, false)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -67,10 +67,10 @@ class ToStringTest extends FlatSpec with Matchers {
     }
     val s = TestClass(1, 2).toString
     println(s)
-    assert(s == "TestClass(0, hello, world)")
+    assert(s == "TestClass(1, 2)")
   }
 
-  "toString6" should "case class with name" in {
+  "toString6" should "case class not contains internal field and with name" in {
     @toString(true, false, true)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -83,11 +83,11 @@ class ToStringTest extends FlatSpec with Matchers {
     println(s)
     println(s2)
 
-    assert(s == "TestClass(y=0, z=hello, x=world)")
+    assert(s == "TestClass(i=1, j=2)")
     assert(s2 == "TestClass2(1,2)")
   }
 
-  "toString7" should "case class with name" in {
+  "toString7" should "case class contains internal field and with name" in {
     @toString(true, true, true)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -99,7 +99,7 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s == "TestClass(i=1, j=2, y=0, z=hello, x=world)")
   }
 
-  "toString8" should "case class with name and itself" in {
+  "toString8" should "case class contains internal field and with name, itself" in {
     @toString(true, true, true)
     case class TestClass(i: Int = 0, var j: Int, k: TestClass) {
       val y: Int = 0
@@ -111,7 +111,7 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s == "TestClass(i=1, j=2, k=TestClass(i=1, j=2, k=null, y=0, z=hello, x=world), y=0, z=hello, x=world)")
   }
 
-  "toString9" should "case class with name and itself2" in {
+  "toString9" should "case class contains internal field and with name, itself2" in {
     @toString(true, true, true)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
@@ -124,7 +124,7 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s == "TestClass(i=1, j=2, y=0, z=hello, x=world, t=null)")
   }
 
-  "toString10" should "case class with name and itself3" in {
+  "toString10" should "case class contains internal field with name, itself3" in {
     @toString(true, true, true)
     case class TestClass(i: Int = 0, var j: Int, k: TestClass) {
       val y: Int = 0
@@ -155,7 +155,7 @@ class ToStringTest extends FlatSpec with Matchers {
     class TestClass(i: Int = 0, var j: Int)
     val s = new TestClass(1, 2).toString
     println(s)
-    assert(s == "TestClass()")
+    assert(s == "TestClass(i=1, j=2)")
 
     @toString(true, true, true)
     class TestClass2(i: Int = 1, var j: Int = 2)
@@ -181,12 +181,48 @@ class ToStringTest extends FlatSpec with Matchers {
     case class TestClass2(i: Int = 1, var j: Int = 3)
     val s2 = TestClass2(1, 2).toString
     println(s2)
-    assert(s2 == "TestClass2()")
+    assert(s2 == "TestClass2(1, 2)")
 
     @toString(true, true, true)
     case class TestClass3(i: Int = 1, var j: Int = 3)
     val s3 = TestClass3(1, 2).toString
     println(s3)
     assert(s3 == "TestClass3(i=1, j=2)")
+  }
+
+  "toString14" should "empty class and with default params" in {
+    @toString()
+    case class TestClass1()
+    val s1 = TestClass1().toString
+    println(s1)
+    assert(s1 == "TestClass1()")
+
+    @toString(true, false, false)
+    case class TestClass2()
+    val s2 = TestClass2().toString
+    println(s2)
+    assert(s2 == "TestClass2()")
+  }
+
+  "toString15" should "super param not find" in {
+    @toString()
+    class TestClass1(val i: Int)
+    @toString(withInternalField = true, withFieldName = true)
+    case class TestClass2() extends TestClass1(1)
+    val s1 = TestClass2().toString
+    println(s1)
+    assert(s1 == "TestClass2()") //TODO not support println super fields
+
+    @toString(withInternalField = true, withFieldName = true)
+    case class TestClass3(j: Int) extends TestClass1(j)
+    val s2 = TestClass3(0).toString
+    println(s2)
+    assert(s2 == "TestClass3(j=0)")
+
+    @toString(withInternalField = true, withFieldName = true)
+    class TestClass4(j: Int) extends TestClass1(j)
+    val s3 = new TestClass4(0).toString
+    println(s3)
+    assert(s3 == "TestClass4(j=0)")
   }
 }
