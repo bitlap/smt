@@ -28,7 +28,7 @@ println(new TestClass(1, 2));
 ```
 
 |withInternalField / withFieldName| false  |true
-|  ----  | ----  |----|
+|  ---------------------------------  | ----------------------------------  |----------------------------------|
 |false|```TestClass(1, 2)``` |```TestClass(i=0, j=2)```|
 |true|```TestClass(1, 2, 0, hello, world)```|```TestClass(i=1, j=2, y=0, z=hello, x=world)```|
 
