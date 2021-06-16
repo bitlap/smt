@@ -5,7 +5,9 @@ Motivation
 
 scala macro and abstract syntax tree learning code.
 
-# @toString
+# Features
+
+## @toString
 
 - Note
     - `verbose` Whether to enable detailed log.
@@ -38,7 +40,7 @@ Add library dependency
 ```
 
 
-The artefacts have been uploaded to Maven Central. Alternatively, they are also available on the GitHub registry.
+The artefacts have been uploaded to Maven Central.
 
 | Library Version | Scala 2.11 | Scala 2.12 | Scala 2.13 |
 |---------|------------|------------|------------|
