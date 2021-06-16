@@ -37,4 +37,32 @@ lazy val root = (project in file("."))
       commitNextVersion,
       pushChanges
     )
-  ).settings(Publishing.publishSettings)
+  ).settings(Publishing.publishSettings).settings(
+  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, n)) => getParadise(n)
+    case _ => None
+  }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
+)
+
+
+lazy val `examples213` = (project in file("examples213")).settings(scalaVersion := scala213)
+  .settings(libraryDependencies ++= Seq(
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
+  )).settings(Compile / scalacOptions += "-Ymacro-annotations")
+
+lazy val `examples212` = (project in file("examples212")).settings(scalaVersion := scala212)
+  .settings(libraryDependencies ++= Seq(
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
+  )).settings(
+  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, n)) => getParadise(n)
+    case _ => None
+  }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f))))
+
+
+def getParadise(n: Long): Option[ModuleID] = {
+  if (n == 12) Option("org.scalamacros" % s"paradise_$scala212" % "2.1.1")
+  else if (n == 11) Option("org.scalamacros" % s"paradise_$scala211" % "2.1.1") else None
+  None
+}
+
