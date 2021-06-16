@@ -39,7 +39,7 @@ lazy val root = (project in file("."))
     )
   ).settings(Publishing.publishSettings).settings(
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, n)) => if (n <= 12) Option("org.scalamacros" % s"paradise_$scala212" % "2.1.1") else None
+    case Some((2, n)) => getParadise(n)
     case _ => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
 )
@@ -55,7 +55,14 @@ lazy val `examples212` = (project in file("examples212")).settings(scalaVersion 
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
   )).settings(
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, n)) => if (n <= 12) Option("org.scalamacros" % s"paradise_$scala212" % "2.1.1") else None
+    case Some((2, n)) => getParadise(n)
     case _ => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f))))
+
+
+def getParadise(n: Long): Option[ModuleID] = {
+  if (n == 12) Option("org.scalamacros" % s"paradise_$scala212" % "2.1.1")
+  else if (n == 11) Option("org.scalamacros" % s"paradise_$scala211" % "2.1.1") else None
+  None
+}
 
