@@ -1,4 +1,7 @@
-# scala-macro-tools
+# scala-macro-tools [![Scala CI](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml)
+
+Motivation
+--
 
 scala macro and abstract syntax tree learning code.
 
@@ -22,7 +25,7 @@ class TestClass(val i: Int = 0, var j: Int) {
 println(new TestClass(1, 2));
 ```
 
-|   withInternalField / withFieldName  | false  |true
+|withInternalField / withFieldName| false  |true
 |  ----  | ----  |----|
 |false|```TestClass(1, 2)``` |```TestClass(i=0, j=2)```|
 |true|```TestClass(1, 2, 0, hello, world)```|```TestClass(i=1, j=2, y=0, z=hello, x=world)```|

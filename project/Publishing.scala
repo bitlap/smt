@@ -37,8 +37,8 @@ object Publishing {
     homepage := Some(url("https://github.com/jxnu-liguobin")),
     scmInfo := Some(
       ScmInfo(
-        url("https://github.com/bitlap/scala-macro-tools"),
-        "scm:git@github.com:bitlap/scala-macro-tools.git"
+        url("https://github.com/jxnu-liguobin/scala-macro-tools"),
+        "scm:git@github.com:jxnu-liguobin/scala-macro-tools.git"
       ))
   )
 }
