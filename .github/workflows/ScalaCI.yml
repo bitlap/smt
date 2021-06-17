@@ -29,5 +29,5 @@ jobs:
         run: sbt +compile
 
       - name: Run Test
-        run: sbt +test
+        run: sbt test
 
