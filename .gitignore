@@ -4,6 +4,10 @@
 /target/
 /target/scala-2.13/classes/
 /target/scala-2.13/test-classes/
+/target/scala-2.12/classes/
+/target/scala-2.12/test-classes/
+/target/scala-2.11/classes/
+/target/scala-2.11/test-classes/
 .idea/
 *.iml
 .bsp

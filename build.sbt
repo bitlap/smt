@@ -38,23 +38,22 @@ lazy val root = (project in file("."))
       commitNextVersion,
       pushChanges
     )
-  ).settings(Publishing.publishSettings).settings(
-  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, n)) => getParadise(n)
-    case _ => None
-  }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
-)
+  ).settings(Publishing.publishSettings)
 
 
 lazy val `examples213` = (project in file("examples213")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
-  )).settings(Compile / scalacOptions += "-Ymacro-annotations")
+  )).settings(
+  publish / skip := true,
+  Compile / scalacOptions += "-Ymacro-annotations"
+)
 
 lazy val `examples212` = (project in file("examples212")).settings(scalaVersion := scala212)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
   )).settings(
+  publish / skip := true,
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, n)) => getParadise(n)
     case _ => None
