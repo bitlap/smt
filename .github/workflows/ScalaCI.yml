@@ -23,11 +23,11 @@ jobs:
           java-version: 1.8
 
       - name: Publish Local
-        run: sbt +publishLocal
+        run: sbt +publishLocalSigned
 
       - name: Build
         run: sbt +compile
 
       - name: Run Test
-        run: sbt test
+        run: sbt +test
 
