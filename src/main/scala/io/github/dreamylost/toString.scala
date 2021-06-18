@@ -5,7 +5,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**
- * toString for class
+ * toString for classes
  *
  * @author 梦境迷离
  * @param verbose            Whether to enable detailed log.
