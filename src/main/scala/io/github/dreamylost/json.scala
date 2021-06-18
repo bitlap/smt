@@ -1,6 +1,6 @@
 package io.github.dreamylost
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
@@ -39,12 +39,12 @@ object jsonMacro {
             $format
           }
         """
-        c.info(c.enclosingPosition, s"className: $className, exists obj: $o", force = true)
+        c.info(c.enclosingPosition, s"modifiedCompanion className: $className, exists obj: $o", force = true)
         o
       } getOrElse {
         // Create a companion object with the formatter
         val o = q"object ${className.toTermName} { $format }"
-        c.info(c.enclosingPosition, s"className: $className, new obj: $o", force = true)
+        c.info(c.enclosingPosition, s"modifiedCompanion className: $className, new obj: $o", force = true)
         o
       }
     }
@@ -55,11 +55,12 @@ object jsonMacro {
           if (!mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
             c.abort(c.enclosingPosition, s"Annotation is only supported on case class. classDef: $classDecl, mods: $mods")
           } else {
+            c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
             (className, fields)
           }
         case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on case class. classDef: $classDecl")
       }
-      c.info(c.enclosingPosition, s"className: $className, fields: $fields", force = true)
+      c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
       className match {
         case t: TypeName =>
           val format = jsonFormatter(t, fields.asInstanceOf[List[Tree]])
