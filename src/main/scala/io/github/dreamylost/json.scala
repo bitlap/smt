@@ -1,6 +1,6 @@
 package io.github.dreamylost
 
-import scala.annotation.{StaticAnnotation, compileTimeOnly}
+import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 

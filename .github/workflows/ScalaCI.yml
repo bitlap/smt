@@ -38,9 +38,8 @@ jobs:
         run: |
           sbt \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.organization=gastonschabas \
+          -Dsonar.organization=jxnu-liguobin \
           -Dsonar.projectKey=jxnu-liguobin_scala-macro-tools \
           -Dsonar.sources=src/main/scala \
           -Dsonar.tests=src/test/scala \
-          -Dsonar.scala.coverage.reportPaths=target/scala-2.13/scoverage-report/scoverage.xml \
-          clean compile coverage test coverageReport sonarScan
+          -Dsonar.scala.coverage.reportPaths=target/scala-2.13/scoverage-report/scoverage.xml clean compile coverage test coverageReport sonarScan
