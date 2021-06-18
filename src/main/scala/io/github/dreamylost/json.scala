@@ -24,6 +24,7 @@ object jsonMacro {
       fields.length match {
         case 0 => c.abort(c.enclosingPosition, "Cannot create json formatter for case class with no fields")
         case _ =>
+          c.info(c.enclosingPosition, s"jsonFormatter className: $className, field length: ${fields.length}", force = true)
           q"implicit val jsonAnnotationFormat = play.api.libs.json.Json.format[$className]"
       }
     }
