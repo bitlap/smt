@@ -31,16 +31,16 @@ jobs:
       - name: Run Test
         run: sbt test
 
-  sonarcloud:
-    name: SonarCloud
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Test with Coverage / Static code analyse / Code style
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+        run: |
+          sbt \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.organization=gastonschabas \
+          -Dsonar.projectKey=jxnu-liguobin_scala-macro-tools \
+          -Dsonar.sources=src/main/scala \
+          -Dsonar.tests=src/test/scala \
+          -Dsonar.scala.coverage.reportPaths=target/scala-2.13/scoverage-report/scoverage.xml \
+          clean compile coverage test coverageReport sonarScan
