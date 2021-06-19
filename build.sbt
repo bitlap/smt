@@ -23,6 +23,7 @@ lazy val root = (project in file("."))
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     },
+    Test / testOptions += Tests.Argument("-oDF"),
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
     releaseProcess := Seq[ReleaseStep](
