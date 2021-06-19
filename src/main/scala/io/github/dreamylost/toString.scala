@@ -8,9 +8,9 @@ import scala.reflect.macros.whitebox
  * toString for classes
  *
  * @author 梦境迷离
- * @param verbose            Whether to enable detailed log.
+ * @param verbose           Whether to enable detailed log.
  * @param withInternalField Whether to include the fields defined within a class.
- * @param withFieldName      Whether to include the name of the field in the toString.
+ * @param withFieldName     Whether to include the name of the field in the toString.
  * @since 2021/6/13
  * @version 1.0
  */
@@ -102,11 +102,13 @@ object stringMacro {
       case q"new toString()" => (false, true, true)
       case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
     }
+    c.info(c.enclosingPosition, s"toString annottees: $annottees", true)
     val argument = Argument(arg._1, arg._2, arg._3)
     // Check the type of the class, which can only be defined on the ordinary class
     val annotateeClass: ClassDef = annottees.map(_.tree).toList match {
-      case (claz: ClassDef) :: Nil => claz
-      case _                       => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
+      case (classDecl: ClassDef) :: Nil => classDecl
+      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
+      case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
     }
     val isCase: Boolean = {
       annotateeClass match {
