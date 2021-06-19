@@ -9,7 +9,7 @@ scala macro and abstract syntax tree learning code.
 
 ## @toString
 
-The `@toString` used to generate `toString` for Scala classes or a `toString` with parameter names for the case class.
+The `@toString` used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
 
 - Note
     - `verbose` Whether to enable detailed log.
