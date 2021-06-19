@@ -15,6 +15,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
       "org.scalatest" %% "scalatest" % "3.0.9" % Test
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -22,6 +23,7 @@ lazy val root = (project in file("."))
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     },
+    Test / testOptions += Tests.Argument("-oDF"),
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
     releaseProcess := Seq[ReleaseStep](
@@ -54,15 +56,12 @@ lazy val `examples212` = (project in file("examples212")).settings(scalaVersion 
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
   )).settings(
   publish / skip := true,
+  paradise
+)
+
+val paradise = {
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, n)) => getParadise(n)
+    case Some((2, n)) if n < 13 => Some("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     case _ => None
-  }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f))))
-
-
-def getParadise(n: Long): Option[ModuleID] = {
-  if (n == 12) Option("org.scalamacros" % s"paradise_$scala212" % "2.1.1")
-  else if (n == 11) Option("org.scalamacros" % s"paradise_$scala211" % "2.1.1") else None
-  None
+  }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
 }
-
