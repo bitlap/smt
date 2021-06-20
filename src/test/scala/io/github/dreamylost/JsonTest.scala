@@ -11,7 +11,7 @@ import play.api.libs.json.Json
  */
 class JsonTest extends FlatSpec with Matchers {
 
-  // class must be writed here
+  // class must be wrote here
   @json
   case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
 

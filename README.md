@@ -9,6 +9,8 @@ scala macro and abstract syntax tree learning code.
 
 ## @toString
 
+The `@toString` used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
+
 - Note
     - `verbose` Whether to enable detailed log.
     - `withFieldName` Whether to include the name of the field in the toString.
@@ -56,6 +58,63 @@ import play.api.libs.json._
 val person = Person("Victor Hugo", 46)
 val json = Json.toJson(person)
 Json.fromJson[Person](json)
+```
+
+##  @builder
+
+The `@builder` used to generate builder pattern for Scala classes.
+
+- Note
+    - Support `case class` / `class`.
+    - It can be used with `@toString`. But it needs to be put in the back.      
+    - If there is no accompanying object, one will be generated to store the builder method.
+    - IDE support is not very good, a red prompt will appear, but the compilation is OK.
+
+- Example
+
+```scala
+@builder
+case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
+val ret = TestClass1.builder().i(1).j(0).x("x").build()
+assert(ret.toString == "TestClass1(1,0,x,Some())")
+```
+
+Compiler intermediate code:
+```scala
+object TestClass1 extends scala.AnyRef {
+  def <init>() = {
+    super.<init>();
+    ()
+  };
+  def builder(): Builder = new Builder();
+  class Builder extends scala.AnyRef {
+    def <init>() = {
+      super.<init>();
+      ()
+    };
+    private var i: Int = 0;
+    private var j: Int = _;
+    private var x: String = _;
+    private var o: Option[String] = Some("");
+    def i(i: Int): Builder = {
+      this.i = i;
+      this
+    };
+    def j(j: Int): Builder = {
+      this.j = j;
+      this
+    };
+    def x(x: String): Builder = {
+      this.x = x;
+      this
+    };
+    def o(o: Option[String]): Builder = {
+      this.o = o;
+      this
+    };
+    def build(): TestClass1 = TestClass1(i, j, x, o)
+  }
+}
 ```
 
 # How to use

@@ -77,6 +77,8 @@ object jsonMacro {
 
     }
 
+    c.info(c.enclosingPosition, s"json annottees: $annottees", true)
+
     annottees.map(_.tree) match {
       case (classDecl: ClassDef) :: Nil => modifiedDeclaration(classDecl)
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => modifiedDeclaration(classDecl, Some(compDecl))
