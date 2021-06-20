@@ -60,13 +60,13 @@ val json = Json.toJson(person)
 Json.fromJson[Person](json)
 ```
 
-##  @builder
+## @builder
 
 The `@builder` used to generate builder pattern for Scala classes.
 
 - Note
     - Support `case class` / `class`.
-    - It can be used with `@toString`. But it needs to be put in the back.      
+    - It can be used with `@toString`. But it needs to be put in the back.
     - If there is no accompanying object, one will be generated to store the builder method.
     - IDE support is not very good, a red prompt will appear, but the compilation is OK.
 
@@ -75,11 +75,13 @@ The `@builder` used to generate builder pattern for Scala classes.
 ```scala
 @builder
 case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
+
 val ret = TestClass1.builder().i(1).j(0).x("x").build()
 assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```
 
 Compiler intermediate code:
+
 ```scala
 object TestClass1 extends scala.AnyRef {
   def <init>() = {
@@ -129,6 +131,7 @@ The artefacts have been uploaded to Maven Central.
 
 | Library Version | Scala 2.11 | Scala 2.12 | Scala 2.13 |
 |---------|------------|------------|------------|
+| 0.0.4   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4/jar)        |
 | 0.0.3   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3/jar)        |
 | 0.0.2   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2/jar)        |
 | 0.0.1   |-|-| [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1/jar)        |
@@ -148,4 +151,4 @@ Where `<your-scala-version>` must be the full scala version. For example 2.12.13
 If that doesn't work, google for alternatives.
 
 In version scala`2.13.x`, the functionality of macro paradise has been included in the scala compiler directly. However,
-you must still enable the compiler flag `-Ymacro-annotations`. Please see examples from `examples212` sub-project.
+you must still enable the compiler flag `-Ymacro-annotations`.
