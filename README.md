@@ -13,7 +13,7 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
 
 - Note
     - `verbose` Whether to enable detailed log.
-    - `includeFieldNames` Whether to include the name of the field in the `toString`.
+    - `includeFieldNames` Whether to include the names of the field in the `toString`.
     - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor.
     - `callSuper`             Whether to include the super's `toString`. Not support if super class is a trait.
     - Support `case class` and `class`.
