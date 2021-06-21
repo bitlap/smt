@@ -43,7 +43,7 @@ The `@json` scala macro annotation is the quickest way to add a JSON format to y
     - This annotation is drawn from [json-annotation](https://github.com/kifi/json-annotation) and have some
       optimization.
     - It can also be used when there are other annotations on the case classes.
-    - Only an implicit `val` was generated automatically(Maybe need a companion object), and there are no other.
+    - Only an implicit `val` was generated automatically(Maybe generate a companion object if it not exists), and there are no other.
       operations.
 - Example
 

@@ -115,7 +115,7 @@ object stringMacro {
 
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
-    // extract parameters of annotation
+    // extract parameters of annotation, must in order
     val arg = c.prefix.tree match {
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" => (false, c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), c.eval[Boolean](c.Expr(dd)))
       case q"new toString($aa, $bb, $cc)" => (c.eval[Boolean](c.Expr(aa)), c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), false)
