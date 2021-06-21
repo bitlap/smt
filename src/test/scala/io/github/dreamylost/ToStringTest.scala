@@ -211,7 +211,7 @@ class ToStringTest extends FlatSpec with Matchers {
     case class TestClass2(j: Int = 1) extends TestClass1(1)
     val s1 = TestClass2().toString
     println(s1)
-    assert(s1 == "TestClass2()")
+    assert(s1 == "TestClass2(j=1)")
 
     @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass3(j: Int) extends TestClass1(j)
@@ -242,6 +242,12 @@ class ToStringTest extends FlatSpec with Matchers {
     println(s4)
     assert(s4 == "TestClass4(super=TestClass1(i=1))")
 
+    @toString(includeInternalFields = false, includeFieldNames = true, callSuper = true)
+    class TestClass4_2() extends TestClass1(1)
+    val s4_2 = new TestClass4_2().toString
+    println(s4_2)
+    assert(s4_2 == "TestClass4_2(super=TestClass1(i=1))")
+
     trait A {
       val i: Int
     }
@@ -252,7 +258,6 @@ class ToStringTest extends FlatSpec with Matchers {
     val s5 = new TestClass5().toString
     println(s5)
     // Because not support if super class is a trait
-    assert(s5 == "TestClass5(super=io.github.dreamylost.ToStringTest$TestClass5$1@7adda9cc, 1)")
-
+    assert(s5.startsWith("TestClass5(super=io.github.dreamylost.ToStringTes") && s5.endsWith("1)"))
   }
 }
