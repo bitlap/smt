@@ -43,7 +43,7 @@ The `@json` scala macro annotation is the quickest way to add a JSON format to y
     - This annotation is drawn from [json-annotation](https://github.com/kifi/json-annotation) and have some
       optimization.
     - It can also be used when there are other annotations on the case classes.
-    - Only an implicit `val` was generated automatically(Maybe generate a companion object if it not exists), and there are no other.
+    - Only an implicit `val` was generated automatically(Maybe generate a companion object if it not exists), and there are no other
       operations.
 - Example
 
@@ -68,7 +68,7 @@ The `@builder` used to generate builder pattern for Scala classes.
 - Note
     - Support `case class` / `class`.
     - It can be used with `@toString`. But it needs to be put in the back.
-    - If there is no companion object, one will be generated to store the `builder method` and `Builder` class.
+    - If there is no companion object, one will be generated to store the `builder` method and `Builder` class.
     - IDE support is not very good, a red prompt will appear, but the compilation is OK.
 
 - Example
