@@ -20,7 +20,7 @@ final class toString(
     verbose:               Boolean = false,
     includeInternalFields: Boolean = true,
     includeFieldNames:     Boolean = true,
-    callSuper:             Boolean = true
+    callSuper:             Boolean = false
 ) extends StaticAnnotation {
 
   def macroTransform(annottees: Any*): Any = macro stringMacro.impl

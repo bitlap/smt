@@ -12,11 +12,11 @@ scala macro and abstract syntax tree learning code.
 The `@toString` used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
 
 - Note
-    - `verbose` Whether to enable detailed log.
-    - `includeFieldNames` Whether to include the names of the field in the `toString`.
-    - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor.
-    - `callSuper`             Whether to include the super's `toString`. Not support if super class is a trait.
-    - Support `case class` and `class`.
+  - `verbose` Whether to enable detailed log.
+  - `includeFieldNames` Whether to include the names of the field in the `toString`.
+  - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor.
+  - `callSuper`             Whether to include the super's `toString`. Not support if super class is a trait.
+  - Support `case class` and `class`.
 
 - Example
 
@@ -68,7 +68,7 @@ The `@builder` used to generate builder pattern for Scala classes.
 - Note
     - Support `case class` / `class`.
     - It can be used with `@toString`. But it needs to be put in the back.
-    - If there is no companion object, one will be generated to store the builder method.
+    - If there is no companion object, one will be generated to store the `builder method` and `Builder` class.
     - IDE support is not very good, a red prompt will appear, but the compilation is OK.
 
 - Example
