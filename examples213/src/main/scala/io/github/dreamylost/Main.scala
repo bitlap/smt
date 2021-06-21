@@ -8,7 +8,7 @@ package io.github.dreamylost
  */
 object Main extends App {
 
-  @toString(withInternalField = true, withFieldName = true)
+  @toString(includeInternalFields = true, includeFieldNames = true)
   class TestClass(val i: Int = 0, var j: Int) {
     val y: Int = 0
     var z: String = "hello"

@@ -13,8 +13,9 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
 
 - Note
     - `verbose` Whether to enable detailed log.
-    - `withFieldName` Whether to include the name of the field in the toString.
-    - `withInternalField` Whether to include the fields defined within a class.
+    - `includeFieldNames` Whether to include the name of the field in the toString.
+    - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor.
+    - `callSuper`             Whether to include the super's `toString`. Not support if super class is a trait.
     - Support `case class` and `class`.
 
 - Example
@@ -29,7 +30,7 @@ class TestClass(val i: Int = 0, var j: Int) {
 println(new TestClass(1, 2));
 ```
 
-|withInternalField / withFieldName| false  |true
+|includeInternalFields / includeFieldNames| false  |true
 |  ---------------------------------  | ----------------------------------  |----------------------------------|
 |false|```TestClass(1, 2)``` |```TestClass(i=0, j=2)```|
 |true|```TestClass(1, 2, 0, hello, world)```|```TestClass(i=1, j=2, y=0, z=hello, x=world)```|
@@ -42,7 +43,7 @@ The `@json` scala macro annotation is the quickest way to add a JSON format to y
     - This annotation is drawn from [json-annotation](https://github.com/kifi/json-annotation) and have some
       optimization.
     - It can also be used when there are other annotations on the case classes.
-    - Only an implicit object was generated automatically(Maybe need a companion object), and there are no other
+    - Only an implicit object was generated automatically(Maybe need a companion object), and there are no other.
       operations.
 - Example
 
