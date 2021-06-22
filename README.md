@@ -3,7 +3,9 @@
 Motivation
 --
 
-scala macro and abstract syntax tree learning code.
+Learn Scala macro and abstract syntax tree.
+
+> The project is currently experimental
 
 # Features
 
