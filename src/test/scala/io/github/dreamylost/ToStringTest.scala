@@ -204,7 +204,7 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s2 == "TestClass2()")
   }
 
-  "toString15" should "super param not find" in {
+  "toString15" should "non-contains super toString" in {
     @toString()
     class TestClass1(val i: Int)
     @toString(verbose = true, includeInternalFields = true, includeFieldNames = true, callSuper = false)
@@ -226,7 +226,7 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s3 == "TestClass4(j=0)")
   }
 
-  "toString16" should "contains super param" in {
+  "toString16" should "contains super toString" in {
     @toString()
     class TestClass1(val i: Int)
     @toString(verbose = true, includeInternalFields = true, includeFieldNames = true, callSuper = true)
