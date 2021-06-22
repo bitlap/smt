@@ -27,7 +27,7 @@ final class toString(
 
 }
 
-case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
+final case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
 
 object stringMacro {
 
@@ -128,8 +128,8 @@ object stringMacro {
       case q"new toString()" => (false, true, true, false)
       case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
     }
-    c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)
     val argument = Argument(arg._1, arg._2, arg._3, arg._4)
+    c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)
     // Check the type of the class, which can only be defined on the ordinary class
     val annotateeClass: ClassDef = annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
