@@ -204,25 +204,60 @@ class ToStringTest extends FlatSpec with Matchers {
     assert(s2 == "TestClass2()")
   }
 
-  "toString15" should "super param not find" in {
+  "toString15" should "non-contains super toString" in {
     @toString()
     class TestClass1(val i: Int)
-    @toString(withInternalField = true, withFieldName = true)
-    case class TestClass2() extends TestClass1(1)
+    @toString(verbose = true, includeInternalFields = true, includeFieldNames = true, callSuper = false)
+    case class TestClass2(j: Int = 1) extends TestClass1(1)
     val s1 = TestClass2().toString
     println(s1)
-    assert(s1 == "TestClass2()") //TODO not support println super fields
+    assert(s1 == "TestClass2(j=1)")
 
-    @toString(withInternalField = true, withFieldName = true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass3(j: Int) extends TestClass1(j)
     val s2 = TestClass3(0).toString
     println(s2)
     assert(s2 == "TestClass3(j=0)")
 
-    @toString(withInternalField = true, withFieldName = true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     class TestClass4(j: Int) extends TestClass1(j)
     val s3 = new TestClass4(0).toString
     println(s3)
     assert(s3 == "TestClass4(j=0)")
+  }
+
+  "toString16" should "contains super toString" in {
+    @toString()
+    class TestClass1(val i: Int)
+    @toString(verbose = true, includeInternalFields = true, includeFieldNames = true, callSuper = true)
+    case class TestClass2(j: Int = 1) extends TestClass1(1)
+    val s1 = TestClass2().toString
+    println(s1)
+    assert(s1 == "TestClass2(super=TestClass1(i=1), j=1)")
+
+    @toString(includeInternalFields = true, includeFieldNames = true, callSuper = true)
+    class TestClass4() extends TestClass1(1)
+    // StringContext("TestClass5(super=", ")").s(super.toString);
+    val s4 = new TestClass4().toString
+    println(s4)
+    assert(s4 == "TestClass4(super=TestClass1(i=1))")
+
+    @toString(includeInternalFields = false, includeFieldNames = true, callSuper = true)
+    class TestClass4_2() extends TestClass1(1)
+    val s4_2 = new TestClass4_2().toString
+    println(s4_2)
+    assert(s4_2 == "TestClass4_2(super=TestClass1(i=1))")
+
+    trait A {
+      val i: Int
+    }
+    @toString(includeInternalFields = true, includeFieldNames = false, callSuper = true)
+    class TestClass5 extends A {
+      override val i = 1
+    }
+    val s5 = new TestClass5().toString
+    println(s5)
+    // Because not support if super class is a trait
+    assert(s5.startsWith("TestClass5(super=io.github.dreamylost.ToStringTes") && s5.endsWith("1)"))
   }
 }
