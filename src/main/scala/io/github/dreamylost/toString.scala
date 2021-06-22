@@ -62,7 +62,7 @@ object stringMacro {
     val (className, annotteeClassParams, superClasses, annotteeClassDefinitions) = {
       annotateeClass match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          c.info(c.enclosingPosition, s"parents: $parents", force = true)
+          c.info(c.enclosingPosition, s"parents: $parents", force = argument.verbose)
           (tpname, paramss, parents, stats)
       }
     }
@@ -70,7 +70,7 @@ object stringMacro {
     val annotteeClassFieldDefinitions = annotteeClassDefinitions.asInstanceOf[List[Tree]].filter(p => p match {
       case _: ValDef => true
       case mem: MemberDef =>
-        c.info(c.enclosingPosition, s"MemberDef:  ${mem.toString}", force = true)
+        c.info(c.enclosingPosition, s"MemberDef:  ${mem.toString}", force = argument.verbose)
         if (mem.toString().startsWith("override def toString")) {
           c.abort(mem.pos, "'toString' method has already defined, please remove it or not use'@toString'")
         }
@@ -83,8 +83,8 @@ object stringMacro {
       case tree @ q"$mods val $tname: $tpt = $expr" => tree
       case tree @ q"$mods var $tname: $tpt = $expr" => tree
     }
-    c.info(c.enclosingPosition, s"className： $className, ctorParams: ${ctorParams.toString()}, superClasses: $superClasses", force = true)
-    c.info(c.enclosingPosition, s"className： $className, fields: ${annotteeClassFieldDefinitions.toString()}", force = true)
+    c.info(c.enclosingPosition, s"className： $className, ctorParams: ${ctorParams.toString()}, superClasses: $superClasses", force = argument.verbose)
+    c.info(c.enclosingPosition, s"className： $className, fields: ${annotteeClassFieldDefinitions.toString()}", force = argument.verbose)
     val member = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
     val lastParam = member.lastOption.map {
@@ -103,7 +103,7 @@ object stringMacro {
       }
       superClassDef.fold(toString)(sc => {
         val superClass = q"${"super="}"
-        c.info(c.enclosingPosition, s"member: $member, superClass： $superClass, superClassDef: $superClassDef, paramsWithName: $paramsWithName", force = true)
+        c.info(c.enclosingPosition, s"member: $member, superClass： $superClass, superClassDef: $superClassDef, paramsWithName: $paramsWithName", force = argument.verbose)
         q"override def toString: String = StringContext(${className.toString()} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
       }
       )
@@ -128,7 +128,7 @@ object stringMacro {
       case q"new toString()" => (false, true, true, false)
       case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
     }
-    c.info(c.enclosingPosition, s"toString annottees: $annottees", force = true)
+    c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)
     val argument = Argument(arg._1, arg._2, arg._3, arg._4)
     // Check the type of the class, which can only be defined on the ordinary class
     val annotateeClass: ClassDef = annottees.map(_.tree).toList match {
@@ -146,7 +146,7 @@ object stringMacro {
       }
     }
 
-    c.info(c.enclosingPosition, s"impl argument: $argument, isCase: $isCase", force = true)
+    c.info(c.enclosingPosition, s"impl argument: $argument, isCase: $isCase", force = argument.verbose)
     val resMethod = toStringTemplateImpl(c)(argument, annotateeClass)
     val resTree = annotateeClass match {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
