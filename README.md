@@ -122,6 +122,35 @@ object TestClass1 extends scala.AnyRef {
 }
 ```
 
+## @synchronized
+
+The `@synchronized` is a more convenient and flexible synchronous annotation.
+
+- Note
+  - Support static and instance methods.
+  - It can customize the lock object, and the default is this.
+
+- Example
+
+```scala
+
+private final val obj = new Object
+
+@synchronized(lockedName = "obj") // The default is this. If you fill in a non existent field name, the compilation will fail.
+def getStr3(k: Int): String = {
+  k + ""
+}
+```
+
+Compiler intermediate code:
+
+```scala
+// Note that it will not judge whether synchronized already exists, so if synchronized already exists, it will be used twice. 
+// For example `def getStr(k: Int): String = this.synchronized(this.synchronized(k.$plus("")))
+// It is not sure whether it will be optimized at the bytecode level.
+def getStr(k: Int): String = this.synchronized(k.$plus(""))
+```
+
 # How to use
 
 Add library dependency
