@@ -1,6 +1,6 @@
 package io.github.dreamylost
 
-import scala.annotation.{ ConstantAnnotation, compileTimeOnly }
+import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
@@ -16,7 +16,7 @@ import scala.reflect.macros.whitebox
 final class synchronized(
     verbose:    Boolean = false,
     lockedName: String  = "this"
-) extends ConstantAnnotation {
+) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro synchronizedMacro.impl
 }
 
