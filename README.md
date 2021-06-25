@@ -129,7 +129,7 @@ The `@synchronized` is a more convenient and flexible synchronous annotation.
 - Note
   - `lockedName` The name of custom lock obj. 
   - Support static and instance methods.
-  - It can customize the lock object, and the default is this.
+  - It can customize the lock object, and the default is `this`.
 
 - Example
 
@@ -142,7 +142,7 @@ def getStr3(k: Int): String = {
   k + ""
 }
 
-// OR
+// or
 @synchronized //use this
 def getStr(k: Int): String = {
   k + ""
