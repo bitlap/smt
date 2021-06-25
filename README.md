@@ -69,7 +69,7 @@ The `@builder` used to generate builder pattern for Scala classes.
 
 - Note
     - Support `case class` / `class`.
-    - It can be used with `@toString`. But it needs to be put in the back.
+    - It can be used with `@toString`. But `@builder` needs to be put in the back.
     - If there is no companion object, one will be generated to store the `builder` method and `Builder` class.
     - IDE support is not very good, a red prompt will appear, but the compilation is OK.
 
@@ -127,6 +127,7 @@ object TestClass1 extends scala.AnyRef {
 The `@synchronized` is a more convenient and flexible synchronous annotation.
 
 - Note
+  - `lockedName` The name of custom lock obj. 
   - Support static and instance methods.
   - It can customize the lock object, and the default is this.
 
@@ -138,6 +139,12 @@ private final val obj = new Object
 
 @synchronized(lockedName = "obj") // The default is this. If you fill in a non existent field name, the compilation will fail.
 def getStr3(k: Int): String = {
+  k + ""
+}
+
+// OR
+@synchronized //use this
+def getStr(k: Int): String = {
   k + ""
 }
 ```

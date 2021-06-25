@@ -10,7 +10,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  */
 class Synchronized extends FlatSpec with Matchers {
 
-  "synchronized1" should "at class" in {
+  "synchronized1" should "is ok at class" in {
     @synchronized
     def getStr(k: Int): String = {
       k + ""
@@ -32,26 +32,39 @@ class Synchronized extends FlatSpec with Matchers {
       """ should compile
   }
 
-  private final val obj = new Object
+  "synchronized2" should "is ok by custom obj" in {
 
-  @synchronized(lockedName = "obj")
-  def getStr3(k: Int): String = {
-    k + ""
-  }
-  """
+    val obj = new Object
+
+    @synchronized(lockedName = "obj")
+    def getStr3(k: Int): String = {
+      k + ""
+    }
+    """
      @synchronized(lockedName = "obj")
      def getStr3(k: Int) = {
           k + ""
         }
       """ should compile
 
-  object TestObject {
-    // def getStr(k: Int): String = this.synchronized(k.$plus(""))
-    // def getStr(k: Int): String = this.synchronized(this.synchronized(k.$plus("")))
-    @synchronized
-    def getStr(k: Int): String = {
-      this.synchronized(k + "")
+    object TestObject {
+      // def getStr(k: Int): String = this.synchronized(k.$plus(""))
+      // def getStr(k: Int): String = this.synchronized(this.synchronized(k.$plus("")))
+      @synchronized
+      def getStr(k: Int): String = {
+        this.synchronized(k + "")
+      }
     }
+
+    """
+     @synchronized(lockedName = "obj")
+     class A
+      """ shouldNot compile
+
+    """
+     @synchronized(lockedName = "obj")
+     val s = "1"
+      """ shouldNot compile
   }
 
 }
