@@ -33,7 +33,7 @@ object LogType extends Enumeration {
   val JLog, Log4j2, Slf4j = Value
 
   private lazy val types = Map(
-    JLog -> JBaseLogImpl,
+    JLog -> JLogImpl,
     Log4j2 -> Log4J2Impl,
     Slf4j -> Slf4jImpl
   )
@@ -44,15 +44,15 @@ object LogType extends Enumeration {
 
 }
 
-object JBaseLogImpl extends BaseLog {
+object JLogImpl extends BaseLog {
   override val typ: LogType = LogType.JLog
 
   override def getTemplate(c: whitebox.Context)(t: String, isClass: Boolean): c.Tree = {
     import c.universe._
     if (isClass) {
-      q"""private val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(t)}].getName)"""
+      q"""private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(t)}].getName)"""
     } else {
-      q"""private val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(t)}.getClass.getName)"""
+      q"""private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(t)}.getClass.getName)"""
     }
   }
 
@@ -61,13 +61,28 @@ object JBaseLogImpl extends BaseLog {
 object Log4J2Impl extends BaseLog {
   override val typ: LogType = LogType.Log4j2
 
-  override def getTemplate(c: whitebox.Context)(t: String, isClass: Boolean): c.Tree = ???
+  override def getTemplate(c: whitebox.Context)(t: String, isClass: Boolean): c.Tree = {
+    import c.universe._
+    if (isClass) {
+      q"""private final val log: org.apache.logging.log4j.Logger = org.apache.logging.log4j.LogManager.getLogger(classOf[${TypeName(t)}].getName)"""
+    } else {
+      q"""private final val log: org.apache.logging.log4j.Logger = org.apache.logging.log4j.LogManager.getLogger(${TermName(t)}.getClass.getName)"""
+    }
+  }
+
 }
 
 object Slf4jImpl extends BaseLog {
   override val typ: LogType = LogType.Slf4j
 
-  override def getTemplate(c: whitebox.Context)(t: String, isClass: Boolean): c.Tree = ???
+  override def getTemplate(c: whitebox.Context)(t: String, isClass: Boolean): c.Tree = {
+    import c.universe._
+    if (isClass) {
+      q"""private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(classOf[${TypeName(t)}])"""
+    } else {
+      q"""private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(${TermName(t)}.getClass)"""
+    }
+  }
 }
 
 object logMacro extends MacroCommon {

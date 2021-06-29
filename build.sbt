@@ -15,6 +15,9 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "org.apache.logging.log4j" % "log4j-api" % "2.14.1" % Test,
+      "org.apache.logging.log4j" % "log4j-core" % "2.14.1" % Test,
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.14.1" % Test,
       "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
       "org.scalatest" %% "scalatest" % "3.0.9" % Test
     ), Compile / scalacOptions ++= {
