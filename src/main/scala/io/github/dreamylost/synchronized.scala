@@ -20,7 +20,7 @@ final class synchronized(
   def macroTransform(annottees: Any*): Any = macro synchronizedMacro.impl
 }
 
-object synchronizedMacro {
+object synchronizedMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
@@ -47,12 +47,7 @@ object synchronizedMacro {
         }
       case _ => c.abort(c.enclosingPosition, "Invalid annotation target: not a method")
     }
-    // Print the ast
-    c.info(
-      c.enclosingPosition,
-      "\n###### Expanded macro ######\n" + resTree.toString() + "\n###### Expanded macro ######\n",
-      force = args._1
-    )
+    printTree(c)(args._1, resTree)
     c.Expr[Any](resTree)
   }
 }

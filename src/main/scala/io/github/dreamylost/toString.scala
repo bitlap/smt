@@ -29,7 +29,7 @@ final class toString(
 
 final case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
 
-object stringMacro {
+object stringMacro extends MacroCommon {
 
   def printField(c: whitebox.Context)(argument: Argument, lastParam: Option[String], field: c.universe.Tree): c.universe.Tree = {
     import c.universe._
@@ -71,7 +71,7 @@ object stringMacro {
       case _: ValDef => true
       case mem: MemberDef =>
         c.info(c.enclosingPosition, s"MemberDef:  ${mem.toString}", force = argument.verbose)
-        if (mem.toString().startsWith("override def toString")) {
+        if (mem.toString().startsWith("override def toString")) { // TODO better way
           c.abort(mem.pos, "'toString' method has already defined, please remove it or not use'@toString'")
         }
         false
@@ -131,20 +131,8 @@ object stringMacro {
     val argument = Argument(arg._1, arg._2, arg._3, arg._4)
     c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)
     // Check the type of the class, which can only be defined on the ordinary class
-    val annotateeClass: ClassDef = annottees.map(_.tree).toList match {
-      case (classDecl: ClassDef) :: Nil => classDecl
-      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
-      case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
-    }
-    val isCase: Boolean = {
-      annotateeClass match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          if (mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
-            c.warning(c.enclosingPosition, "'toString' annotation is used on 'case class'.")
-            true
-          } else false
-      }
-    }
+    val annotateeClass: ClassDef = checkAndReturnClass(c)(annottees: _*)
+    val isCase: Boolean = isCaseClass(c)(annotateeClass)
 
     c.info(c.enclosingPosition, s"impl argument: $argument, isCase: $isCase", force = argument.verbose)
     val resMethod = toStringTemplateImpl(c)(argument, annotateeClass)
@@ -152,12 +140,7 @@ object stringMacro {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
         q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(resMethod)} }"
     }
-    // Print the ast
-    c.info(
-      c.enclosingPosition,
-      "\n###### Expanded macro ######\n" + resTree.toString() + "\n###### Expanded macro ######\n",
-      force = argument.verbose
-    )
+    printTree(c)(argument.verbose, resTree)
     c.Expr[Any](resTree)
   }
 }

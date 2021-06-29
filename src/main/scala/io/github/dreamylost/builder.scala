@@ -16,7 +16,7 @@ final class builder extends StaticAnnotation {
 
 }
 
-object builderMacro {
+object builderMacro extends MacroCommon {
 
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
@@ -98,7 +98,8 @@ object builderMacro {
       }
     }
 
-    def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): c.Expr[Nothing] = {
+    // The dependent type need aux-pattern in scala2. Now let's get around this.
+    def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val (mods, className, fields) = classDecl match {
         case q"$mods class $className(..$fields) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
@@ -123,18 +124,9 @@ object builderMacro {
 
     c.info(c.enclosingPosition, s"builder annottees: $annottees", true)
 
-    val resTree = annottees.map(_.tree) match {
-      case (classDecl: ClassDef) :: Nil => modifiedDeclaration(classDecl)
-      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => modifiedDeclaration(classDecl, Some(compDecl))
-      case _ => c.abort(c.enclosingPosition, "Invalid annottee")
-    }
+    val resTree = handleWithImplType(c)(annottees: _*)(modifiedDeclaration)
+    printTree(c)(force = true, resTree.tree)
 
-    // Print the ast
-    c.info(
-      c.enclosingPosition,
-      "\n###### Expanded macro ######\n" + resTree.toString() + "\n###### Expanded macro ######\n",
-      force = true
-    )
     resTree
   }
 }

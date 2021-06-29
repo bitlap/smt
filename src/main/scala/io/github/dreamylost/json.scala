@@ -16,7 +16,7 @@ final class json extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro jsonMacro.impl
 }
 
-object jsonMacro {
+object jsonMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
@@ -50,7 +50,8 @@ object jsonMacro {
       }
     }
 
-    def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): c.Expr[Nothing] = {
+    // The dependent type need aux-pattern in scala2. Now let's get around this.
+    def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val (className, fields) = classDecl match {
         case q"$mods class $className(..$fields) extends ..$bases { ..$body }" =>
           if (!mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
@@ -77,12 +78,10 @@ object jsonMacro {
 
     }
 
-    c.info(c.enclosingPosition, s"json annottees: $annottees", true)
+    c.info(c.enclosingPosition, s"json annottees: $annottees", force = true)
+    val resTree = handleWithImplType(c)(annottees: _*)(modifiedDeclaration)
+    printTree(c)(force = true, resTree.tree)
 
-    annottees.map(_.tree) match {
-      case (classDecl: ClassDef) :: Nil => modifiedDeclaration(classDecl)
-      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => modifiedDeclaration(classDecl, Some(compDecl))
-      case _ => c.abort(c.enclosingPosition, "Invalid annottee")
-    }
+    resTree
   }
 }
