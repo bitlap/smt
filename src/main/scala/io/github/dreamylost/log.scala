@@ -91,6 +91,7 @@ object logMacro extends MacroCommon {
     val args: (Boolean, LogType) = c.prefix.tree match {
       case q"new log(logType=$logType)" => (false, c.eval[LogType](c.Expr(logType)))
       case q"new log(verbose=$verbose)" => (c.eval[Boolean](c.Expr(verbose)), LogType.JLog)
+      case q"new log($logType)" => (false, c.eval[LogType](c.Expr(logType)))
       case q"new log(verbose=$verbose, logType=$logType)" => (c.eval[Boolean](c.Expr(verbose)), c.eval[LogType](c.Expr(logType)))
       case q"new log()" => (false, LogType.JLog)
       case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")

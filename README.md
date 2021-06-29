@@ -71,7 +71,8 @@ The `@builder` used to generate builder pattern for Scala classes.
     - Support `case class` / `class`.
     - It can be used with `@toString`. But `@builder` needs to be put in the back.
     - If there is no companion object, one will be generated to store the `builder` method and `Builder` class.
-    - IDE support is not very good, a red prompt will appear, but the compilation is OK.
+    
+> IDE support is not very good, a red prompt will appear, but the compilation is OK.
 
 - Example
 
@@ -156,6 +157,31 @@ Compiler intermediate code:
 // For example `def getStr(k: Int): String = this.synchronized(this.synchronized(k.$plus("")))
 // It is not sure whether it will be optimized at the bytecode level.
 def getStr(k: Int): String = this.synchronized(k.$plus(""))
+```
+
+## @log
+
+The `@log` does not use mixed or wrapper, but directly uses macro to generate default log object and operate log.
+
+- Note
+  - `verbose` Whether to enable detailed log.
+  - `logType` Specifies the type of `log` that needs to be generated.
+    - `java.util.logging.Logger`
+    - `org.apache.logging.log4j.Logger`
+    - `org.slf4j.Logger`
+  - Support `class`, `case class` and `object`. 
+    
+
+> IDE support is not very good, a red prompt will appear, but the compilation is OK. Need to provide their dependencies, refer to the test.
+
+- Example
+
+```scala
+@log(verbose = true) class TestClass1(val i: Int = 0, var j: Int) {
+  log.info("hello")
+}
+
+@log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
 ```
 
 # How to use

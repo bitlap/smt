@@ -87,10 +87,12 @@ class LogTest extends FlatSpec with Matchers {
               log.info("hello")
            }""" should compile
 
-    """@log class TestClass2(val i: Int = 0, var j: Int)""" should compile
+    """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile //Use with multiple annotations
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
     """@log(verbose=true) class TestClass4(val i: Int = 0, var j: Int)""" should compile
     """@log(logType=io.github.dreamylost.LogType.Slf4j) class TestClass5(val i: Int = 0, var j: Int)""" should compile
     """@log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int)""" should compile
+    """@log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }""" should compile
+    """@log(io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }""" should compile //default verbose is false
   }
 }
