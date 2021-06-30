@@ -72,7 +72,7 @@ The `@builder` used to generate builder pattern for Scala classes.
     - It can be used with `@toString`. But `@builder` needs to be put in the back.
     - If there is no companion object, one will be generated to store the `builder` method and `Builder` class.
     
-> IDE support is not very good, a red prompt will appear, but the compilation is OK.
+> IDE support is not very good, a red prompt will appear, but the compilation is OK. It only for the fields in the primary constructor
 
 - Example
 
@@ -166,13 +166,13 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
 - Note
   - `verbose` Whether to enable detailed log.
   - `logType` Specifies the type of `log` that needs to be generated.
-    - `java.util.logging.Logger`
-    - `org.apache.logging.log4j.Logger`
-    - `org.slf4j.Logger`
+    - `io.github.dreamylost.LogType.JLog` use `java.util.logging.Logger`
+    - `io.github.dreamylost.LogType.Log4j2` use `org.apache.logging.log4j.Logger`
+    - `io.github.dreamylost.LogType.Slf4j` use `org.slf4j.Logger`
   - Support `class`, `case class` and `object`. 
     
 
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. Need to provide their dependencies, refer to the test.
+> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
 
 - Example
 
