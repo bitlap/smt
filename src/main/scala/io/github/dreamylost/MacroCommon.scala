@@ -66,7 +66,7 @@ trait MacroCommon {
     annotateeClass match {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
         if (mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
-          c.info(c.enclosingPosition, "Annotation is used on 'case class'.")
+          c.info(c.enclosingPosition, "Annotation is used on 'case class'.", true)
           true
         } else false
       case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class. classDef: $annotateeClass")
