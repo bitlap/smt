@@ -19,6 +19,7 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
   - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor.
   - `callSuper`             Whether to include the super's `toString`. Not support if super class is a trait.
   - Support `case class` and `class`.
+  - Currying is not supported in constructors at present.
 
 - Example
 
@@ -71,6 +72,7 @@ The `@builder` used to generate builder pattern for Scala classes.
     - Support `case class` / `class`.
     - It can be used with `@toString`. But `@builder` needs to be put in the back.
     - If there is no companion object, one will be generated to store the `builder` method and `Builder` class.
+    - Currying is not supported in constructors at present.
     
 > IDE support is not very good, a red prompt will appear, but the compilation is OK. It only for the fields in the primary constructor
 
@@ -182,6 +184,25 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
 }
 
 @log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
+```
+
+## @apply
+
+The `@apply` used to generate `apply` method for primary construction of ordinary classes.
+
+- Note
+  - `verbose` Whether to enable detailed log.
+  - Only support `class`.
+  - Only support **primary construction**.
+  - Currying is not supported for constructors at present.
+
+> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
+
+- Example
+
+```scala
+@apply @toString class B2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))
+println(B2(1, 2))
 ```
 
 # How to use
