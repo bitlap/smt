@@ -5,6 +5,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**
+ * annotation to generate builder pattern for classes.
  *
  * @author 梦境迷离
  * @since 2021/6/19
@@ -77,52 +78,33 @@ object builderMacro extends MacroCommon {
        """
     }
 
-    def modifiedCompanion(compDeclOpt: Option[ModuleDef], builder: Tree, className: TypeName): c.universe.Tree = {
-      compDeclOpt map { compDecl =>
-        // Add the builder to the existing companion object
-        val q"object $obj extends ..$bases { ..$body }" = compDecl
-        val o =
-          q"""
-          object $obj extends ..$bases {
-            ..$body
-            ..$builder
-          }
-        """
-        c.info(c.enclosingPosition, s"modifiedCompanion className: $className, exists obj: $o", force = true)
-        o
-      } getOrElse {
-        // Create a companion object with the builder
-        val o = q"object ${className.toTermName} { ..$builder }"
-        c.info(c.enclosingPosition, s"modifiedCompanion className: $className, new obj: $o", force = true)
-        o
-      }
-    }
-
     // The dependent type need aux-pattern in scala2. Now let's get around this.
     def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (mods, className, fields) = classDecl match {
-        case q"$mods class $className(..$fields) extends ..$bases { ..$body }" =>
-          c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
-          (mods, className, fields)
+      val (className, fields) = classDecl match {
+        case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
+          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
+          (tpname, paramss)
         case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class. classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, fields: $fields", force = true)
-      className match {
-        case tp: TypeName =>
-          val builder = builderTemplate(tp, fields.asInstanceOf[List[Tree]], mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE))
-          val compDecl = modifiedCompanion(compDeclOpt, builder, tp)
-          c.info(c.enclosingPosition, s"builder: $builder, compDecl: $compDecl", force = true)
-          // Return both the class and companion object declarations
-          c.Expr(
-            q"""
+
+      val cName = className match {
+        case t: TypeName => t
+      }
+      val isCase = isCaseClass(c)(classDecl)
+      val builder = builderTemplate(cName, fields.asInstanceOf[List[List[Tree]]].flatten, isCase)
+      val compDecl = modifiedCompanion(c)(compDeclOpt, builder, cName)
+      c.info(c.enclosingPosition, s"builder: $builder, compDecl: $compDecl", force = true)
+      // Return both the class and companion object declarations
+      c.Expr(
+        q"""
         $classDecl
         $compDecl
       """)
-      }
 
     }
 
-    c.info(c.enclosingPosition, s"builder annottees: $annottees", true)
+    c.info(c.enclosingPosition, s"builder annottees: $annottees", force = true)
 
     val resTree = handleWithImplType(c)(annottees: _*)(modifiedDeclaration)
     printTree(c)(force = true, resTree.tree)

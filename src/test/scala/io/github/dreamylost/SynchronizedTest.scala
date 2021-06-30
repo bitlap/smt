@@ -8,7 +8,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @since 2021/6/24
  * @version 1.0
  */
-class Synchronized extends FlatSpec with Matchers {
+class SynchronizedTest extends FlatSpec with Matchers {
 
   "synchronized1" should "is ok at class" in {
     @synchronized

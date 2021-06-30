@@ -5,6 +5,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**
+ * annotation to generate synchronized for methods.
  *
  * @author 梦境迷离
  * @param lockedName The name of custom lock obj.

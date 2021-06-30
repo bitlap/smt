@@ -5,7 +5,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**
- * toString for classes
+ * annotation to generate toString for classes.
  *
  * @author 梦境迷离
  * @param verbose               Whether to enable detailed log.
@@ -140,7 +140,18 @@ object stringMacro extends MacroCommon {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
         q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(resMethod)} }"
     }
-    printTree(c)(argument.verbose, resTree)
-    c.Expr[Any](resTree)
+    val companionOpt = getCompanionObject(c)(annottees: _*)
+    val res = if (companionOpt.isEmpty) {
+      resTree
+    } else {
+      val q"$mods object $obj extends ..$bases { ..$body }" = companionOpt.get
+      val companion = q"$mods object $obj extends ..$bases { ..$body }"
+      q"""
+         $resTree
+         $companion
+         """
+    }
+    printTree(c)(argument.verbose, res)
+    c.Expr[Any](res)
   }
 }

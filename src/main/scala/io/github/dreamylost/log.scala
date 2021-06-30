@@ -7,6 +7,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**
+ * annotation to generate log.
  *
  * @author 梦境迷离
  * @param verbose Whether to enable detailed log.
