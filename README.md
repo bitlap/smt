@@ -7,6 +7,8 @@ Learn Scala macro and abstract syntax tree.
 
 > The project is currently experimental
 
+[中文说明](./README_ZH.md)|[English](./README.md)
+
 # Features
 
 ## @toString
@@ -15,9 +17,9 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
 
 - Note
   - `verbose` Whether to enable detailed log.
-  - `includeFieldNames` Whether to include the names of the field in the `toString`.
-  - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor.
-  - `callSuper`             Whether to include the super's `toString`. Not support if super class is a trait.
+  - `includeFieldNames` Whether to include the names of the field in the `toString`, default is `true`.
+  - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor, default is `true`.
+  - `callSuper`             Whether to include the super's `toString`, default is `false`. Not support if super class is a trait.
   - Support `case class` and `class`.
   - Currying is not supported in constructors at present.
 
@@ -33,10 +35,10 @@ class TestClass(val i: Int = 0, var j: Int) {
 println(new TestClass(1, 2));
 ```
 
-|includeInternalFields / includeFieldNames| false  |true
-|  ---------------------------------  | ----------------------------------  |----------------------------------|
-|false|```TestClass(1, 2)``` |```TestClass(i=0, j=2)```|
-|true|```TestClass(1, 2, 0, hello, world)```|```TestClass(i=1, j=2, y=0, z=hello, x=world)```|
+| includeInternalFields / includeFieldNames | false                                  | true                                             |
+| ----------------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| false                                     | ```TestClass(1, 2)```                  | ```TestClass(i=0, j=2)```                        |
+| true                                      | ```TestClass(1, 2, 0, hello, world)``` | ```TestClass(i=1, j=2, y=0, z=hello, x=world)``` |
 
 ## @json
 
@@ -70,8 +72,7 @@ The `@builder` used to generate builder pattern for Scala classes.
 
 - Note
     - Support `case class` / `class`.
-    - It can be used with `@toString`. But `@builder` needs to be put in the back.
-    - If there is no companion object, one will be generated to store the `builder` method and `Builder` class.
+    - If there is no companion object, one will be generated to store the `builder` class and method.
     - Currying is not supported in constructors at present.
     
 > IDE support is not very good, a red prompt will appear, but the compilation is OK. It only for the fields in the primary constructor
@@ -130,9 +131,8 @@ object TestClass1 extends scala.AnyRef {
 The `@synchronized` is a more convenient and flexible synchronous annotation.
 
 - Note
-  - `lockedName` The name of custom lock obj. 
+  - `lockedName` The name of the custom lock obj, default is `this`. 
   - Support static and instance methods.
-  - It can customize the lock object, and the default is `this`.
 
 - Example
 
@@ -167,7 +167,7 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
 
 - Note
   - `verbose` Whether to enable detailed log.
-  - `logType` Specifies the type of `log` that needs to be generated.
+  - `logType` Specifies the type of `log` that needs to be generated, default is `io.github.dreamylost.LogType.JLog`.
     - `io.github.dreamylost.LogType.JLog` use `java.util.logging.Logger`
     - `io.github.dreamylost.LogType.Log4j2` use `org.apache.logging.log4j.Logger`
     - `io.github.dreamylost.LogType.Slf4j` use `org.slf4j.Logger`
@@ -215,19 +215,19 @@ Add library dependency
 
 The artefacts have been uploaded to Maven Central.
 
-| Library Version | Scala 2.11 | Scala 2.12 | Scala 2.13 |
-|---------|------------|------------|------------|
-| 0.0.5   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5/jar)        |
-| 0.0.4   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4/jar)        |
-| 0.0.3   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3/jar)        |
-| 0.0.2   | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2/jar)        | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2/jar)        |
-| 0.0.1   |-|-| [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1/jar)        |
+| Library Version | Scala 2.11                                                                                                                                                                                                  | Scala 2.12                                                                                                                                                                                                  | Scala 2.13                                                                                                                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.0.5           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5/jar) |
+| 0.0.4           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4/jar) |
+| 0.0.3           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3/jar) |
+| 0.0.2           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2/jar) |
+| 0.0.1           | -                                                                                                                                                                                                           | -                                                                                                                                                                                                           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1/jar) |
 
 Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
 
-| Scala 2.11 | Scala 2.12 | Scala 2.13 |
-|------------|-------------|------------|
-| Import macro paradise plugin  | Import macro paradise plugin | Enable compiler flag `-Ymacro-annotations` required |
+| Scala 2.11                   | Scala 2.12                   | Scala 2.13                                          |
+| ---------------------------- | ---------------------------- | --------------------------------------------------- |
+| Import macro paradise plugin | Import macro paradise plugin | Enable compiler flag `-Ymacro-annotations` required |
 
 ```scala
 addCompilerPlugin("org.scalamacros" % "paradise_<your-scala-version>" % "<plugin-version>")
