@@ -9,7 +9,6 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @version 1.0
  */
 class ToStringTest extends FlatSpec with Matchers {
-
   "toString1" should "not contains internal field" in {
     @toString(false, false, false)
     class TestClass(val i: Int = 0, var j: Int) {
@@ -260,4 +259,5 @@ class ToStringTest extends FlatSpec with Matchers {
     // Because not support if super class is a trait
     assert(s5.startsWith("TestClass5(super=io.github.dreamylost.ToStringTes") && s5.endsWith("1)"))
   }
+
 }
