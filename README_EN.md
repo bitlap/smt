@@ -11,6 +11,13 @@ Learn Scala macro and abstract syntax tree.
 
 # Features
 
+- `@toString`
+- `@json`
+- `@builder`
+- `@synchronized`
+- `@log`
+- `@apply`
+
 ## @toString
 
 The `@toString` used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
