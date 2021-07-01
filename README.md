@@ -12,6 +12,13 @@
 
 # 功能
 
+- `@toString`
+- `@json`
+- `@builder`
+- `@synchronized`
+- `@log`
+- `@apply`
+
 ## @toString
 
 `@toString`注解用于为Scala类生成`toString`方法。
