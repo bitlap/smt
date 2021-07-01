@@ -7,7 +7,7 @@ Learn Scala macro and abstract syntax tree.
 
 > The project is currently experimental
 
-[中文说明](./README_ZH.md)|[English](./README.md)
+[中文说明](./README.md)|[English](./README_EN.md)
 
 # Features
 
