@@ -7,7 +7,7 @@
 
 > 本项目目前处于实验阶段
 
-[中文说明](./README_ZH.md)|[English](./README.md)
+[中文说明](./README.md)|[English](./README_EN.md)
 
 
 # 功能
