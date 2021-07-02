@@ -33,7 +33,7 @@
 - 示例
 
 ```scala
-class TestClass(val i: Int = 0, var j: Int) {
+@toString class TestClass(val i: Int = 0, var j: Int) {
   val y: Int = 0
   var z: String = "hello"
   var x: String = "world"
