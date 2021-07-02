@@ -11,7 +11,16 @@ import org.scalatest.matchers.should.Matchers
  */
 class ConstructorTest extends AnyFlatSpec with Matchers {
 
-  "constructor1" should "ok at class" in {
+  "constructor1" should "failed at object" in {
+    """    @constructor
+      |    object A2 {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin shouldNot compile
+  }
+
+  "constructor2" should "ok at class" in {
     """    @constructor(verbose = true)
       |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
       |      private val a: Int = 1
