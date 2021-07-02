@@ -1,7 +1,6 @@
 package io.github.dreamylost
 
 import io.github.dreamylost.LogType.LogType
-import io.github.dreamylost.constructorMacro.treeResultWithCompanionObject
 
 import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 import scala.language.experimental.macros
