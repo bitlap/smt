@@ -1,5 +1,7 @@
 package io.github.dreamylost
 
+import io.github.dreamylost.constructorMacro.treeResultWithCompanionObject
+
 import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
@@ -125,6 +127,8 @@ object stringMacro extends MacroCommon {
       case q"new toString($aa, $bb, $cc, $dd)" => (c.eval[Boolean](c.Expr(aa)), c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), c.eval[Boolean](c.Expr(dd)))
 
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" => (false, c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), false)
+      case q"new toString(includeInternalFields=$bb)" => (false, c.eval[Boolean](c.Expr(bb)), true, false)
+      case q"new toString(includeFieldNames=$cc)" => (false, true, c.eval[Boolean](c.Expr(cc)), false)
       case q"new toString()" => (false, true, true, false)
       case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
     }
@@ -140,17 +144,8 @@ object stringMacro extends MacroCommon {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
         q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(resMethod)} }"
     }
-    val companionOpt = getCompanionObject(c)(annottees: _*)
-    val res = if (companionOpt.isEmpty) {
-      resTree
-    } else {
-      val q"$mods object $obj extends ..$bases { ..$body }" = companionOpt.get
-      val companion = q"$mods object $obj extends ..$bases { ..$body }"
-      q"""
-         $resTree
-         $companion
-         """
-    }
+
+    val res = treeResultWithCompanionObject(c)(resTree, annottees: _*)
     printTree(c)(argument.verbose, res)
     c.Expr[Any](res)
   }

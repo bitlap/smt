@@ -28,12 +28,11 @@ trait MacroCommon {
    */
   def checkAndReturnClass(c: whitebox.Context)(annottees: c.Expr[Any]*): c.universe.ClassDef = {
     import c.universe._
-    val annotateeClass: ClassDef = annottees.map(_.tree).toList match {
+    annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
       case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
     }
-    annotateeClass
   }
 
   /**
@@ -48,7 +47,30 @@ trait MacroCommon {
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => None
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
+      case (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
+    }
+  }
+
+  /**
+   * Wrap tree result with companion object.
+   * @param c
+   * @param resTree
+   * @param annottees
+   * @return
+   */
+  def treeResultWithCompanionObject(c: whitebox.Context)(resTree: c.Tree, annottees: c.Expr[Any]*): c.universe.Tree = {
+    import c.universe._
+    val companionOpt = getCompanionObject(c)(annottees: _*)
+    if (companionOpt.isEmpty) {
+      resTree
+    } else {
+      val q"$mods object $obj extends ..$bases { ..$body }" = companionOpt.get
+      val companion = q"$mods object $obj extends ..$bases { ..$body }"
+      q"""
+         $resTree
+         $companion
+         """
     }
   }
 
@@ -96,14 +118,23 @@ trait MacroCommon {
    * @param field
    * @return
    */
-  def fieldTermNameMethod(c: whitebox.Context)(field: c.universe.Tree): c.universe.Tree = {
+  def fieldTermNameMethod(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
     import c.universe._
     field match {
-      case q"$mods val $tname: $tpt = $expr" => q"""$tname"""
-      case q"$mods var $tname: $tpt = $expr" => q"""$tname"""
+      case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
+      case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
     }
   }
 
+  /**
+   * Modify companion objects.
+   *
+   * @param c
+   * @param compDeclOpt
+   * @param apply
+   * @param className
+   * @return
+   */
   def modifiedCompanion(c: whitebox.Context)(
     compDeclOpt: Option[c.universe.ModuleDef],
     apply:       c.Tree, className: c.TypeName): c.universe.Tree = {
@@ -124,6 +155,34 @@ trait MacroCommon {
       val o = q"object ${className.toTermName} { ..$apply }"
       c.info(c.enclosingPosition, s"modifiedCompanion className: $className, new obj: $o", force = true)
       o
+    }
+  }
+
+  /**
+   * Extract the internal fields of members belonging to the class， but not in primary constructor.
+   *
+   * @param c
+   */
+  def getClassMemberValDef(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
+    import c.universe._
+    annotteeClassDefinitions.asInstanceOf[List[Tree]].filter(p => p match {
+      case _: ValDef => true
+      case _         => false
+    })
+  }
+
+  /**
+   * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
+   *
+   * @param c
+   */
+  def getClassMemberValDefOnlyVarAssign(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
+    import c.universe._
+    getClassMemberValDef(c)(annotteeClassDefinitions).filter(_ match {
+      case q"$mods var $tname: $tpt = $expr" => true
+      case _                                 => false
+    }).map {
+      case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt"
     }
   }
 }
