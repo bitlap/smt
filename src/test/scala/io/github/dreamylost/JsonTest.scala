@@ -1,7 +1,8 @@
 package io.github.dreamylost
 
-import org.scalatest.{ FlatSpec, Matchers }
 import play.api.libs.json.Json
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
@@ -9,7 +10,7 @@ import play.api.libs.json.Json
  * @since 2021/6/18
  * @version 1.0
  */
-class JsonTest extends FlatSpec with Matchers {
+class JsonTest extends AnyFlatSpec with Matchers {
 
   // class must be wrote here
 
