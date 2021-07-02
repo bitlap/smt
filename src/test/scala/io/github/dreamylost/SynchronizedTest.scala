@@ -1,6 +1,7 @@
 package io.github.dreamylost
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
@@ -8,7 +9,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @since 2021/6/24
  * @version 1.0
  */
-class SynchronizedTest extends FlatSpec with Matchers {
+class SynchronizedTest extends AnyFlatSpec with Matchers {
 
   "synchronized1" should "is ok at class" in {
     @synchronized

@@ -1,6 +1,7 @@
 package io.github.dreamylost
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
@@ -8,7 +9,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @since 2021/6/30
  * @version 1.0
  */
-class ApplyTest extends FlatSpec with Matchers {
+class ApplyTest extends AnyFlatSpec with Matchers {
 
   "apply1" should "ok at class" in {
     // int: Int => private[this] val int: Int = _;

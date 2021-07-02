@@ -1,6 +1,7 @@
 package io.github.dreamylost
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
@@ -8,7 +9,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @since 2021/6/28
  * @version 1.0
  */
-class LogTest extends FlatSpec with Matchers {
+class LogTest extends AnyFlatSpec with Matchers {
 
   "log1" should "ok on class" in {
     """@log(verbose=true) class TestClass1(val i: Int = 0, var j: Int) {
