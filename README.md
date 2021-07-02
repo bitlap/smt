@@ -5,7 +5,7 @@
 
 学习Scala宏编程（macro）和抽象语法树（ast）。
 
-> 本项目目前处于实验阶段
+> 本项目目前处于实验阶段，有建议、意见或者问题欢迎提issue。如果本项目对你有帮助，欢迎点个star。
 
 [中文说明](./README.md)|[English](./README_EN.md)
 
