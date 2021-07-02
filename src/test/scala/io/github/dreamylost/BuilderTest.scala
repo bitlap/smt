@@ -1,6 +1,7 @@
 package io.github.dreamylost
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
@@ -8,7 +9,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @since 2021/6/19
  * @version 1.0
  */
-class BuilderTest extends FlatSpec with Matchers {
+class BuilderTest extends AnyFlatSpec with Matchers {
 
   "builder1" should "case class, non companion object" in {
     @builder
