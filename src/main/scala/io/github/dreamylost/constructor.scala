@@ -61,7 +61,7 @@ object constructorMacro extends MacroCommon {
        *
        * @param c
        */
-      def getClassMemberValDefOnlyVarAssign(): Seq[c.Tree] = {
+      def getClassMemberVarDefOnlyAssignExpr(): Seq[c.Tree] = {
         import c.universe._
         getClassMemberValDef(c)(annotteeClassDefinitions).filter(_ match {
           case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
@@ -71,9 +71,9 @@ object constructorMacro extends MacroCommon {
         }
       }
 
-      val annotteeClassFieldDefinitionsWithoutValAssign = getClassMemberValDefOnlyVarAssign()
+      val annotteeClassFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr()
 
-      if (annotteeClassFieldDefinitionsWithoutValAssign.isEmpty) {
+      if (annotteeClassFieldDefinitionsOnlyAssignExpr.isEmpty) {
         c.abort(c.enclosingPosition, s"Annotation is only supported on class when the internal field (declare as 'var') is nonEmpty. classDef: $classDecl")
       }
 
@@ -91,7 +91,7 @@ object constructorMacro extends MacroCommon {
 
       def getConstructorTemplate(): c.universe.Tree = {
         q"""
-          def this(..${annotteeClassParamsOnlyAssignExpr ++ annotteeClassFieldDefinitionsWithoutValAssign}){
+          def this(..${annotteeClassParamsOnlyAssignExpr ++ annotteeClassFieldDefinitionsOnlyAssignExpr}){
             this(..$ctorFieldNames)
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }
