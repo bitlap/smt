@@ -97,38 +97,38 @@ assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```scala
 object TestClass1 extends scala.AnyRef {
   def <init>() = {
-  super.<init>();
-  ()
+    super.<init>();
+    ()
   };
   def builder(): Builder = new Builder();
   class Builder extends scala.AnyRef {
-  def <init>() = {
-  super.<init>();
-  ()
-  };
-  private var i: Int = 0;
-  private var j: Int = _;
-  private var x: String = _;
-  private var o: Option[String] = Some("");
-  def i(i: Int): Builder = {
-  this.i = i;
-  this
-  };
-  def j(j: Int): Builder = {
-  this.j = j;
-  this
-  };
-  def x(x: String): Builder = {
-  this.x = x;
-  this
-  };
-  def o(o: Option[String]): Builder = {
-  this.o = o;
-  this
-  };
-  def build(): TestClass1 = TestClass1(i, j, x, o)
+    def <init>() = {
+      super.<init>();
+      ()
+    };
+    private var i: Int = 0;
+    private var j: Int = _;
+    private var x: String = _;
+    private var o: Option[String] = Some("");
+    def i(i: Int): Builder = {
+      this.i = i;
+      this
+    };
+    def j(j: Int): Builder = {
+      this.j = j;
+      this
+    };
+    def x(x: String): Builder = {
+      this.x = x;
+      this
+    };
+    def o(o: Option[String]): Builder = {
+      this.o = o;
+      this
+    };
+    def build(): TestClass1 = TestClass1(i, j, x, o)
   }
-  }
+}
 ```
 
 ## @synchronized
