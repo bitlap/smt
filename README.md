@@ -52,8 +52,8 @@ println(new TestClass(1, 2));
 `@json`注解是向Play项目的样例类添加json format对象的最快方法。
 
 - 说明
-    - 此注释启发来自[json-annotation](https://github.com/kifi/json-annotation)，并做了优化，现在它可以与其他注解同时使用。
-    - 只有一个隐式的`val`值会被自动生成（如果伴生对象不存在的话，还会生成一个伴生对象用于存放该隐式值），此外没有其他的操作。
+  - 此注释启发来自[json-annotation](https://github.com/kifi/json-annotation)，并做了优化，现在它可以与其他注解同时使用。
+  - 只有一个隐式的`val`值会被自动生成（如果伴生对象不存在的话，还会生成一个伴生对象用于存放该隐式值），此外没有其他的操作。
 
 - 示例
 
@@ -76,10 +76,10 @@ Json.fromJson[Person](json)
 `@builder`注解用于为Scala类生成构造器模式。
 
 - 说明
-    - 支持普通类和样例类。
-    - 如果该类没有伴生对象，将生成一个伴生对象来存储`builder`方法和类。
-    - 目前不支持主构造函数是柯里化的。
-    
+  - 支持普通类和样例类。
+  - 如果该类没有伴生对象，将生成一个伴生对象来存储`builder`方法和类。
+  - 目前不支持主构造函数是柯里化的。
+
 > IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
 
 - 示例
@@ -97,38 +97,38 @@ assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```scala
 object TestClass1 extends scala.AnyRef {
   def <init>() = {
-    super.<init>();
-    ()
+  super.<init>();
+  ()
   };
   def builder(): Builder = new Builder();
   class Builder extends scala.AnyRef {
-    def <init>() = {
-      super.<init>();
-      ()
-    };
-    private var i: Int = 0;
-    private var j: Int = _;
-    private var x: String = _;
-    private var o: Option[String] = Some("");
-    def i(i: Int): Builder = {
-      this.i = i;
-      this
-    };
-    def j(j: Int): Builder = {
-      this.j = j;
-      this
-    };
-    def x(x: String): Builder = {
-      this.x = x;
-      this
-    };
-    def o(o: Option[String]): Builder = {
-      this.o = o;
-      this
-    };
-    def build(): TestClass1 = TestClass1(i, j, x, o)
+  def <init>() = {
+  super.<init>();
+  ()
+  };
+  private var i: Int = 0;
+  private var j: Int = _;
+  private var x: String = _;
+  private var o: Option[String] = Some("");
+  def i(i: Int): Builder = {
+  this.i = i;
+  this
+  };
+  def j(j: Int): Builder = {
+  this.j = j;
+  this
+  };
+  def x(x: String): Builder = {
+  this.x = x;
+  this
+  };
+  def o(o: Option[String]): Builder = {
+  this.o = o;
+  this
+  };
+  def build(): TestClass1 = TestClass1(i, j, x, o)
   }
-}
+  }
 ```
 
 ## @synchronized
@@ -136,7 +136,7 @@ object TestClass1 extends scala.AnyRef {
 `@synchronized`注解是一个更方便、更灵活的用于同步方法的注解。
 
 - 说明
-  - `lockedName` 指定自定义的锁对象的名称。可选，默认`this`。 
+  - `lockedName` 指定自定义的锁对象的名称。可选，默认`this`。
   - 支持静态方法（`object`中的函数）和实例方法（`class`中的函数）。
 
 - 示例
@@ -177,7 +177,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
     - `io.github.dreamylost.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
     - `io.github.dreamylost.LogType.Slf4j` 使用 `org.slf4j.Logger`
   - 支持普通类，样例类，单例对象。
-    
+
 
 > IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
 
@@ -207,7 +207,36 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 ```scala
 @apply @toString class B2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))
-println(B2(1, 2))
+println(B2(1, 2, None, None)) //0.1.0，不携带字段的默认值到apply参数中，所以参数都是必传
+```
+
+
+## @constructor
+
+`@constructor`注解用于为普通类生成辅助构造函数。
+
+- 说明
+  - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
+  - `excludeFields` 指定是否需要排除不需要用于构造函数的`var`字段。可选，默认空（所有class内部的`var`字段都将作为构造函数的入参）。
+  - 仅支持在`class`上使用。
+  - 目前不支持主构造函数是柯里化的。
+  - 与`@toString`同时使用，必须放最后。已知问题
+
+> IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
+
+- 示例
+
+```scala
+@constructor(excludeFields = Seq("c")) //排除c字段。其中，a是val的不需要手动指定，自动排除。
+class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+  private val a: Int = 1
+  var b: Int = 1 // 不携带字段的默认值到apply参数中，所以参数都是必传
+  protected var c: Int = _
+
+  def helloWorld: String = "hello world"
+}
+
+println(new A2(1, 2, None, None, 100))
 ```
 
 # 如何使用

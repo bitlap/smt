@@ -103,7 +103,7 @@ object stringMacro extends MacroCommon {
         case tree: Tree => Some(tree) // TODO type check better
         case _          => None
       }
-      superClassDef.fold(toString)(sc => {
+      superClassDef.fold(toString)(_ => {
         val superClass = q"${"super="}"
         c.info(c.enclosingPosition, s"member: $member, superClass： $superClass, superClassDef: $superClassDef, paramsWithName: $paramsWithName", force = argument.verbose)
         q"override def toString: String = StringContext(${className.toString()} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"

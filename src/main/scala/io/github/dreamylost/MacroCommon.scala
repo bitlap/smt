@@ -112,17 +112,31 @@ trait MacroCommon {
   }
 
   /**
-   * Expand the constructor and get the field TermName
+   * Expand the constructor and get the field TermName.
    *
    * @param c
    * @param field
    * @return
    */
-  def fieldTermNameMethod(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
+  def fieldTermName(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
     import c.universe._
     field match {
       case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
+    }
+  }
+
+  /**
+   *  Expand the constructor and get the field with assign.
+   * @param c
+   * @param annotteeClassParams
+   * @return
+   */
+  def fieldAssignExpr(c: whitebox.Context)(annotteeClassParams: Seq[c.Tree]): Seq[c.Tree] = {
+    import c.universe._
+    annotteeClassParams.map {
+      case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt" //Ignore expr
+      case q"$mods val $tname: $tpt = $expr" => q"$tname: $tpt"
     }
   }
 
@@ -165,24 +179,9 @@ trait MacroCommon {
    */
   def getClassMemberValDef(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
     import c.universe._
-    annotteeClassDefinitions.asInstanceOf[List[Tree]].filter(p => p match {
+    annotteeClassDefinitions.filter(p => p match {
       case _: ValDef => true
       case _         => false
     })
-  }
-
-  /**
-   * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
-   *
-   * @param c
-   */
-  def getClassMemberValDefOnlyVarAssign(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
-    import c.universe._
-    getClassMemberValDef(c)(annotteeClassDefinitions).filter(_ match {
-      case q"$mods var $tname: $tpt = $expr" => true
-      case _                                 => false
-    }).map {
-      case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt"
-    }
   }
 }

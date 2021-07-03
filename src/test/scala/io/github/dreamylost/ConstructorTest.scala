@@ -18,6 +18,17 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |      var b: Int = 1
       |      def helloWorld: String = "hello world"
       |    }""".stripMargin shouldNot compile
+
+    """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }
+      |    A2(1, 2, None, None).c
+      |    """.stripMargin shouldNot compile
   }
 
   "constructor2" should "ok at class" in {
@@ -84,6 +95,31 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |      def helloWorld: String = "hello world"
       |    }""".stripMargin should compile
 
+    """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
   }
 
+  "constructor3" should "failed at object" in {
+    @apply
+    @toString
+    @builder
+    @constructor(excludeFields = Seq("c"))
+    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      private val a: Int = 1
+      var b: Int = 1
+      protected var c: Int = _
+
+      def helloWorld: String = "hello world"
+    }
+
+    println(A2(1, 2, None, Some(12L)))
+    println(A2.builder().int(1).j(2).build())
+    println(new A2(1, 2, None, None, 100))
+  }
 }
