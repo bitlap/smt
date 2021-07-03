@@ -135,7 +135,7 @@ object stringMacro extends MacroCommon {
     val argument = Argument(arg._1, arg._2, arg._3, arg._4)
     c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)
     // Check the type of the class, which can only be defined on the ordinary class
-    val annotateeClass: ClassDef = checkAndReturnClass(c)(annottees: _*)
+    val annotateeClass: ClassDef = checkAndGetClassDef(c)(annottees: _*)
     val isCase: Boolean = isCaseClass(c)(annotateeClass)
 
     c.info(c.enclosingPosition, s"impl argument: $argument, isCase: $isCase", force = argument.verbose)

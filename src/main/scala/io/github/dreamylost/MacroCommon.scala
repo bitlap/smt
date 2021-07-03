@@ -26,12 +26,28 @@ trait MacroCommon {
    * @param annottees
    * @return Return ClassDef
    */
-  def checkAndReturnClass(c: whitebox.Context)(annottees: c.Expr[Any]*): c.universe.ClassDef = {
+  def checkAndGetClassDef(c: whitebox.Context)(annottees: c.Expr[Any]*): c.universe.ClassDef = {
     import c.universe._
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
       case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
+    }
+  }
+
+  /**
+   * Get class if it exists.
+   *
+   * @param c
+   * @param annottees
+   * @return Return ClassDef without verify.
+   */
+  def tryGetClassDef(c: whitebox.Context)(annottees: c.Expr[Any]*): Option[c.universe.ClassDef] = {
+    import c.universe._
+    annottees.map(_.tree).toList match {
+      case (classDecl: ClassDef) :: Nil => Some(classDecl)
+      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(classDecl)
+      case _ => None
     }
   }
 
@@ -42,26 +58,26 @@ trait MacroCommon {
    * @param annottees
    * @return
    */
-  def getCompanionObject(c: whitebox.Context)(annottees: c.Expr[Any]*): Option[c.universe.ModuleDef] = {
+  def tryGetCompanionObject(c: whitebox.Context)(annottees: c.Expr[Any]*): Option[c.universe.ModuleDef] = {
     import c.universe._
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => None
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case (compDecl: ModuleDef) :: Nil => Some(compDecl)
-      case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
+      case _ => None
     }
   }
 
   /**
    * Wrap tree result with companion object.
    * @param c
-   * @param resTree
+   * @param resTree class
    * @param annottees
    * @return
    */
   def treeResultWithCompanionObject(c: whitebox.Context)(resTree: c.Tree, annottees: c.Expr[Any]*): c.universe.Tree = {
     import c.universe._
-    val companionOpt = getCompanionObject(c)(annottees: _*)
+    val companionOpt = tryGetCompanionObject(c)(annottees: _*)
     if (companionOpt.isEmpty) {
       resTree
     } else {
@@ -145,13 +161,13 @@ trait MacroCommon {
    *
    * @param c
    * @param compDeclOpt
-   * @param apply
+   * @param codeBlock
    * @param className
    * @return
    */
   def modifiedCompanion(c: whitebox.Context)(
     compDeclOpt: Option[c.universe.ModuleDef],
-    apply:       c.Tree, className: c.TypeName): c.universe.Tree = {
+    codeBlock:   c.Tree, className: c.TypeName): c.universe.Tree = {
     import c.universe._
     compDeclOpt map { compDecl =>
       val q"$mods object $obj extends ..$bases { ..$body }" = compDecl
@@ -159,14 +175,14 @@ trait MacroCommon {
         q"""
           $mods object $obj extends ..$bases {
             ..$body
-            ..$apply
+            ..$codeBlock
           }
         """
       c.info(c.enclosingPosition, s"modifiedCompanion className: $className, exists obj: $o", force = true)
       o
     } getOrElse {
       // Create a companion object with the builder
-      val o = q"object ${className.toTermName} { ..$apply }"
+      val o = q"object ${className.toTermName} { ..$codeBlock }"
       c.info(c.enclosingPosition, s"modifiedCompanion className: $className, new obj: $o", force = true)
       o
     }

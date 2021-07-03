@@ -31,7 +31,7 @@ object applyMacro extends MacroCommon {
 
     c.info(c.enclosingPosition, s"annottees: $annottees, args: $args", force = args)
 
-    val annotateeClass: ClassDef = checkAndReturnClass(c)(annottees: _*)
+    val annotateeClass: ClassDef = checkAndGetClassDef(c)(annottees: _*)
     val isCase: Boolean = isCaseClass(c)(annotateeClass)
     c.info(c.enclosingPosition, s"impl argument: $args, isCase: $isCase", force = args)
 

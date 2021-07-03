@@ -33,7 +33,7 @@ object constructorMacro extends MacroCommon {
       case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
     }
 
-    val annotateeClass: ClassDef = checkAndReturnClass(c)(annottees: _*)
+    val annotateeClass: ClassDef = checkAndGetClassDef(c)(annottees: _*)
     val isCase: Boolean = isCaseClass(c)(annotateeClass)
     if (isCase) {
       c.abort(c.enclosingPosition, s"Annotation is not supported on case class. classDef: $annotateeClass")
@@ -58,8 +58,6 @@ object constructorMacro extends MacroCommon {
 
       /**
        * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
-       *
-       * @param c
        */
       def getClassMemberVarDefOnlyAssignExpr(): Seq[c.Tree] = {
         import c.universe._

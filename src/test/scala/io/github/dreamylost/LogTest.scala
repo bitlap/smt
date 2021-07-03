@@ -13,8 +13,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log1" should "ok on class" in {
     """@log(verbose=true) class TestClass1(val i: Int = 0, var j: Int) {
-              log.info("hello")
-           }""" should compile
+                log.info("hello")
+             }""" should compile
 
     """@log class TestClass2(val i: Int = 0, var j: Int)""" should compile
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
@@ -25,8 +25,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log2" should "ok on case class" in {
     """@log(verbose=true) case class TestClass1(val i: Int = 0, var j: Int) {
-              log.info("hello")
-           }""" should compile
+                log.info("hello")
+             }""" should compile
 
     """@log case class TestClass2(val i: Int = 0, var j: Int)""" should compile
     """@log() case class TestClass3(val i: Int = 0, var j: Int)""" should compile
@@ -37,8 +37,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log3" should "ok on object" in {
     """@log(verbose=true) object TestClass1 {
-            log.info("hello")
-         }""" should compile
+              log.info("hello")
+           }""" should compile
 
     """@log object TestClass2""" should compile
     """@log() object TestClass3""" should compile
@@ -49,8 +49,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log4 log4j2" should "ok on object" in {
     """@log(verbose=true) object TestClass1 {
-            log.info("hello")
-         }""" should compile
+              log.info("hello")
+           }""" should compile
 
     """@log object TestClass2""" should compile
     """@log() object TestClass3""" should compile
@@ -61,8 +61,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log5 slf4j" should "ok on object" in {
     """@log(verbose=true) object TestClass1 {
-            log.info("hello")
-         }""" should compile
+              log.info("hello")
+           }""" should compile
 
     """@log object TestClass2""" should compile
     """@log() object TestClass3""" should compile
@@ -73,8 +73,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log6 log4j2" should "ok on class" in {
     """@log(verbose=true) class TestClass1(val i: Int = 0, var j: Int) {
-              log.info("hello")
-           }""" should compile
+                log.info("hello")
+             }""" should compile
 
     """@log class TestClass2(val i: Int = 0, var j: Int)""" should compile
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
@@ -85,8 +85,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log7 slf4j" should "ok on class" in {
     """@log(verbose=true) class TestClass1(val i: Int = 0, var j: Int) {
-              log.info("hello")
-           }""" should compile
+                log.info("hello")
+             }""" should compile
 
     """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile //Use with multiple annotations
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
@@ -99,8 +99,8 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log8 slf4j" should "ok on class and has object" in {
     """@log(verbose=true) class TestClass1(val i: Int = 0, var j: Int) {
-              log.info("hello")
-           }""" should compile
+                log.info("hello")
+             }""" should compile
 
     """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile //Use with multiple annotations
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
@@ -111,4 +111,47 @@ class LogTest extends AnyFlatSpec with Matchers {
     """@log(io.github.dreamylost.LogType.Slf4j) @builder class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
       | @log(io.github.dreamylost.LogType.Slf4j) object TestClass6 { log.info("hello world");builder() }""".stripMargin should compile //default verbose is false
   }
+
+  "log9 slf4j" should "ok on class and it object" in {
+    """
+      |@log(io.github.dreamylost.LogType.Slf4j) @builder  class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
+      |@log(io.github.dreamylost.LogType.Slf4j) object TestClass6 { log.info("hello world"); builder()}
+      |""".stripMargin should compile
+  }
+
+  "log10 slf4j" should "failed on case class and it object" in {
+    """
+      |    @log(io.github.dreamylost.LogType.Slf4j)
+      |    @builder case class TestClass6(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |    @log(logType = io.github.dreamylost.LogType.Slf4j) object TestClass6 {
+      |      log.info("hello world"); builder()
+      |    }
+      |""".stripMargin shouldNot compile //The context of class was not passed in object macro
+  }
+
+  "log11 slf4j" should "ok on class and it object" in {
+    """
+      | @log(io.github.dreamylost.LogType.Slf4j)
+      | @builder  class TestClass6(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |    @log(logType = io.github.dreamylost.LogType.Slf4j) object TestClass6 {
+      |      log.info("hello world"); builder()
+      |    }
+      |""".stripMargin should compile
+
+    """
+      | @builder
+      | @log(io.github.dreamylost.LogType.Slf4j)
+      |    class TestClass6(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |    @log(logType = io.github.dreamylost.LogType.Slf4j) object TestClass6 {
+      |      log.info("hello world"); builder()
+      |    }
+      |""".stripMargin should compile
+  }
+
 }
