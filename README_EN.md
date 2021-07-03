@@ -17,6 +17,7 @@ Learn Scala macro and abstract syntax tree.
 - `@synchronized`
 - `@log`
 - `@apply`
+- `@constructor`
 
 ## @toString
 

@@ -18,6 +18,7 @@
 - `@synchronized`
 - `@log`
 - `@apply`
+- `@constructor`
 
 ## @toString
 
