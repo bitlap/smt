@@ -16,7 +16,6 @@ class SimpleCompletionContributor() extends CompletionContributor {
     new CompletionProvider[CompletionParameters]() {
       override def addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet): Unit =
         result.addElement(LookupElementBuilder.create("HELLO"))
-    }
-  )
+    })
 
 }
