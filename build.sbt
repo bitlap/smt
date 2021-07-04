@@ -47,7 +47,7 @@ lazy val root = (project in file("."))
   ).settings(Publishing.publishSettings)
 
 
-lazy val `examples213` = (project in file("examples/examples213")).settings(scalaVersion := scala213)
+lazy val `examples213` = (project in file("examples213")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(
