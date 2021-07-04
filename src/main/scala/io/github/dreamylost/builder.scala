@@ -43,7 +43,7 @@ object builderMacro extends MacroCommon {
       }
     }
 
-    def fieldDefinitionMethod(c: whitebox.Context)(field: c.universe.Tree): c.universe.Tree = {
+    def fieldDefinition(c: whitebox.Context)(field: c.universe.Tree): c.universe.Tree = {
       import c.universe._
       field match {
         case tree @ q"$mods val $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
@@ -51,19 +51,11 @@ object builderMacro extends MacroCommon {
       }
     }
 
-    def fieldTermNameMethod(c: whitebox.Context)(field: c.universe.Tree): c.universe.Tree = {
-      import c.universe._
-      field match {
-        case tree @ q"$mods val $tname: $tpt = $expr" => q"""$tname"""
-        case tree @ q"$mods var $tname: $tpt = $expr" => q"""$tname"""
-      }
-    }
-
     def builderTemplate(typeName: TypeName, fields: List[Tree], isCase: Boolean): c.universe.Tree = {
       val termName = typeName.toTermName.toTermName
       val builderFieldMethods = fields.map(f => fieldSetMethod(c)(f))
-      val builderFieldDefinitions = fields.map(f => fieldDefinitionMethod(c)(f))
-      val allFieldsTermName = fields.map(f => fieldTermNameMethod(c)(f))
+      val builderFieldDefinitions = fields.map(f => fieldDefinition(c)(f))
+      val allFieldsTermName = fields.map(f => fieldTermName(c)(f))
       q"""
       def builder(): Builder = new Builder()
 

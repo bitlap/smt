@@ -107,15 +107,25 @@ object logMacro extends MacroCommon {
       case (classDef @ q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }") :: _ =>
         LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
       case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
-
     }
 
     // add result into class
     val resTree = annottees.map(_.tree) match {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-        q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+        val resTree = q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+        treeResultWithCompanionObject(c)(resTree, annottees: _*) //we should return with companion object. Even if we didn't change it.
       case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
         q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+      //we should return with class def. Even if we didn't change it, but the context class was not passed in.
+      //        val annotateeClassOpt: Option[ClassDef] = getClassDef(c)(annottees: _*)
+      //        if(annotateeClassOpt.isEmpty){
+      //          resTree
+      //        } else {
+      //          q"""
+      //              ${annotateeClassOpt.get}
+      //              $resTree
+      //            """
+      //        }
     }
 
     printTree(c)(force = args._1, resTree)

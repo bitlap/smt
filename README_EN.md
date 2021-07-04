@@ -1,4 +1,4 @@
-# scala-macro-tools [![Build](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml)
+# scala-macro-tools [![Build](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml) [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.jxnu-liguobin%22%20AND%20a:%22scala-macro-tools_2.13%22)
 
 Motivation
 --
@@ -17,6 +17,16 @@ Learn Scala macro and abstract syntax tree.
 - `@synchronized`
 - `@log`
 - `@apply`
+- `@constructor`
+
+
+## Known Issues
+
+- Currying is not supported.
+- Generic is not supported.
+- When `@constructor` and `@toString` are used together, the former must be put last.
+- IDE support is not very good, a red prompt will appear, but the compilation is OK. 
+
 
 ## @toString
 
@@ -28,7 +38,6 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
   - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor, default is `true`.
   - `callSuper`             Whether to include the super's `toString`, default is `false`. Not support if super class is a trait.
   - Support `case class` and `class`.
-  - Currying is not supported in constructors at present.
 
 - Example
 
@@ -52,11 +61,11 @@ println(new TestClass(1, 2));
 The `@json` scala macro annotation is the quickest way to add a JSON format to your Play project's case classes.
 
 - Note
-    - This annotation is drawn from [json-annotation](https://github.com/kifi/json-annotation) and have some
-      optimization.
-    - It can also be used when there are other annotations on the case classes.
-    - Only an implicit `val` was generated automatically(Maybe generate a companion object if it not exists), and there are no other
-      operations.
+  - This annotation is drawn from [json-annotation](https://github.com/kifi/json-annotation) and have some
+    optimization.
+  - It can also be used when there are other annotations on the case classes.
+  - Only an implicit `val` was generated automatically(Maybe generate a companion object if it not exists), and there are no other
+    operations.
 - Example
 
 ```scala
@@ -78,11 +87,8 @@ Json.fromJson[Person](json)
 The `@builder` used to generate builder pattern for Scala classes.
 
 - Note
-    - Support `case class` / `class`.
-    - If there is no companion object, one will be generated to store the `builder` class and method.
-    - Currying is not supported in constructors at present.
-    
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. It only for the fields in the primary constructor
+  - Support `case class` / `class`.
+  - If there is no companion object, one will be generated to store the `builder` class and method.
 
 - Example
 
@@ -94,7 +100,7 @@ val ret = TestClass1.builder().i(1).j(0).x("x").build()
 assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```
 
-Compiler intermediate code:
+Compiler macro code:
 
 ```scala
 object TestClass1 extends scala.AnyRef {
@@ -138,7 +144,7 @@ object TestClass1 extends scala.AnyRef {
 The `@synchronized` is a more convenient and flexible synchronous annotation.
 
 - Note
-  - `lockedName` The name of the custom lock obj, default is `this`. 
+  - `lockedName` The name of the custom lock obj, default is `this`.
   - Support static and instance methods.
 
 - Example
@@ -159,7 +165,7 @@ def getStr(k: Int): String = {
 }
 ```
 
-Compiler intermediate code:
+Compiler macro code:
 
 ```scala
 // Note that it will not judge whether synchronized already exists, so if synchronized already exists, it will be used twice. 
@@ -178,10 +184,7 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
     - `io.github.dreamylost.LogType.JLog` use `java.util.logging.Logger`
     - `io.github.dreamylost.LogType.Log4j2` use `org.apache.logging.log4j.Logger`
     - `io.github.dreamylost.LogType.Slf4j` use `org.slf4j.Logger`
-  - Support `class`, `case class` and `object`. 
-    
-
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
+  - Support `class`, `case class` and `object`.
 
 - Example
 
@@ -201,15 +204,45 @@ The `@apply` used to generate `apply` method for primary construction of ordinar
   - `verbose` Whether to enable detailed log.
   - Only support `class`.
   - Only support **primary construction**.
-  - Currying is not supported for constructors at present.
-
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
 
 - Example
 
 ```scala
 @apply @toString class B2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))
 println(B2(1, 2))
+```
+
+## @constructor
+
+The `@constructor` used to generate secondary constructor method for classes.
+
+- Note
+  - `verbose` Whether to enable detailed log.
+  - `excludeFields` Whether to exclude the specified `var` fields, default is `Nil`.
+  - Only support `class`.
+
+- Example
+
+```scala
+@constructor(excludeFields = Seq("c"))
+class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+  private val a: Int = 1
+  var b: Int = 1 //The default value of the field is not carried to the apply parameter, so all parameters are required.
+  protected var c: Int = _
+
+  def helloWorld: String = "hello world"
+}
+
+println(new A2(1, 2, None, None, 100))
+```
+
+Compiler macro code(Only constructor def):
+
+```scala
+def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
+  <init>(int, j, k, t);
+  this.b = b
+}
 ```
 
 # How to use
