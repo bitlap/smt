@@ -13,7 +13,7 @@ class PluginBundle extends DynamicBundle("messages.PluginBundle")
 object PluginBundle {
   private val INSTANCE = new PluginBundle()
 
-  def message(@NotNull @PropertyKey(resourceBundle = "messages.PluginBundle") key: String, @NotNull params: Any*): String = {
+  def message(@NotNull @PropertyKey(resourceBundle = "messages.PluginBundle") key:String, @NotNull params: Any*): String = {
     INSTANCE.getMessage(key, params)
   }
 }
