@@ -1,6 +1,7 @@
 package io.github.dreamylost
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
@@ -8,8 +9,7 @@ import org.scalatest.{ FlatSpec, Matchers }
  * @since 2021/6/13
  * @version 1.0
  */
-class ToStringTest extends FlatSpec with Matchers {
-
+class ToStringTest extends AnyFlatSpec with Matchers {
   "toString1" should "not contains internal field" in {
     @toString(false, false, false)
     class TestClass(val i: Int = 0, var j: Int) {
@@ -260,4 +260,5 @@ class ToStringTest extends FlatSpec with Matchers {
     // Because not support if super class is a trait
     assert(s5.startsWith("TestClass5(super=io.github.dreamylost.ToStringTes") && s5.endsWith("1)"))
   }
+
 }

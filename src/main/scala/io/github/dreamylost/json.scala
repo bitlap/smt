@@ -5,7 +5,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**
- * annotation for case classes
+ * annotation to generate play-json implicit object for case classes.
  *
  * @author 梦境迷离
  * @since 2021/6/13
@@ -16,7 +16,7 @@ final class json extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro jsonMacro.impl
 }
 
-object jsonMacro {
+object jsonMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
@@ -29,60 +29,38 @@ object jsonMacro {
       }
     }
 
-    def modifiedCompanion(compDeclOpt: Option[ModuleDef], format: Tree, className: TypeName): c.universe.Tree = {
-      compDeclOpt map { compDecl =>
-        // Add the formatter to the existing companion object
-        val q"object $obj extends ..$bases { ..$body }" = compDecl
-        val o =
-          q"""
-          object $obj extends ..$bases {
-            ..$body
-            $format
-          }
-        """
-        c.info(c.enclosingPosition, s"modifiedCompanion className: $className, exists obj: $o", force = true)
-        o
-      } getOrElse {
-        // Create a companion object with the formatter
-        val o = q"object ${className.toTermName} { $format }"
-        c.info(c.enclosingPosition, s"modifiedCompanion className: $className, new obj: $o", force = true)
-        o
-      }
-    }
-
-    def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): c.Expr[Nothing] = {
+    // The dependent type need aux-pattern in scala2. Now let's get around this.
+    def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val (className, fields) = classDecl match {
-        case q"$mods class $className(..$fields) extends ..$bases { ..$body }" =>
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
           if (!mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
             c.abort(c.enclosingPosition, s"Annotation is only supported on case class. classDef: $classDecl, mods: $mods")
           } else {
-            c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
-            (className, fields)
+            c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
+            (tpname, paramss)
           }
         case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on case class. classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
-      className match {
-        case t: TypeName =>
-          val format = jsonFormatter(t, fields.asInstanceOf[List[Tree]])
-          val compDecl = modifiedCompanion(compDeclOpt, format, t)
-          c.info(c.enclosingPosition, s"format: $format, compDecl: $compDecl", force = true)
-          // Return both the class and companion object declarations
-          c.Expr(
-            q"""
+      val cName = className match {
+        case t: TypeName => t
+      }
+      val format = jsonFormatter(cName, fields.asInstanceOf[List[List[Tree]]].flatten)
+      val compDecl = modifiedCompanion(c)(compDeclOpt, format, cName)
+      c.info(c.enclosingPosition, s"format: $format, compDecl: $compDecl", force = true)
+      // Return both the class and companion object declarations
+      c.Expr(
+        q"""
         $classDecl
         $compDecl
       """)
-      }
 
     }
 
-    c.info(c.enclosingPosition, s"json annottees: $annottees", true)
+    c.info(c.enclosingPosition, s"json annottees: $annottees", force = true)
+    val resTree = handleWithImplType(c)(annottees: _*)(modifiedDeclaration)
+    printTree(c)(force = true, resTree.tree)
 
-    annottees.map(_.tree) match {
-      case (classDecl: ClassDef) :: Nil => modifiedDeclaration(classDecl)
-      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => modifiedDeclaration(classDecl, Some(compDecl))
-      case _ => c.abort(c.enclosingPosition, "Invalid annottee")
-    }
+    resTree
   }
 }
