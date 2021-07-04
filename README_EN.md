@@ -220,7 +220,6 @@ The `@constructor` used to generate secondary constructor method for classes.
   - `verbose` Whether to enable detailed log.
   - `excludeFields` Whether to exclude the specified `var` fields, default is `Nil`.
   - Only support `class`.
-  - When used with `@toString`, it must be put last. Known problems.
 
 - Example
 
