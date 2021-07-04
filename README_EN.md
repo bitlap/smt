@@ -100,7 +100,7 @@ val ret = TestClass1.builder().i(1).j(0).x("x").build()
 assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```
 
-Compiler intermediate code:
+Compiler macro code:
 
 ```scala
 object TestClass1 extends scala.AnyRef {
@@ -165,7 +165,7 @@ def getStr(k: Int): String = {
 }
 ```
 
-Compiler intermediate code:
+Compiler macro code:
 
 ```scala
 // Note that it will not judge whether synchronized already exists, so if synchronized already exists, it will be used twice. 
@@ -235,6 +235,15 @@ class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = S
 }
 
 println(new A2(1, 2, None, None, 100))
+```
+
+Compiler macro code(Only constructor def):
+
+```scala
+def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
+  <init>(int, j, k, t);
+  this.b = b
+}
 ```
 
 # How to use

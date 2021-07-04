@@ -22,8 +22,8 @@
 
 ## 已知问题
 
-- 不支持柯里化
-- 泛型
+- 不支持柯里化。
+- 不支持泛型。
 - `@constructor`与`@toString`同时使用，必须放最后。
 - IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。
 
@@ -97,7 +97,7 @@ val ret = TestClass1.builder().i(1).j(0).x("x").build()
 assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```
 
-宏生成的中间代码
+宏生成的中间代码：
 
 ```scala
 object TestClass1 extends scala.AnyRef {
@@ -162,7 +162,7 @@ def getStr(k: Int): String = {
 }
 ```
 
-Compiler intermediate code:
+宏生成的中间代码：
 
 ```scala
 // 注意，它不会判断synchronized是否已经存在，因此如果synchronized已经存在，它将被使用两次。如下 
@@ -230,6 +230,15 @@ class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = S
 }
 
 println(new A2(1, 2, None, None, 100))
+```
+
+宏生成的中间代码（仅构造函数部分）：
+
+```scala
+def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
+  <init>(int, j, k, t);
+  this.b = b
+}
 ```
 
 # 如何使用
