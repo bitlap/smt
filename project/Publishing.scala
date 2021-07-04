@@ -23,7 +23,7 @@ object Publishing {
     },
     licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
     publishMavenStyle := true,
-    publishArtifact in Test := false,
+    Test / publishArtifact := false,
     pomIncludeRepository := { _ => false },
     developers := List(
       Developer(

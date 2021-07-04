@@ -1,3 +1,4 @@
+import sbt.Def
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
@@ -46,9 +47,9 @@ lazy val root = (project in file("."))
   ).settings(Publishing.publishSettings)
 
 
-lazy val `examples213` = (project in file("examples213")).settings(scalaVersion := scala213)
+lazy val `examples213` = (project in file("examples/examples213")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(
   publish / skip := true,
   Compile / scalacOptions += "-Ymacro-annotations"
@@ -56,13 +57,13 @@ lazy val `examples213` = (project in file("examples213")).settings(scalaVersion 
 
 lazy val `examples212` = (project in file("examples212")).settings(scalaVersion := scala212)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (version in ThisBuild).value,
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(
   publish / skip := true,
-  paradise
+  paradise()
 )
 
-val paradise = {
+def paradise(): Def.Setting[Seq[ModuleID]] = {
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, n)) if n < 13 => Some("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     case _ => None
