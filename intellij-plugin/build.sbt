@@ -17,7 +17,7 @@ lazy val `intellij-plugin` = (project in file("."))
     Global / intellijAttachSources := true,
     Compile / javacOptions ++= "--release" :: "11" :: Nil,
     Global / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings"),
-    intellijPlugins ++= Seq("com.intellij.java", "com.intellij.java-i18n"/*, "org.intellij.scala"*/).map(_.toPlugin),
+    intellijPlugins ++= Seq("com.intellij.java", "com.intellij.java-i18n", "org.intellij.scala").map(_.toPlugin),
     libraryDependencies ++= Seq(
       "com.eclipsesource.minimal-json" % "minimal-json" % "0.9.5" withSources(),
     ),

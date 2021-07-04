@@ -10,6 +10,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends>org.intellij.scala</depends>
     <depends>com.intellij.properties</depends>
 
     <resource-bundle>messages.PluginBundle</resource-bundle>
@@ -27,8 +28,12 @@
         <applicationService serviceImplementation="io.github.dreamylost.plugin.processor.clazz.BuilderProcessor" />
         <!-- End of processor -->
 
-        <lang.psiAugmentProvider implementation="io.github.dreamylost.plugin.ScalaMacroAugmentProvider"/>
+        <!-- <lang.psiAugmentProvider implementation="io.github.dreamylost.plugin.ScalaMacroAugmentProvider"/> -->
         <notificationGroup displayType="BALLOON" id="Scala-Macro-Tools Plugin" />
+    </extensions>
+
+    <extensions defaultExtensionNs="org.intellij.scala">
+        <syntheticMemberInjector implementation="io.github.dreamylost.plugin.ScalaMacroInjector"/>
     </extensions>
 
 </idea-plugin>

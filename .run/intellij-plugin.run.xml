@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="intellij-plugin" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="com.intellij.idea.Main" />
+    <module name="intellij-plugin" />
+    <option name="VM_PARAMETERS" value="-cp &quot;$USER_HOME$/.Scala-Macro-ToolsPluginIC/sdk/211.7628.21/lib/*&quot; -Dsun.io.useCanonPrefixCache=false -ea -Djava.net.preferIPv4Stack=true -XX:+HeapDumpOnOutOfMemoryError -XX:-OmitStackTraceInFastThrow -Dawt.useSystemAAFontSettings=lcd -Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine -Dsun.tools.attach.tmp.only=true -Dide.no.platform.update=true -Dkotlinx.coroutines.debug=off -Djdk.attach.allowAttachSelf=true -Djdk.module.illegalAccess.silent=true -XX:MaxJavaStackTraceDepth=10000 -Didea.debug.mode=true -Dapple.laf.useScreenMenuBar=true -Duse.linux.keychain=false -Didea.initially.ask.config=true -Xms128m -Xmx1536m -XX:ReservedCodeCacheSize=240m -XX:SoftRefLRUPolicyMSPerMB=50 -XX:+UseG1GC -XX:CICompilerCount=2 -Didea.system.path=&quot;$USER_HOME$/.Scala-Macro-ToolsPluginIC/system&quot; -Didea.config.path=&quot;$USER_HOME$/.Scala-Macro-ToolsPluginIC/config&quot; -Dplugin.path=&quot;$PROJECT_DIR$/intellij-plugin/target/plugin/Scala-Macro-Tools&quot; -Didea.is.internal=true -Didea.platform.prefix=Idea" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="BuildArtifacts" enabled="true">
+        <artifact name="intellij-plugin" />
+      </option>
+    </method>
+  </configuration>
+</component>
