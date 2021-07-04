@@ -19,6 +19,15 @@ Learn Scala macro and abstract syntax tree.
 - `@apply`
 - `@constructor`
 
+
+## Known Issues
+
+- Currying is not supported.
+- Generic is not supported.
+- When `@constructor` and `@toString` are used together, the former must be put last.
+- IDE support is not very good, a red prompt will appear, but the compilation is OK. 
+
+
 ## @toString
 
 The `@toString` used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
@@ -29,7 +38,6 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
   - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor, default is `true`.
   - `callSuper`             Whether to include the super's `toString`, default is `false`. Not support if super class is a trait.
   - Support `case class` and `class`.
-  - Currying is not supported in constructors at present.
 
 - Example
 
@@ -81,9 +89,6 @@ The `@builder` used to generate builder pattern for Scala classes.
 - Note
   - Support `case class` / `class`.
   - If there is no companion object, one will be generated to store the `builder` class and method.
-  - Currying is not supported in constructors at present.
-
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. It only for the fields in the primary constructor
 
 - Example
 
@@ -181,8 +186,6 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
     - `io.github.dreamylost.LogType.Slf4j` use `org.slf4j.Logger`
   - Support `class`, `case class` and `object`.
 
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
-
 - Example
 
 ```scala
@@ -201,9 +204,6 @@ The `@apply` used to generate `apply` method for primary construction of ordinar
   - `verbose` Whether to enable detailed log.
   - Only support `class`.
   - Only support **primary construction**.
-  - Currying is not supported for constructors at present.
-
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
 
 - Example
 
@@ -220,10 +220,7 @@ The `@constructor` used to generate secondary constructor method for classes.
   - `verbose` Whether to enable detailed log.
   - `excludeFields` Whether to exclude the specified `var` fields, default is `Nil`.
   - Only support `class`.
-  - Currying is not supported for constructors at present.
   - When used with `@toString`, it must be put last. Known problems.
-
-> IDE support is not very good, a red prompt will appear, but the compilation is OK. You need to provide their dependencies and configuration, please refer to the test.
 
 - Example
 

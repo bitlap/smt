@@ -20,6 +20,13 @@
 - `@apply`
 - `@constructor`
 
+## 已知问题
+
+- 不支持柯里化
+- 泛型
+- `@constructor`与`@toString`同时使用，必须放最后。
+- IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。
+
 ## @toString
 
 `@toString`注解用于为Scala类生成`toString`方法。
@@ -79,9 +86,6 @@ Json.fromJson[Person](json)
 - 说明
   - 支持普通类和样例类。
   - 如果该类没有伴生对象，将生成一个伴生对象来存储`builder`方法和类。
-  - 目前不支持主构造函数是柯里化的。
-
-> IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
 
 - 示例
 
@@ -179,9 +183,6 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
     - `io.github.dreamylost.LogType.Slf4j` 使用 `org.slf4j.Logger`
   - 支持普通类，样例类，单例对象。
 
-
-> IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
-
 - 示例
 
 ```scala
@@ -198,11 +199,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - 仅支持在`class`上使用。
-  - 仅支持主构造函数。
-  - 目前不支持主构造函数是柯里化的。
-
-> IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
+  - 仅支持在`class`上使用且仅支持主构造函数。
 
 - 示例
 
@@ -210,7 +207,6 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 @apply @toString class B2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))
 println(B2(1, 2, None, None)) //0.1.0，不携带字段的默认值到apply参数中，所以参数都是必传
 ```
-
 
 ## @constructor
 
@@ -220,10 +216,6 @@ println(B2(1, 2, None, None)) //0.1.0，不携带字段的默认值到apply参�
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
   - `excludeFields` 指定是否需要排除不需要用于构造函数的`var`字段。可选，默认空（所有class内部的`var`字段都将作为构造函数的入参）。
   - 仅支持在`class`上使用。
-  - 目前不支持主构造函数是柯里化的。
-  - 与`@toString`同时使用，必须放最后。已知问题
-
-> IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。这意味着，目前不支持语法提示。
 
 - 示例
 
