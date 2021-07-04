@@ -1,17 +1,18 @@
 <idea-plugin>
-    <id>io.github.dreamylost</id>
+    <id>Scala-Macro-Tools Plugin</id>
     <name>Scala-Macro-Tools</name>
     <version>0.0.6-SNAPSHOT</version>
-    <vendor>Me and Co</vendor>
+    <vendor>Scala Macro Tools</vendor>
+    <description>Scala Macro Tools plugin for IntelliJ IDEA</description>
 
-    <description>A new plugin for IntelliJ platform written in Scala and built with SBT</description>
-
-    <idea-version since-build="203.0"/>
+    <idea-version since-build="201.0"/>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.properties</depends>
 
-    <resource-bundle>messages.SamplePluginBundle</resource-bundle>
+    <resource-bundle>messages.PluginBundle</resource-bundle>
 
     <actions>
         <action id="io.github.dreamylost.plugin.actions.PopupDialogAction"
@@ -20,14 +21,14 @@
         </action>
     </actions>
 
-    <applicationListeners>
-        <listener class="io.github.dreamylost.plugin.listeners.FileOpenedListener" topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
-    </applicationListeners>
-
     <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup displayType="BALLOON" id="My Plugin Notification" />
-        <toolWindow factoryClass="io.github.dreamylost.plugin.ui.MyToolWindowFactory" id="MyToolWindow" anchor="bottom"/>
-        <completion.contributor implementationClass="io.github.dreamylost.plugin.completion.SimpleCompletionContributor" language="Properties"/>
+
+        <!-- Start of processor -->
+        <applicationService serviceImplementation="io.github.dreamylost.plugin.processor.clazz.BuilderProcessor" />
+        <!-- End of processor -->
+
+        <lang.psiAugmentProvider implementation="io.github.dreamylost.plugin.ScalaMacroAugmentProvider"/>
+        <notificationGroup displayType="BALLOON" id="Scala-Macro-Tools Plugin" />
     </extensions>
 
 </idea-plugin>
