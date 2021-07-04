@@ -14,7 +14,6 @@ class FileOpenedListener extends FileEditorManagerListener {
         "My Plugin Notification",
         PluginBundle.message("file.opened"),
         PluginBundle.message("name.getname", file.getName),
-        NotificationType.INFORMATION)
-    )
+        NotificationType.INFORMATION))
   }
 }
