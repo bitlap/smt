@@ -10,7 +10,5 @@ import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScClass
  * @version 1.0
  */
 object ApplyMacro extends ScalaMacroTemplate {
-  override def methodMacroTemplate(clazz: ScClass): String = {
-    s"""def builder(): ${clazz.getName} = ???"""
-  }
+  override def methodMacroTemplate(clazz: ScClass): String = ???
 }

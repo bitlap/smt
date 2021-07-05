@@ -1,6 +1,6 @@
 package io.github.dreamylost.plugin
 
-import io.github.dreamylost.plugin.macros.ScalaMacroActionType.ScalaMacroActionType
+import io.github.dreamylost.plugin.macros.ScalaMacroTemplateType.ScalaMacroActionType
 import io.github.dreamylost.plugin.macros.ScalaMacroType.ScalaMacroType
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScClass
 
@@ -27,22 +27,22 @@ package object macros {
         case ScalaMacroType.APPLY => scalaMacroActionType match {
           //          case ScalaMacroActionType.CLASS => ApplyMacro.classMacroTemplate(clazz)
           //          case ScalaMacroActionType.EXPR => ApplyMacro.exprMacroTemplate(clazz)
-          case ScalaMacroActionType.METHOD => ApplyMacro.methodMacroTemplate(clazz)
+          case ScalaMacroTemplateType.METHOD => ApplyMacro.methodMacroTemplate(clazz)
         }
         case ScalaMacroType.BUILDER => scalaMacroActionType match {
-          case ScalaMacroActionType.CLASS  => BuilderMacro.classMacroTemplate(clazz)
+          case ScalaMacroTemplateType.CLASS  => BuilderMacro.classMacroTemplate(clazz)
           //          case ScalaMacroActionType.EXPR => BuilderMacro.exprMacroTemplate(clazz)
-          case ScalaMacroActionType.METHOD => BuilderMacro.methodMacroTemplate(clazz)
+          case ScalaMacroTemplateType.METHOD => BuilderMacro.methodMacroTemplate(clazz)
         }
         case ScalaMacroType.LOG => scalaMacroActionType match {
           //          case ScalaMacroActionType.CLASS => LogMacro.classMacroTemplate(clazz)
-          case ScalaMacroActionType.EXPR => LogMacro.exprMacroTemplate(clazz)
+          case ScalaMacroTemplateType.EXPR => LogMacro.exprMacroTemplate(clazz)
           //          case ScalaMacroActionType.METHOD => LogMacro.methodMacroTemplate(clazz)
         }
         case ScalaMacroType.CONSTRUCTOR => scalaMacroActionType match {
           //          case ScalaMacroActionType.CLASS => ConstructorMacro.classMacroTemplate(clazz)
           //          case ScalaMacroActionType.EXPR => ConstructorMacro.exprMacroTemplate(clazz)
-          case ScalaMacroActionType.METHOD => ConstructorMacro.methodMacroTemplate(clazz)
+          case ScalaMacroTemplateType.METHOD => ConstructorMacro.methodMacroTemplate(clazz)
         }
       }
     }

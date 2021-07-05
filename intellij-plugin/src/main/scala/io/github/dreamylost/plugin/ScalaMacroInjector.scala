@@ -24,7 +24,7 @@ class ScalaMacroInjector extends SyntheticMembersInjector {
 
     companionClass match {
       case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
-        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroActionType.METHOD))
+        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroTemplateType.METHOD))
       case _ => Nil
     }
   }
@@ -37,7 +37,7 @@ class ScalaMacroInjector extends SyntheticMembersInjector {
 
     companionClass match {
       case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
-        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroActionType.CLASS))
+        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroTemplateType.CLASS))
       case _ => Nil
     }
   }

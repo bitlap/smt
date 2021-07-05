@@ -6,7 +6,7 @@ package io.github.dreamylost.plugin.macros
  * @since 2021/7/5
  * @version 1.0
  */
-object ScalaMacroActionType extends Enumeration {
+object ScalaMacroTemplateType extends Enumeration {
   type ScalaMacroActionType = Value
   val METHOD: Value = Value
   val EXPR: Value = Value
