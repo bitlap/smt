@@ -43,8 +43,7 @@ class BuilderTest extends AnyFlatSpec with Matchers {
     @builder
     class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
     object TestClass1
-    val ret = TestClass1.builder().
-      println(ret)
+    val ret = TestClass1.builder().i(1).j(0).x("x").build()
     assert(ret.toString == "TestClass1(i=1, j=0, x=x, o=Some())")
   }
 
