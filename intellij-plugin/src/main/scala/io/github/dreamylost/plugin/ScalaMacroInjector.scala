@@ -1,10 +1,12 @@
 package io.github.dreamylost.plugin
 
-import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
+import com.intellij.openapi.components.ServiceManager
+import io.github.dreamylost.plugin.processor.ProcessType
+import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScTypeDefinition
 import org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.SyntheticMembersInjector
-import io.github.dreamylost.plugin.macros._
 /**
- * Desc:
+ * Desc: main injector to handle scala macro annotations.
  *
  * Mail: chk19940609@gmail.com
  * Created by IceMimosa
@@ -12,33 +14,23 @@ import io.github.dreamylost.plugin.macros._
  */
 class ScalaMacroInjector extends SyntheticMembersInjector {
 
+  private lazy val provider = ServiceManager.getService(classOf[ScalaMacroProcessorProvider])
+
   override def needsCompanionObject(source: ScTypeDefinition): Boolean = {
-    source.hasAnnotation(ScalaMacroType.BUILDER.toString)
+    provider.findProcessors(source).exists(_.needCompanion)
   }
 
-  override def injectFunctions(source: ScTypeDefinition): Seq[String] = {
-    val companionClass = source match {
-      case obj: ScObject => obj.fakeCompanionClassOrCompanionClass
-      case _             => null
-    }
+  override def injectFunctions(source: ScTypeDefinition): Seq[String] = inject(source, ProcessType.Method)
+  override def injectInners(source: ScTypeDefinition): Seq[String] = inject(source, ProcessType.Inner)
+  override def injectMembers(source: ScTypeDefinition): Seq[String] = inject(source, ProcessType.Field)
+  override def injectSupers(source: ScTypeDefinition): Seq[String] = inject(source, ProcessType.Super)
 
-    companionClass match {
-      case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
-        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroTemplateType.METHOD))
-      case _ => Nil
-    }
-  }
-
-  override def injectMembers(source: ScTypeDefinition): Seq[String] = {
-    val companionClass = source match {
-      case obj: ScObject => obj.fakeCompanionClassOrCompanionClass
-      case _             => null
-    }
-
-    companionClass match {
-      case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
-        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroTemplateType.CLASS))
-      case _ => Nil
-    }
+  private def inject(source: ScTypeDefinition, typ: ProcessType): Seq[String] = {
+    provider
+      .findProcessors(source)
+      .flatMap(_.process(source, typ))
+      .filter(s => s != null && !s.trim.isEmpty)
   }
 }
+
+object ScalaMacroInjector

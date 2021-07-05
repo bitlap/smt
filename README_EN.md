@@ -1,4 +1,8 @@
-# scala-macro-tools [![Build](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml) [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.jxnu-liguobin%22%20AND%20a:%22scala-macro-tools_2.13%22)
+# scala-macro-tools 
+
+[![Build](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml) 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.jxnu-liguobin%22%20AND%20a:%22scala-macro-tools_2.13%22)
+![Version](https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools)
 
 Motivation
 --
@@ -7,7 +11,7 @@ Learn Scala macro and abstract syntax tree.
 
 > The project is currently experimental
 
-[中文说明](./README.md)|[English](./README_EN.md)
+[中文说明](./README.md) | [English](./README_EN.md)
 
 # Features
 

@@ -1,33 +1,50 @@
 <idea-plugin>
     <id>Scala-Macro-Tools Plugin</id>
     <name>Scala-Macro-Tools</name>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.1.0</version>
     <vendor>Scala Macro Tools</vendor>
-    <description>Scala Macro Tools plugin for IntelliJ IDEA</description>
-
     <idea-version since-build="201.0"/>
-
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>org.intellij.scala</depends>
     <depends>com.intellij.properties</depends>
 
+    <description>
+        <![CDATA[
+        <h1>Scala Macro Tools plugin for IntelliJ IDEA</h1>
+        <br/>
+        <a href="https://github.com/jxnu-liguobin/scala-macro-tools">GitHub</a> |
+        <a href="https://github.com/jxnu-liguobin/scala-macro-tools/issues">Issues</a>
+        <br/>
+        <br/>
+        <b>Features</b>
+        <ul>
+          <li>@toString</li>
+          <li>@json</li>
+          <li>@builder</li>
+          <li>@synchronized</li>
+          <li>@log</li>
+          <li>@apply</li>
+          <li>@constructor</li>
+        </ul>
+        <br/>
+        ]]>
+    </description>
+
+    <change-notes>
+        <![CDATA[
+        0.0.1:
+        <ul>
+        <li>First release, support @builder, @log</li>
+        </ul>
+        ]]>
+    </change-notes>
+
     <resource-bundle>messages.PluginBundle</resource-bundle>
 
-    <actions>
-        <action id="io.github.dreamylost.plugin.actions.PopupDialogAction"
-                class="io.github.dreamylost.plugin.actions.PopupDialogAction">
-            <add-to-group group-id="ToolsMenu" anchor="first"/>
-        </action>
-    </actions>
-
     <extensions defaultExtensionNs="com.intellij">
-
-        <!-- Start of processor -->
-        <applicationService serviceImplementation="io.github.dreamylost.plugin.processor.clazz.BuilderProcessor" />
-        <!-- End of processor -->
-
+        <applicationService serviceImplementation="io.github.dreamylost.plugin.ScalaMacroProcessorProvider" />
         <!-- <lang.psiAugmentProvider implementation="io.github.dreamylost.plugin.ScalaMacroAugmentProvider"/> -->
         <notificationGroup displayType="BALLOON" id="Scala-Macro-Tools Plugin" />
     </extensions>
