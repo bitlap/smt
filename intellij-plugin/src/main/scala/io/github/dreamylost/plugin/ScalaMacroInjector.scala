@@ -1,10 +1,10 @@
 package io.github.dreamylost.plugin
 
-import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScClass, ScObject, ScTypeDefinition}
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 import org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.SyntheticMembersInjector
 
 /**
- * Desc: 
+ * Desc:
  *
  * Mail: chk19940609@gmail.com
  * Created by IceMimosa
@@ -19,7 +19,7 @@ class ScalaMacroInjector extends SyntheticMembersInjector {
   override def injectFunctions(source: ScTypeDefinition): Seq[String] = {
     val companionClass = source match {
       case obj: ScObject => obj.fakeCompanionClassOrCompanionClass
-      case _ => null
+      case _             => null
     }
 
     companionClass match {
