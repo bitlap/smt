@@ -27,9 +27,9 @@ package object macros {
   implicit class ScClassProxy(clazz: ScClass) {
     def extraTemplate(scalaMacroType: ScalaMacroType): String = {
       scalaMacroType match {
-        case ScalaMacroType.APPLY => ApplyMacro.macroTemplate(clazz)
-        case ScalaMacroType.BUILDER => BuilderMacro.macroTemplate(clazz)
-        case ScalaMacroType.LOG => LogMacro.macroTemplate(clazz)
+        case ScalaMacroType.APPLY       => ApplyMacro.macroTemplate(clazz)
+        case ScalaMacroType.BUILDER     => BuilderMacro.macroTemplate(clazz)
+        case ScalaMacroType.LOG         => LogMacro.macroTemplate(clazz)
         case ScalaMacroType.CONSTRUCTOR => ConstructorMacro.macroTemplate(clazz)
       }
     }
