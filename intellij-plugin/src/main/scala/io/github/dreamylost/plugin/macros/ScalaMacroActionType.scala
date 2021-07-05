@@ -11,5 +11,4 @@ object ScalaMacroActionType extends Enumeration {
   val METHOD: Value = Value
   val EXPR: Value = Value
   val CLASS: Value = Value
-  val CONSTRUCTOR: Value = Value
 }
