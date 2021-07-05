@@ -24,12 +24,21 @@ class ScalaMacroInjector extends SyntheticMembersInjector {
 
     companionClass match {
       case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
-        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER))
+        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroActionType.METHOD))
       case _ => Nil
     }
   }
-}
 
-object ScalaMacroInjector {
+  override def injectMembers(source: ScTypeDefinition): Seq[String] = {
+    val companionClass = source match {
+      case obj: ScObject => obj.fakeCompanionClassOrCompanionClass
+      case _             => null
+    }
 
+    companionClass match {
+      case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
+        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER, ScalaMacroActionType.CLASS))
+      case _ => Nil
+    }
+  }
 }
