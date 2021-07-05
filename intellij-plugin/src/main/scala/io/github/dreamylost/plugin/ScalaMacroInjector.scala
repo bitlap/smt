@@ -2,7 +2,7 @@ package io.github.dreamylost.plugin
 
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 import org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.SyntheticMembersInjector
-
+import io.github.dreamylost.plugin.macros._
 /**
  * Desc:
  *
@@ -13,7 +13,7 @@ import org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.SyntheticMembe
 class ScalaMacroInjector extends SyntheticMembersInjector {
 
   override def needsCompanionObject(source: ScTypeDefinition): Boolean = {
-    source.hasAnnotation(ScalaMacroNames.BUILDER)
+    source.hasAnnotation(ScalaMacroType.BUILDER.toString)
   }
 
   override def injectFunctions(source: ScTypeDefinition): Seq[String] = {
@@ -23,8 +23,8 @@ class ScalaMacroInjector extends SyntheticMembersInjector {
     }
 
     companionClass match {
-      case clazz: ScClass if clazz.hasAnnotation(ScalaMacroNames.BUILDER) =>
-        Seq(s"""def builder(): ${clazz.getName} = ???""")
+      case clazz: ScClass if clazz.hasAnnotation(ScalaMacroType.BUILDER.toString) =>
+        Seq(clazz.extraTemplate(ScalaMacroType.BUILDER))
       case _ => Nil
     }
   }
