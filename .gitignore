@@ -13,3 +13,10 @@
 .bsp
 examples212/target/
 examples213/target/
+
+## plugin
+intellij-plugin/target/
+intellij-plugin/project/project/
+intellij-plugin/project/target/
+!.idea/artifacts/
+/.idea/

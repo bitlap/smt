@@ -44,8 +44,7 @@ lazy val root = (project in file("."))
       commitNextVersion,
       pushChanges
     )
-  ).settings(Publishing.publishSettings)
-
+  ).settings(Publishing.publishSettings).settings(paradise)
 
 lazy val `examples213` = (project in file("examples213")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
@@ -69,3 +68,6 @@ def paradise(): Def.Setting[Seq[ModuleID]] = {
     case _ => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
 }
+
+// Only to import, and every thing in /intellij-plugin.
+lazy val `intellij-plugin` = (project in file("intellij-plugin")).settings(publish / skip := true)
