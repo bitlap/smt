@@ -28,7 +28,7 @@ lazy val root = (project in file("."))
         case Some((2, n)) if n <= 12 => Nil
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
-    },
+    } ++ Seq("-language:experimental.macros"),
     Test / testOptions += Tests.Argument("-oDF"),
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
