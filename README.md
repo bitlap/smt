@@ -183,9 +183,9 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
   - `logType` 指定需要生成的`log`的类型。可选，默认`JLog`
-    - `io.github.dreamylost.LogType.JLog` 使用 `java.util.logging.Logger`
-    - `io.github.dreamylost.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
-    - `io.github.dreamylost.LogType.Slf4j` 使用 `org.slf4j.Logger`
+    - `io.github.dreamylost.logs.LogType.JLog` 使用 `java.util.logging.Logger`
+    - `io.github.dreamylost.logs.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
+    - `io.github.dreamylost.logs.LogType.Slf4j` 使用 `org.slf4j.Logger`
   - 支持普通类，样例类，单例对象。
 
 - 示例
