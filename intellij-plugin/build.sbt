@@ -1,8 +1,9 @@
-name := "scala-macro-tools"
-scalaVersion := "2.13.6"
-organization := "io.github.jxnu-liguobin"
+name := "scala-macro-tools-intellij-plugin"
 
 lazy val scala213 = "2.13.6"
+
+scalaVersion := scala213
+organization := "io.github.jxnu-liguobin"
 
 import org.jetbrains.sbtidea.Keys._
 

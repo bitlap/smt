@@ -25,13 +25,13 @@ final class toString(
     callSuper:             Boolean = false
 ) extends StaticAnnotation {
 
-  def macroTransform(annottees: Any*): Any = macro stringMacro.impl
+  def macroTransform(annottees: Any*): Any = macro toStringMacro.impl
 
 }
 
 final case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
 
-object stringMacro extends MacroCommon {
+object toStringMacro extends MacroCommon {
 
   def printField(c: whitebox.Context)(argument: Argument, lastParam: Option[String], field: c.universe.Tree): c.universe.Tree = {
     import c.universe._

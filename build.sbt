@@ -2,12 +2,14 @@ import sbt.Def
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
-scalaVersion := "2.13.6"
-organization := "io.github.jxnu-liguobin"
 
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.6"
+
+scalaVersion := scala213
+organization := "io.github.jxnu-liguobin"
+
 lazy val supportedScalaVersions = List(scala213, scala212, scala211)
 
 lazy val root = (project in file("."))

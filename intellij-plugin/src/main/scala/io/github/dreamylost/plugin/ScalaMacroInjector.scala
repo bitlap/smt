@@ -29,7 +29,7 @@ class ScalaMacroInjector extends SyntheticMembersInjector {
     provider
       .findProcessors(source)
       .flatMap(_.process(source, typ))
-      .filter(s => s != null && !s.trim.isEmpty)
+      .filter(s => s != null && s.trim.nonEmpty)
   }
 }
 
