@@ -154,4 +154,15 @@ class LogTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
   }
 
+  "log for plugin test" should "compile ok" in {
+    @log class TestLog1() {
+      log.info("")
+    }
+    @log object TestLog1 {
+      log.info("")
+    }
+    @log(logType = io.github.dreamylost.LogType.Slf4j) class TestLog2() {
+      log.info("")
+    }
+  }
 }

@@ -1,9 +1,10 @@
 <idea-plugin>
     <id>Scala-Macro-Tools Plugin</id>
     <name>Scala-Macro-Tools</name>
-    <version>0.1.0</version>
+    <version>0.1.2</version>
     <vendor>Scala Macro Tools</vendor>
-    <idea-version since-build="201.0"/>
+    <idea-version since-build="203.0"/>
+
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.java</depends>
@@ -16,6 +17,9 @@
         <br/>
         <a href="https://github.com/jxnu-liguobin/scala-macro-tools">GitHub</a> |
         <a href="https://github.com/jxnu-liguobin/scala-macro-tools/issues">Issues</a>
+        <br/>
+        <br/>
+        <b>A plugin that implements Lombok-like functionality with Scala macros</b>
         <br/>
         <br/>
         <b>Features</b>
