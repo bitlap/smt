@@ -112,8 +112,8 @@ object TestClass1 extends scala.AnyRef {
     super.<init>();
     ()
   };
-  def builder(): Builder = new Builder();
-  class Builder extends scala.AnyRef {
+  def builder(): TestClass1Builder = new TestClass1Builder();
+  class TestClass1Builder extends scala.AnyRef {
     def <init>() = {
       super.<init>();
       ()
@@ -122,19 +122,19 @@ object TestClass1 extends scala.AnyRef {
     private var j: Int = _;
     private var x: String = _;
     private var o: Option[String] = Some("");
-    def i(i: Int): Builder = {
+    def i(i: Int): TestClass1Builder = {
       this.i = i;
       this
     };
-    def j(j: Int): Builder = {
+    def j(j: Int): TestClass1Builder = {
       this.j = j;
       this
     };
-    def x(x: String): Builder = {
+    def x(x: String): TestClass1Builder = {
       this.x = x;
       this
     };
-    def o(o: Option[String]): Builder = {
+    def o(o: Option[String]): TestClass1Builder = {
       this.o = o;
       this
     };
@@ -185,9 +185,9 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
 - Note
   - `verbose` Whether to enable detailed log.
   - `logType` Specifies the type of `log` that needs to be generated, default is `io.github.dreamylost.LogType.JLog`.
-    - `io.github.dreamylost.LogType.JLog` use `java.util.logging.Logger`
-    - `io.github.dreamylost.LogType.Log4j2` use `org.apache.logging.log4j.Logger`
-    - `io.github.dreamylost.LogType.Slf4j` use `org.slf4j.Logger`
+    - `io.github.dreamylost.logs.LogType.JLog` use `java.util.logging.Logger`
+    - `io.github.dreamylost.logs.LogType.Log4j2` use `org.apache.logging.log4j.Logger`
+    - `io.github.dreamylost.logs.LogType.Slf4j` use `org.slf4j.Logger`
   - Support `class`, `case class` and `object`.
 
 - Example

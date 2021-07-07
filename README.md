@@ -110,8 +110,8 @@ object TestClass1 extends scala.AnyRef {
     super.<init>();
     ()
   };
-  def builder(): Builder = new Builder();
-  class Builder extends scala.AnyRef {
+  def builder(): TestClass1Builder = new TestClass1Builder();
+  class TestClass1Builder extends scala.AnyRef {
     def <init>() = {
       super.<init>();
       ()
@@ -120,19 +120,19 @@ object TestClass1 extends scala.AnyRef {
     private var j: Int = _;
     private var x: String = _;
     private var o: Option[String] = Some("");
-    def i(i: Int): Builder = {
+    def i(i: Int): TestClass1Builder = {
       this.i = i;
       this
     };
-    def j(j: Int): Builder = {
+    def j(j: Int): TestClass1Builder = {
       this.j = j;
       this
     };
-    def x(x: String): Builder = {
+    def x(x: String): TestClass1Builder = {
       this.x = x;
       this
     };
-    def o(o: Option[String]): Builder = {
+    def o(o: Option[String]): TestClass1Builder = {
       this.o = o;
       this
     };
@@ -183,9 +183,9 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
   - `logType` 指定需要生成的`log`的类型。可选，默认`JLog`
-    - `io.github.dreamylost.LogType.JLog` 使用 `java.util.logging.Logger`
-    - `io.github.dreamylost.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
-    - `io.github.dreamylost.LogType.Slf4j` 使用 `org.slf4j.Logger`
+    - `io.github.dreamylost.logs.LogType.JLog` 使用 `java.util.logging.Logger`
+    - `io.github.dreamylost.logs.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
+    - `io.github.dreamylost.logs.LogType.Slf4j` 使用 `org.slf4j.Logger`
   - 支持普通类，样例类，单例对象。
 
 - 示例

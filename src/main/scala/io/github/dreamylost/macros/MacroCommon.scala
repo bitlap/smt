@@ -1,4 +1,4 @@
-package io.github.dreamylost
+package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
 
@@ -11,6 +11,13 @@ import scala.reflect.macros.whitebox
  */
 trait MacroCommon {
 
+  /**
+   * Output ast result.
+   *
+   * @param c
+   * @param force
+   * @param resTree
+   */
   def printTree(c: whitebox.Context)(force: Boolean, resTree: c.Tree): Unit = {
     c.info(
       c.enclosingPosition,
@@ -70,6 +77,7 @@ trait MacroCommon {
 
   /**
    * Wrap tree result with companion object.
+   *
    * @param c
    * @param resTree class
    * @param annottees
@@ -95,7 +103,7 @@ trait MacroCommon {
    *
    * @param c
    * @param annottees
-   * @param modifyAction The dependent type need aux-pattern in scala2. Now let's get around this.
+   * @param modifyAction The actual processing function
    * @return Return the result of modifyAction
    */
   def handleWithImplType(c: whitebox.Context)(annottees: c.Expr[Any]*)
@@ -104,7 +112,7 @@ trait MacroCommon {
     annottees.map(_.tree) match {
       case (classDecl: ClassDef) :: Nil => modifyAction(classDecl, None).asInstanceOf[c.Expr[Nothing]]
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => modifyAction(classDecl, Some(compDecl)).asInstanceOf[c.Expr[Nothing]]
-      case _ => c.abort(c.enclosingPosition, "Invalid annottee")
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
   }
 
@@ -123,7 +131,7 @@ trait MacroCommon {
           c.info(c.enclosingPosition, "Annotation is used on 'case class'.", force = true)
           true
         } else false
-      case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class. classDef: $annotateeClass")
+      case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
     }
   }
 
@@ -143,7 +151,8 @@ trait MacroCommon {
   }
 
   /**
-   *  Expand the constructor and get the field with assign.
+   * Expand the constructor and get the field with assign.
+   *
    * @param c
    * @param annotteeClassParams
    * @return
@@ -192,6 +201,7 @@ trait MacroCommon {
    * Extract the internal fields of members belonging to the class， but not in primary constructor.
    *
    * @param c
+   * @param annotteeClassDefinitions
    */
   def getClassMemberValDef(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
     import c.universe._
