@@ -12,4 +12,5 @@ object ScalaMacroNames {
   val LOG = s"$NS.log"
   val APPLY = s"$NS.apply"
   val CONSTRUCTOR = s"$NS.constructor"
+  val JSON = s"$NS.json"
 }

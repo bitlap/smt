@@ -6,16 +6,13 @@ import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 
 /**
- * Desc: Processor for annotation toString
+ * Desc: Processor for annotation log
  *
  * Mail: chk19940609@gmail.com
  * Created by IceMimosa
  * Date: 2021/7/6
  */
 class LogProcessor extends AbsProcessor {
-
-  // annotation: log type name
-  private val logTypeName = "logType"
 
   // default log expr
   private def logExpr(log: String = "java.util.logging.Logger") = s"private final val log: $log = ???"
@@ -26,10 +23,11 @@ class LogProcessor extends AbsProcessor {
         source match {
           case clazz @ (_: ScClass | _: ScObject) =>
             val an = clazz.annotations(ScalaMacroNames.LOG).last
-            an.annotationExpr.getAttributes.findLast(_.name == logTypeName) match {
-              case Some(kv) if kv.getChildren.exists(_.getText.equalsIgnoreCase("Slf4j")) =>
+            // annotation expr string
+            an.annotationExpr.getText match {
+              case expr if expr.contains("Slf4j") =>
                 Seq(logExpr("org.slf4j.Logger"))
-              case Some(kv) if kv.getChildren.exists(_.getText.equalsIgnoreCase("Log4j2")) =>
+              case expr if expr.contains("Log4j2") =>
                 Seq(logExpr("org.apache.logging.log4j.Logger"))
               case _ =>
                 Seq(logExpr())
