@@ -19,9 +19,7 @@ lazy val `intellij-plugin` = (project in file("."))
     Compile / javacOptions ++= "--release" :: "11" :: Nil,
 //    Global / scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings"),
     intellijPlugins ++= Seq("com.intellij.java", "com.intellij.java-i18n", "org.intellij.scala").map(_.toPlugin),
-    libraryDependencies ++= Seq(
-      "com.eclipsesource.minimal-json" % "minimal-json" % "0.9.5" withSources(),
-    ),
+    libraryDependencies ++= Seq.empty,
     unmanagedResourceDirectories in Compile += baseDirectory.value / "src" / "main" / "resources",
     unmanagedResourceDirectories in Test += baseDirectory.value / "src" / "test" / "resources",
     patchPluginXml := pluginXmlOptions { xml =>
