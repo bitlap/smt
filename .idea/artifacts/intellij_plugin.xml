@@ -5,7 +5,7 @@
       <element id="directory" name="lib">
         <element id="library" level="project" name="sbt: com.eclipsesource.minimal-json:minimal-json:0.9.5:jar" />
         <element id="archive" name="intellij-plugin.jar">
-          <element id="module-output" name="intellij-plugin" />
+          <element id="module-output" name="scala-macro-tools-intellij-plugin" />
         </element>
       </element>
     </root>

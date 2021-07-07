@@ -2,7 +2,7 @@ package io.github.dreamylost.plugin
 
 import com.intellij.openapi.Disposable
 import io.github.dreamylost.plugin.processor.Processor
-import io.github.dreamylost.plugin.processor.clazz.{ BuilderProcessor, LogProcessor }
+import io.github.dreamylost.plugin.processor.clazz.{ BuilderProcessor, JsonProcessor, LogProcessor }
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 
 import scala.collection.mutable
@@ -17,6 +17,7 @@ class ScalaMacroProcessorProvider extends Disposable {
   private val processors = mutable.Map[String, Processor]()
   regist(ScalaMacroNames.BUILDER, new BuilderProcessor())
   regist(ScalaMacroNames.LOG, new LogProcessor())
+  regist(ScalaMacroNames.JSON, new JsonProcessor())
 
   override def dispose(): Unit = {}
 
@@ -30,7 +31,7 @@ class ScalaMacroProcessorProvider extends Disposable {
   def findProcessors(source: ScTypeDefinition): Seq[Processor] = {
     processors.filter { p =>
       source match {
-        case obj: ScObject  => obj.fakeCompanionClassOrCompanionClass.hasAnnotation(p._1)
+        case obj: ScObject  => obj.hasAnnotation(p._1) || obj.fakeCompanionClassOrCompanionClass.hasAnnotation(p._1)
         case clazz: ScClass => clazz.hasAnnotation(p._1)
         case _              => source.hasAnnotation(p._1)
       }
