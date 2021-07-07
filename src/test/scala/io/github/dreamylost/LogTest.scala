@@ -161,7 +161,7 @@ class LogTest extends AnyFlatSpec with Matchers {
     @log object TestLog1 {
       log.info("")
     }
-    @log(logType = io.github.dreamylost.LogType.Slf4j) class TestLog2() {
+    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) class TestLog2() {
       log.info("")
     }
   }
