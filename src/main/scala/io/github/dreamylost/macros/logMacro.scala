@@ -34,7 +34,7 @@ object logMacro extends MacroCommon {
         val tpe = getLogType(logType.asInstanceOf[Tree])
         (evalTree(c)(verbose.asInstanceOf[Tree]), tpe)
       case q"new log()" => (false, LogType.JLog)
-      case _            => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
+      case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
     c.info(c.enclosingPosition, s"annottees: $annottees, args: $args", force = args._1)
