@@ -97,19 +97,27 @@ object toStringMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
     // extract parameters of annotation, must in order
-    val arg = c.prefix.tree match {
-      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" => (false, c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), c.eval[Boolean](c.Expr(dd)))
-      case q"new toString($aa, $bb, $cc)" => (c.eval[Boolean](c.Expr(aa)), c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), false)
+    val arg = extractArgumentsTuple4(c) {
+      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
+        (false, evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), evalTree(c)(dd.asInstanceOf[Tree]))
+      case q"new toString($aa, $bb, $cc)" =>
+        (evalTree(c)(aa.asInstanceOf[Tree]), evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), false)
 
-      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" => (c.eval[Boolean](c.Expr(aa)), c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), c.eval[Boolean](c.Expr(dd)))
-      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" => (c.eval[Boolean](c.Expr(aa)), c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), false)
-      case q"new toString($aa, $bb, $cc, $dd)" => (c.eval[Boolean](c.Expr(aa)), c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), c.eval[Boolean](c.Expr(dd)))
+      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
+        (evalTree(c)(aa.asInstanceOf[Tree]), evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), evalTree(c)(dd.asInstanceOf[Tree]))
+      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
+        (evalTree(c)(aa.asInstanceOf[Tree]), evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), false)
+      case q"new toString($aa, $bb, $cc, $dd)" =>
+        (evalTree(c)(aa.asInstanceOf[Tree]), evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), evalTree(c)(dd.asInstanceOf[Tree]))
 
-      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" => (false, c.eval[Boolean](c.Expr(bb)), c.eval[Boolean](c.Expr(cc)), false)
-      case q"new toString(includeInternalFields=$bb)" => (false, c.eval[Boolean](c.Expr(bb)), true, false)
-      case q"new toString(includeFieldNames=$cc)" => (false, true, c.eval[Boolean](c.Expr(cc)), false)
+      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" =>
+        (false, evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), false)
+      case q"new toString(includeInternalFields=$bb)" =>
+        (false, evalTree(c)(bb.asInstanceOf[Tree]), true, false)
+      case q"new toString(includeFieldNames=$cc)" =>
+        (false, true, evalTree(c)(cc.asInstanceOf[Tree]), false)
       case q"new toString()" => (false, true, true, false)
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
     val argument = Argument(arg._1, arg._2, arg._3, arg._4)
     c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)

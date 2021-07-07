@@ -12,9 +12,9 @@ object synchronizedMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
-    val args: (Boolean, String) = c.prefix.tree match {
-      case q"new synchronized(verbose=$verbose, lockedName=$lock)" => (c.eval[Boolean](c.Expr(verbose)), c.eval[String](c.Expr(lock)))
-      case q"new synchronized(lockedName=$lock)" => (false, c.eval[String](c.Expr(lock)))
+    val args: (Boolean, String) = extractArgumentsTuple2(c) {
+      case q"new synchronized(verbose=$verbose, lockedName=$lock)" => (evalTree(c)(verbose.asInstanceOf[Tree]), evalTree(c)(lock.asInstanceOf[Tree]))
+      case q"new synchronized(lockedName=$lock)" => (false, evalTree(c)(lock.asInstanceOf[Tree]))
       case q"new synchronized()" => (false, "this")
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }

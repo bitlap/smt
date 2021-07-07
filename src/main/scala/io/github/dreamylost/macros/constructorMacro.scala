@@ -11,10 +11,10 @@ import scala.reflect.macros.whitebox
 object constructorMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
-    val args = c.prefix.tree match {
-      case q"new constructor(verbose=$verbose)" => (c.eval[Boolean](c.Expr(verbose)), Nil)
-      case q"new constructor(excludeFields=$excludeFields)" => (false, c.eval[Seq[String]](c.Expr(excludeFields)))
-      case q"new constructor(verbose=$verbose, excludeFields=$excludeFields)" => (c.eval[Boolean](c.Expr(verbose)), c.eval[Seq[String]](c.Expr(excludeFields)))
+    val args: (Boolean, Seq[String]) = extractArgumentsTuple2(c) {
+      case q"new constructor(verbose=$verbose)" => (evalTree(c)(verbose.asInstanceOf[Tree]), Nil)
+      case q"new constructor(excludeFields=$excludeFields)" => (false, evalTree(c)(excludeFields.asInstanceOf[Tree]))
+      case q"new constructor(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(c)(verbose.asInstanceOf[Tree]), evalTree(c)(excludeFields.asInstanceOf[Tree]))
       case q"new constructor()" => (false, Nil)
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
