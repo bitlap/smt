@@ -28,8 +28,8 @@ object toStringMacro extends MacroCommon {
     } else {
       lastParam.fold(q"$field") { lp =>
         field match {
-          case tree @ q"$mods var $tname: $tpt = $expr" => if (tname.toString() != lp) q"""$tname+${", "}""" else q"""$tname"""
-          case tree @ q"$mods val $tname: $tpt = $expr" => if (tname.toString() != lp) q"""$tname+${", "}""" else q"""$tname"""
+          case q"$mods var $tname: $tpt = $expr" => if (tname.toString() != lp) q"""$tname+${", "}""" else q"""$tname"""
+          case q"$mods val $tname: $tpt = $expr" => if (tname.toString() != lp) q"""$tname+${", "}""" else q"""$tname"""
           case _                                        => if (field.toString() != lp) q"""$field+${", "}""" else q"""$field"""
         }
       }
