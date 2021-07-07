@@ -24,5 +24,10 @@ lazy val `intellij-plugin` = (project in file("."))
     ),
     unmanagedResourceDirectories in Compile += baseDirectory.value / "src" / "main" / "resources",
     unmanagedResourceDirectories in Test += baseDirectory.value / "src" / "test" / "resources",
+    patchPluginXml := pluginXmlOptions { xml =>
+      xml.version           = (version in ThisBuild).value
+      xml.pluginDescription = IO.read(baseDirectory.value / "src" / "main" / "resources" / "patch" / "description.html")
+      xml.changeNotes       = IO.read(baseDirectory.value / "src" / "main" / "resources" / "patch" / "change.html")
+    },
     publish / skip := true,
   )

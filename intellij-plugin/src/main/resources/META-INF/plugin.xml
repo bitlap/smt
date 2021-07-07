@@ -1,7 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <idea-plugin>
     <id>Scala-Macro-Tools Plugin</id>
     <name>Scala-Macro-Tools</name>
-    <version>0.1.2</version>
+    <version>XXX</version>
     <vendor>Scala Macro Tools</vendor>
     <idea-version since-build="203.0"/>
 
@@ -11,39 +12,8 @@
     <depends>org.intellij.scala</depends>
     <depends>com.intellij.properties</depends>
 
-    <description>
-        <![CDATA[
-        <h1>Scala Macro Tools plugin for IntelliJ IDEA</h1>
-        <br/>
-        <a href="https://github.com/jxnu-liguobin/scala-macro-tools">GitHub</a> |
-        <a href="https://github.com/jxnu-liguobin/scala-macro-tools/issues">Issues</a>
-        <br/>
-        <br/>
-        <b>A plugin that implements Lombok-like functionality with Scala macros</b>
-        <br/>
-        <br/>
-        <b>Features</b>
-        <ul>
-          <li>@toString</li>
-          <li>@json</li>
-          <li>@builder</li>
-          <li>@synchronized</li>
-          <li>@log</li>
-          <li>@apply</li>
-          <li>@constructor</li>
-        </ul>
-        <br/>
-        ]]>
-    </description>
-
-    <change-notes>
-        <![CDATA[
-        0.0.1:
-        <ul>
-        <li>First release, support @builder, @log</li>
-        </ul>
-        ]]>
-    </change-notes>
+    <description><![CDATA[ Description will be added by sbt plugin build ]]></description>
+    <change-notes><![CDATA[ Change notes will be filled by sbt plugin build ]]></change-notes>
 
     <resource-bundle>messages.PluginBundle</resource-bundle>
 
