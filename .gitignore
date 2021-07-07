@@ -11,8 +11,8 @@
 .idea/
 *.iml
 .bsp
-examples212/target/
-examples213/target/
+examples2-12/target/
+examples2-13/target/
 
 ## plugin
 intellij-plugin/target/
