@@ -97,7 +97,7 @@ object toStringMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
     // extract parameters of annotation, must in order
-    val arg = extractArgumentsTuple4(c) {
+    val arg: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4(c) {
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
         (false, evalTree(c)(bb.asInstanceOf[Tree]), evalTree(c)(cc.asInstanceOf[Tree]), evalTree(c)(dd.asInstanceOf[Tree]))
       case q"new toString($aa, $bb, $cc)" =>
