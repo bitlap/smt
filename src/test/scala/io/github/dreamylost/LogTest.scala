@@ -1,5 +1,6 @@
 package io.github.dreamylost
 
+import io.github.dreamylost.logs.LogType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -164,5 +165,13 @@ class LogTest extends AnyFlatSpec with Matchers {
     @log(logType = io.github.dreamylost.logs.LogType.Slf4j) class TestLog2() {
       log.info("")
     }
+    import io.github.dreamylost.logs.LogType.JLog
+    @log(logType = JLog) class TestLog3() {
+      log.info("")
+    }
+    @log(logType = LogType.Slf4j) class TestLog4() {
+      log.info("")
+    }
   }
+
 }

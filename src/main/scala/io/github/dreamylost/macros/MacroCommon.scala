@@ -12,6 +12,32 @@ import scala.reflect.macros.whitebox
 trait MacroCommon {
 
   /**
+   * Eval tree.
+   *
+   * @param c
+   * @param tree
+   * @tparam T
+   * @return
+   */
+  def evalTree[T: c.WeakTypeTag](c: whitebox.Context)(tree: c.Tree): T = c.eval(c.Expr[T](c.untypecheck(tree.duplicate)))
+
+  def extractArgumentsTuple1[T: c.WeakTypeTag](c: whitebox.Context)(partialFunction: PartialFunction[c.Tree, Tuple1[T]]): Tuple1[T] = {
+    partialFunction.apply(c.prefix.tree)
+  }
+
+  def extractArgumentsTuple2[T1: c.WeakTypeTag, T2: c.WeakTypeTag](c: whitebox.Context)(partialFunction: PartialFunction[c.Tree, (T1, T2)]): (T1, T2) = {
+    partialFunction.apply(c.prefix.tree)
+  }
+
+  def extractArgumentsTuple3[T1: c.WeakTypeTag, T2: c.WeakTypeTag, T3: c.WeakTypeTag](c: whitebox.Context)(partialFunction: PartialFunction[c.Tree, (T1, T2, T3)]): (T1, T2, T3) = {
+    partialFunction.apply(c.prefix.tree)
+  }
+
+  def extractArgumentsTuple4[T1: c.WeakTypeTag, T2: c.WeakTypeTag, T3: c.WeakTypeTag, T4: c.WeakTypeTag](c: whitebox.Context)(partialFunction: PartialFunction[c.Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
+    partialFunction.apply(c.prefix.tree)
+  }
+
+  /**
    * Output ast result.
    *
    * @param c

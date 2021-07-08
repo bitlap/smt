@@ -1,7 +1,8 @@
 package io.github.dreamylost.macros
 
+import io.github.dreamylost.PACKAGE
+import io.github.dreamylost.logs.LogType
 import io.github.dreamylost.logs.LogType._
-import io.github.dreamylost.logs._
 
 import scala.reflect.macros.whitebox
 
@@ -14,13 +15,26 @@ import scala.reflect.macros.whitebox
 object logMacro extends MacroCommon {
   def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
-    val args: (Boolean, LogType) = c.prefix.tree match {
-      case q"new log(logType=$logType)" => (false, c.eval[LogType](c.Expr(logType)))
-      case q"new log(verbose=$verbose)" => (c.eval[Boolean](c.Expr(verbose)), LogType.JLog)
-      case q"new log($logType)" => (false, c.eval[LogType](c.Expr(logType)))
-      case q"new log(verbose=$verbose, logType=$logType)" => (c.eval[Boolean](c.Expr(verbose)), c.eval[LogType](c.Expr(logType)))
+    def getLogType(logType: c.Tree): LogType = {
+      if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
+        evalTree(c)(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
+      } else {
+        LogType.getLogType(logType.toString())
+      }
+    }
+    val args: (Boolean, LogType) = extractArgumentsTuple2(c) {
+      case q"new log(logType=$logType)" =>
+        val tpe = getLogType(logType.asInstanceOf[Tree])
+        (false, tpe)
+      case q"new log(verbose=$verbose)" => (evalTree(c)(verbose.asInstanceOf[Tree]), LogType.JLog)
+      case q"new log($logType)" =>
+        val tpe = getLogType(logType.asInstanceOf[Tree])
+        (false, tpe)
+      case q"new log(verbose=$verbose, logType=$logType)" =>
+        val tpe = getLogType(logType.asInstanceOf[Tree])
+        (evalTree(c)(verbose.asInstanceOf[Tree]), tpe)
       case q"new log()" => (false, LogType.JLog)
-      case _ => c.abort(c.enclosingPosition, "unexpected annotation pattern!")
+      case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
     c.info(c.enclosingPosition, s"annottees: $annottees, args: $args", force = args._1)
