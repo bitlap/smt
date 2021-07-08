@@ -1,9 +1,10 @@
 package io.github.dreamylost.plugin.processor.clazz
+
 import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
-import io.github.dreamylost.plugin.utils.Utils
+import org.jetbrains.plugins.scala.lang.psi.api.statements.params.ScClassParameter
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
-import org.jetbrains.plugins.scala.lang.psi.light.ScLightParameter
+import org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.ScClassImpl
 
 /**
  * Desc: Processor for annotation builder
@@ -26,7 +27,7 @@ class BuilderProcessor extends AbsProcessor {
           case obj: ScObject =>
             obj.fakeCompanionClassOrCompanionClass match {
               case clazz: ScClass =>
-                Seq(s"""def builder(): ${clazz.getName()}$builderClassNameSuffix = ???""")
+                Seq(s"""def builder(): ${genBuilderName(clazz.getName, returnType = true)} = ???""")
               case _ => Nil
             }
           case _ => Nil
@@ -35,22 +36,21 @@ class BuilderProcessor extends AbsProcessor {
       // if class, inject builder class
       case ProcessType.Inner =>
         source match {
-          case clazz: ScClass =>
-            val className = clazz.getName()
-            // TODO the first constructor
-            val nameAndTypes = clazz.getConstructors.head
-              .getParameterList.getParameters
+          case obj: ScObject =>
+            val clazz = obj.fakeCompanionClassOrCompanionClass
+            val className = clazz.getName
+            // support constructor and second constructor
+            val nameAndTypes = clazz.asInstanceOf[ScClassImpl].constructors.flatMap(_.getParameterList.getParameters)
               .map {
-                case p: ScLightParameter =>
-                  // TODO: fix java primitive names
-                  p.getName -> Option(p.getType.getCanonicalText()).getOrElse("Unit")
+                case p: ScClassParameter =>
+                  p.name -> p.`type`().toOption.getOrElse("Unit")
               }
             val assignMethods = nameAndTypes.map(term =>
-              s"def ${term._1}(${term._1}: ${Utils.convert2ScalaType(term._2)}): $className$builderClassNameSuffix = ???"
+              s"def ${term._1}(${term._1}: ${term._2}): ${genBuilderName(className, returnType = true)} = ???"
             )
             Seq(
               s"""
-                 |class $className$builderClassNameSuffix {
+                 |class ${genBuilderName(className)} {
                  |  def build(): $className = ???
                  |  ${assignMethods.mkString("\n")}
                  |}
@@ -59,6 +59,20 @@ class BuilderProcessor extends AbsProcessor {
           case _ => Nil
         }
       case _ => Nil
+    }
+  }
+
+  /**
+   * Gen class builder name
+   *
+   * @param className   base class name
+   * @param returnType  if function or field return type
+   */
+  private def genBuilderName(className: String, returnType: Boolean = false): String = {
+    if (returnType) {
+      s"$className.$className$builderClassNameSuffix"
+    } else {
+      s"$className$builderClassNameSuffix"
     }
   }
 }

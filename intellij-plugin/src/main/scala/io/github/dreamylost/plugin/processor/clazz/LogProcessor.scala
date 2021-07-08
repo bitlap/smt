@@ -22,15 +22,18 @@ class LogProcessor extends AbsProcessor {
       case ProcessType.Field =>
         source match {
           case clazz @ (_: ScClass | _: ScObject) =>
-            val an = clazz.annotations(ScalaMacroNames.LOG).last
-            // annotation expr string
-            an.annotationExpr.getText match {
-              case expr if expr.contains("Slf4j") =>
-                Seq(logExpr("org.slf4j.Logger"))
-              case expr if expr.contains("Log4j2") =>
-                Seq(logExpr("org.apache.logging.log4j.Logger"))
-              case _ =>
-                Seq(logExpr())
+            clazz.annotations(ScalaMacroNames.LOG).lastOption match {
+              case Some(an) =>
+                // annotation expr string
+                an.annotationExpr.getText match {
+                  case expr if expr.contains("Slf4j") =>
+                    Seq(logExpr("org.slf4j.Logger"))
+                  case expr if expr.contains("Log4j2") =>
+                    Seq(logExpr("org.apache.logging.log4j.Logger"))
+                  case _ =>
+                    Seq(logExpr())
+                }
+              case None => Nil
             }
           case _ => Nil
         }
