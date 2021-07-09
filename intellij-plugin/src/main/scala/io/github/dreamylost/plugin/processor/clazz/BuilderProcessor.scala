@@ -4,7 +4,6 @@ import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
 import org.jetbrains.plugins.scala.lang.psi.api.statements.params.ScClassParameter
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
-import org.jetbrains.plugins.scala.lang.psi.impl.toplevel.typedef.ScClassImpl
 
 /**
  * Desc: Processor for annotation builder
@@ -40,11 +39,7 @@ class BuilderProcessor extends AbsProcessor {
             val clazz = obj.fakeCompanionClassOrCompanionClass
             val className = clazz.getName
             // support constructor and second constructor
-            val nameAndTypes = clazz.asInstanceOf[ScClassImpl].constructors.flatMap(_.getParameterList.getParameters)
-              .map {
-                case p: ScClassParameter =>
-                  p.name -> p.`type`().toOption.getOrElse("Unit")
-              }
+            val nameAndTypes = getConstructorParameters(clazz.asInstanceOf[ScClass])
             val assignMethods = nameAndTypes.map(term =>
               s"def ${term._1}(${term._1}: ${term._2}): ${genBuilderName(className, returnType = true)} = ???"
             )
