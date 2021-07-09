@@ -31,9 +31,9 @@ class ScalaMacroProcessorProvider extends Disposable {
   def findProcessors(source: ScTypeDefinition): Seq[Processor] = {
     processors.filter { p =>
       source match {
-        case obj: ScObject  => obj.hasAnnotation(p._1) || obj.fakeCompanionClassOrCompanionClass.hasAnnotation(p._1)
+        case obj: ScObject => obj.hasAnnotation(p._1) || obj.fakeCompanionClassOrCompanionClass.hasAnnotation(p._1)
         case clazz: ScClass => clazz.hasAnnotation(p._1)
-        case _              => source.hasAnnotation(p._1)
+        case _ => source.hasAnnotation(p._1)
       }
     }.values.toSeq
   }
