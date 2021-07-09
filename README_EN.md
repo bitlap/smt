@@ -92,6 +92,7 @@ The `@builder` used to generate builder pattern for Scala classes.
 
 - Note
   - Support `case class` / `class`.
+  - Only support for **primary constructor**.  
   - If there is no companion object, one will be generated to store the `builder` class and method.
 
 - Example
