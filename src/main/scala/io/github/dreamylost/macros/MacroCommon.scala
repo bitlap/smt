@@ -236,4 +236,52 @@ trait MacroCommon {
       case _         => false
     })
   }
+
+  /**
+   * We generate constructor with currying, and we have to deal with the first layer of currying alone.
+   *
+   * @param typeName
+   * @param fieldss
+   * @param isCase
+   * @return A constructor with currying, it not contains tpt, provide for calling method.
+   * @example [[new TestClass12(i)(j)(k)(t)]]
+   */
+  def getConstructorWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]], isCase: Boolean): c.Tree = {
+    import c.universe._
+    val allFieldsTermName = fieldss.map(f => f.map(ff => fieldTermName(c)(ff)))
+    // not currying
+    val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
+      q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
+    } else {
+      // currying
+      val first = allFieldsTermName.head
+      if (isCase) q"${typeName.toTermName}(...$first)(...${allFieldsTermName.tail})"
+      else q"new $typeName(...$first)(...${allFieldsTermName.tail})"
+    }
+    c.info(c.enclosingPosition, s"getConstructorWithCurrying constructor: $constructor, paramss: $fieldss", force = true)
+    constructor
+  }
+
+  /**
+   * We generate apply method with currying, and we have to deal with the first layer of currying alone.
+   *
+   * @param typeName
+   * @param fieldss
+   * @return A apply method with currying.
+   * @example [[def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)]]
+   */
+  def getApplyMethodWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]]): c.Tree = {
+    import c.universe._
+    val allFieldsTermName = fieldss.map(f => fieldAssignExpr(c)(f))
+    // not currying
+    val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
+      q"def apply(..${allFieldsTermName.flatten}): $typeName = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase = false)}"
+    } else {
+      // currying
+      val first = allFieldsTermName.head
+      q"def apply(..$first)(...${allFieldsTermName.tail}): $typeName = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase = false)}"
+    }
+    c.info(c.enclosingPosition, s"getApplyWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
+    applyMethod
+  }
 }

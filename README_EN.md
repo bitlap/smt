@@ -92,6 +92,7 @@ The `@builder` used to generate builder pattern for Scala classes.
 
 - Note
   - Support `case class` / `class`.
+  - Only support for **primary constructor**.  
   - If there is no companion object, one will be generated to store the `builder` class and method.
 
 - Example
@@ -218,12 +219,13 @@ println(B2(1, 2))
 
 ## @constructor
 
-The `@constructor` used to generate secondary constructor method for classes.
+The `@constructor` used to generate secondary constructor method for classes, only when it has inner fields.
 
 - Note
   - `verbose` Whether to enable detailed log.
   - `excludeFields` Whether to exclude the specified `var` fields, default is `Nil`.
   - Only support `class`.
+  - The inner fields are placed in the first bracket block if constructor is currying.
 
 - Example
 

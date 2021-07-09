@@ -37,4 +37,9 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     // FAILED, not support currying!!
     """@apply @toString class C(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
   }
+
+  "apply2" should "ok with currying" in {
+    @apply
+    @toString class B3(int: Int)(val j: Int)(var k: Option[String] = None)(t: Option[Long] = Some(1L))
+  }
 }

@@ -45,12 +45,11 @@ object builderMacro extends MacroCommon {
       }
     }
 
-    def builderTemplate(typeName: TypeName, fields: List[Tree], isCase: Boolean): Tree = {
-      val termName = typeName.toTermName
+    def builderTemplate(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
+      val fields = fieldss.flatten
       val builderClassName = getBuilderClassName(typeName)
       val builderFieldMethods = fields.map(f => fieldSetMethod(typeName, f))
       val builderFieldDefinitions = fields.map(f => fieldDefinition(f))
-      val allFieldsTermName = fields.map(f => fieldTermName(c)(f))
       q"""
       def builder(): $builderClassName = new $builderClassName()
 
@@ -60,27 +59,27 @@ object builderMacro extends MacroCommon {
 
           ..$builderFieldMethods
 
-          def build(): $typeName = ${if (isCase) q"$termName(..$allFieldsTermName)" else q"new $typeName(..$allFieldsTermName)"}
+          def build(): $typeName = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase)}
       }
        """
     }
 
     // Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
     def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, fields) = classDecl match {
+      val (className, fieldss) = classDecl match {
         // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
         case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
           (tpname, paramss)
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, fields: $fields", force = true)
+      c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, fieldss: $fieldss", force = true)
 
       val cName = className match {
         case t: TypeName => t
       }
       val isCase = isCaseClass(c)(classDecl)
-      val builder = builderTemplate(cName, fields.asInstanceOf[List[List[Tree]]].flatten, isCase)
+      val builder = builderTemplate(cName, fieldss, isCase)
       val compDecl = modifiedCompanion(c)(compDeclOpt, builder, cName)
       c.info(c.enclosingPosition, s"builderTree: $builder, compDecl: $compDecl", force = true)
       // Return both the class and companion object declarations

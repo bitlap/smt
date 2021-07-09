@@ -121,5 +121,24 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
     println(A2(1, 2, None, Some(12L)))
     println(A2.builder().int(1).j(2).build())
     println(new A2(1, 2, None, None, 100))
+
+    @toString
+    @constructor
+    class TestClass12(val i: Int = 0)(var j: Int)(val k: Int) {
+      private val a: Int = 1
+      var b: Int = 1
+      protected var c: Int = _
+    }
+
+    println(new TestClass12(1, 1, 1)(2)(3))
+
+    /**
+     * def <init>(i: Int, b: Int, c: Int)(j: Int)(k: Int) = {
+     * <init>(i)(j)(k);
+     * this.b = b;
+     * this.c = c
+     * }
+     */
+
   }
 }
