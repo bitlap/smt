@@ -2,13 +2,13 @@ import sbt.Def
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
+organization := "io.github.jxnu-liguobin"
 
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.6"
 
 scalaVersion := scala213
-organization := "io.github.jxnu-liguobin"
 
 lazy val supportedScalaVersions = List(scala213, scala212, scala211)
 
@@ -48,7 +48,7 @@ lazy val root = (project in file("."))
     )
   ).settings(Publishing.publishSettings).settings(paradise())
 
-lazy val `examples213` = (project in file("examples2-13")).settings(scalaVersion := scala213)
+lazy val `examples2-13` = (project in file("examples2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(
@@ -56,7 +56,7 @@ lazy val `examples213` = (project in file("examples2-13")).settings(scalaVersion
   Compile / scalacOptions += "-Ymacro-annotations"
 )
 
-lazy val `examples212` = (project in file("examples2-12")).settings(scalaVersion := scala212)
+lazy val `examples2-12` = (project in file("examples2-12")).settings(scalaVersion := scala212)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(

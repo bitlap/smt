@@ -1,8 +1,8 @@
 package io.github.dreamylost.plugin.processor.clazz
 
 import io.github.dreamylost.plugin.ScalaMacroNames
-import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
+import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 
 /**
@@ -21,19 +21,14 @@ class LogProcessor extends AbsProcessor {
     typ match {
       case ProcessType.Field =>
         source match {
-          case clazz @ (_: ScClass | _: ScObject) =>
-            clazz.annotations(ScalaMacroNames.LOG).lastOption match {
-              case Some(an) =>
-                // annotation expr string
-                an.annotationExpr.getText match {
-                  case expr if expr.contains("Slf4j") =>
-                    Seq(logExpr("org.slf4j.Logger"))
-                  case expr if expr.contains("Log4j2") =>
-                    Seq(logExpr("org.apache.logging.log4j.Logger"))
-                  case _ =>
-                    Seq(logExpr())
-                }
-              case None => Nil
+          case clazz@(_: ScClass | _: ScObject) =>
+            clazz.annotations(ScalaMacroNames.LOG).lastOption.fold[Seq[String]](Nil) { an => {
+              an.annotationExpr.getText match {
+                case expr if expr.contains("Slf4j") => Seq(logExpr("org.slf4j.Logger"))
+                case expr if expr.contains("Log4j2") => Seq(logExpr("org.apache.logging.log4j.Logger"))
+                case _ => Seq(logExpr())
+              }
+            }
             }
           case _ => Nil
         }
