@@ -25,11 +25,12 @@
 - `@apply`
 - `@constructor`
 
+> 涉及到交互操作的注解在IDEA插件中都得到了支持。在插件市场中搜索`Scala-Macro-Tools`可下载。
+
 ## 已知问题
 
 - 不支持泛型。
 - `@constructor`与`@toString`同时使用，必须放最后。
-- IDEA对宏的支持不是很好，所以会出现标红，不过编译没问题，调用结果也符合预期。
 
 ## @toString
 
@@ -261,6 +262,7 @@ def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
 
 | Library Version | Scala 2.11                                                                                                                                                                                                  | Scala 2.12                                                                                                                                                                                                  | Scala 2.13                                                                                                                                                                                                  |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.0           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.1.0/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.1.0/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.1.0/jar) |
 | 0.0.6           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.6/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.6/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.6/jar) |
 | 0.0.5           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5/jar) |
 | 0.0.4           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4/jar) |

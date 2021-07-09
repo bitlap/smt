@@ -23,13 +23,12 @@ Learn Scala macro and abstract syntax tree.
 - `@apply`
 - `@constructor`
 
+> Annotations involving interaction are supported in the idea plug-in (named `Scala-Macro-Tools` in Marketplace).
 
 ## Known Issues
 
 - Generic is not supported.
 - When `@constructor` and `@toString` are used together, the former must be put last.
-- IDE support is not very good, a red prompt will appear, but the compilation is OK. 
-
 
 ## @toString
 
@@ -262,6 +261,7 @@ The artefacts have been uploaded to Maven Central.
 
 | Library Version | Scala 2.11                                                                                                                                                                                                  | Scala 2.12                                                                                                                                                                                                  | Scala 2.13                                                                                                                                                                                                  |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1.0           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.1.0/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.1.0/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.1.0/jar) |
 | 0.0.6           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.6/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.6/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.6/jar) |
 | 0.0.5           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5/jar) |
 | 0.0.4           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4/jar) |
