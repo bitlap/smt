@@ -35,11 +35,8 @@ object constructorMacro extends MacroCommon {
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
 
-      // Extract the field of the primary constructor.
-      val annotteeClassParamsOnlyAssignExpr = fieldAssignExpr(c)(annotteeClassParams.asInstanceOf[List[List[Tree]]].flatten)
-
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
-      val annotteeClassFieldDefinitions = getClassMemberValDef(c)(annotteeClassDefinitions)
+      val classFieldDefinitions = getClassMemberValDef(c)(annotteeClassDefinitions)
       val excludeFields = args._2
 
       /**
@@ -55,13 +52,13 @@ object constructorMacro extends MacroCommon {
         }
       }
 
-      val annotteeClassFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr()
+      val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr()
 
-      if (annotteeClassFieldDefinitionsOnlyAssignExpr.isEmpty) {
+      if (classFieldDefinitionsOnlyAssignExpr.isEmpty) {
         c.abort(c.enclosingPosition, s"Annotation is only supported on class when the internal field (declare as 'var') is nonEmpty. classDef: $classDecl")
       }
 
-      val annotteeClassFieldNames = annotteeClassFieldDefinitions.filter(_ match {
+      val annotteeClassFieldNames = classFieldDefinitions.filter(_ match {
         case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
         case _ => false
       }).map {
@@ -70,21 +67,40 @@ object constructorMacro extends MacroCommon {
 
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $annotteeClassParams", force = args._1)
 
-      // not suppport currying
-      val ctorFieldNames = annotteeClassParams.asInstanceOf[List[List[Tree]]].flatten.map(f => fieldTermName(c)(f))
+      // Extract the field of the primary constructor.
+      val ctorFieldNamess = annotteeClassParams.asInstanceOf[List[List[Tree]]]
+      val allFieldsTermName = ctorFieldNamess.map(f => f.map(ff => fieldTermName(c)(ff)))
 
-      def getConstructorTemplate(): c.universe.Tree = {
-        q"""
-          def this(..${annotteeClassParamsOnlyAssignExpr ++ annotteeClassFieldDefinitionsOnlyAssignExpr}){
-            this(..$ctorFieldNames)
+      /**
+       * We generate this method with currying, and we have to deal with the first layer of currying alone.
+       */
+      def getThisMethodWithCurrying(): c.Tree = {
+        // not currying
+        // Extract the field of the primary constructor.
+        val classParamsAssignExpr = fieldAssignExpr(c)(ctorFieldNamess.flatten)
+        val applyMethod = if (ctorFieldNamess.isEmpty || ctorFieldNamess.size == 1) {
+          q"""
+          def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
+            this(..${allFieldsTermName.flatten})
+            ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
+          }
+          """
+        } else {
+          // NOTE: currying constructor overload must be placed in the first bracket block.
+          val allClassParamsAssignExpr = ctorFieldNamess.map(cc => fieldAssignExpr(c)(cc))
+          q"""
+          def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
+            this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }
          """
+        }
+        applyMethod
       }
 
       val resTree = annotateeClass match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(getConstructorTemplate())} }"
+          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(getThisMethodWithCurrying())} }"
       }
       c.Expr[Any](treeResultWithCompanionObject(c)(resTree, annottees: _*))
     }

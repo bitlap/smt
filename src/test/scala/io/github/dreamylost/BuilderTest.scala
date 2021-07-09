@@ -75,4 +75,15 @@ class BuilderTest extends AnyFlatSpec with Matchers {
     println(ret)
     assert(ret.toString == "TestClass1(i=1, j=0, x=x, o=Some())")
   }
+
+  "builder8" should "ok on currying" in {
+
+    @builder
+    case class TestClass11(val i: Int = 0)(var j: Int)(val k: Int)
+      (val t: Option[String])
+
+    @builder
+    class TestClass12(val i: Int = 0)(var j: Int)(val k: Int)
+      (val t: Option[String])
+  }
 }
