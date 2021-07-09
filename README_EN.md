@@ -26,7 +26,6 @@ Learn Scala macro and abstract syntax tree.
 
 ## Known Issues
 
-- Currying is not supported.
 - Generic is not supported.
 - When `@constructor` and `@toString` are used together, the former must be put last.
 - IDE support is not very good, a red prompt will appear, but the compilation is OK. 
