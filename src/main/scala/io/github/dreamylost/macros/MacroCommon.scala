@@ -301,7 +301,7 @@ trait MacroCommon {
       "java.lang.Byte" -> "Byte",
       "java.lang.Boolean" -> "Boolean",
       "java.lang.Character" -> "Char",
-      "java.lang.String" -> "String",
+      "java.lang.String" -> "String"
     )
     types.getOrElse(jType, jType)
   }

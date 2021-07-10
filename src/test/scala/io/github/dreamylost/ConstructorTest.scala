@@ -105,7 +105,7 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
         |    }""".stripMargin should compile
   }
 
-  "constructor3" should "ok at currying" in {
+  "constructor3" should "ok when construction is  currying" in {
     @apply
     @toString
     @builder
@@ -142,7 +142,7 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
 
   }
 
-  "constructor4" should "failed at object" in {
+  "constructor4" should "ok when type is omitted" in {
     @toString
     class B
     @toString
