@@ -18,19 +18,20 @@ object builderMacro extends MacroCommon {
       TypeName(classTree.toTermName.decodedName.toString + BUFFER_CLASS_NAME_SUFFIX)
     }
 
-    def fieldSetMethod(typeName: TypeName, field: Tree): c.Tree = {
+    def fieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): c.Tree = {
       val builderClassName = getBuilderClassName(typeName)
+      val returnTypeParams = extractClassTypeParamsTypeName(c)(classTypeParams)
       field match {
         case q"$mods var $tname: $tpt = $expr" =>
           q"""
-              def $tname($tname: $tpt): ${builderClassName} = {
+              def $tname($tname: $tpt): $builderClassName[..$returnTypeParams] = {
                   this.$tname = $tname
                   this
               }
            """
         case q"$mods val $tname: $tpt = $expr" =>
           q"""
-              def $tname($tname: $tpt): ${builderClassName} = {
+              def $tname($tname: $tpt): $builderClassName[..$returnTypeParams] = {
                   this.$tname = $tname
                   this
               }
@@ -45,32 +46,33 @@ object builderMacro extends MacroCommon {
       }
     }
 
-    def builderTemplate(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
+    def builderTemplate(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
       val fields = fieldss.flatten
       val builderClassName = getBuilderClassName(typeName)
-      val builderFieldMethods = fields.map(f => fieldSetMethod(typeName, f))
+      val builderFieldMethods = fields.map(f => fieldSetMethod(typeName, f, classTypeParams))
       val builderFieldDefinitions = fields.map(f => fieldDefinition(f))
+      val returnTypeParams = extractClassTypeParamsTypeName(c)(classTypeParams)
       q"""
-      def builder(): $builderClassName = new $builderClassName()
+      def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()
 
-      class $builderClassName {
+      class $builderClassName[..$classTypeParams] {
 
           ..$builderFieldDefinitions
 
           ..$builderFieldMethods
 
-          def build(): $typeName = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase)}
+          def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase)}
       }
        """
     }
 
     // Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
     def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, fieldss) = classDecl match {
+      val (className, fieldss, classTypeParams) = classDecl match {
         // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
         case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
-          (tpname, paramss)
+          (tpname, paramss, tparams)
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, fieldss: $fieldss", force = true)
@@ -79,7 +81,7 @@ object builderMacro extends MacroCommon {
         case t: TypeName => t
       }
       val isCase = isCaseClass(c)(classDecl)
-      val builder = builderTemplate(cName, fieldss, isCase)
+      val builder = builderTemplate(cName, fieldss, classTypeParams, isCase)
       val compDecl = modifiedCompanion(c)(compDeclOpt, builder, cName)
       c.info(c.enclosingPosition, s"builderTree: $builder, compDecl: $compDecl", force = true)
       // Return both the class and companion object declarations

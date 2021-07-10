@@ -29,7 +29,6 @@
 
 ## 已知问题
 
-- 不支持泛型。
 - `@constructor`与`@toString`同时使用，必须放最后。
 
 ## @toString

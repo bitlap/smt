@@ -13,96 +13,96 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
 
   "constructor1" should "failed at object" in {
     """    @constructor
-        |    object A2 {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin shouldNot compile
+      |    object A2 {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin shouldNot compile
 
     """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }
-        |    A2(1, 2, None, None).c
-        |    """.stripMargin shouldNot compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }
+      |    A2(1, 2, None, None).c
+      |    """.stripMargin shouldNot compile
   }
 
   "constructor2" should "ok at class" in {
     """    @constructor(verbose = true)
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      private var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      private var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @constructor
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @apply @builder @toString
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @apply @builder @toString @constructor
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @builder @apply @toString @constructor
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @builder @toString @apply @constructor
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @apply @toString @builder @constructor
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
 
     """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
-        |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-        |      private val a: Int = 1
-        |      var b: Int = 1
-        |      protected var c: Int = _
-        |
-        |      def helloWorld: String = "hello world"
-        |    }""".stripMargin should compile
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
   }
 
   "constructor3" should "ok when construction is  currying" in {
@@ -154,6 +154,16 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
     val t = new TestClass12(1, "helloo", new B())(1)(1)
     println(t)
 
+  }
+
+  "constructor5" should "ok when type is generic" in {
+    @toString
+    @constructor
+    class TestClass12[T, U](val i: U)(var j: Int)(val k: T) {
+      var b: List[T] = _
+    }
+    val t = new TestClass12(1, List("helloo"))(1)("1")
+    println(t)
   }
 
 }

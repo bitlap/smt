@@ -86,4 +86,19 @@ class BuilderTest extends AnyFlatSpec with Matchers {
     class TestClass12(val i: Int = 0)(var j: Int)(val k: Int)
       (val t: Option[String])
   }
+
+  "builder9" should "ok with generic" in {
+
+    @builder
+    case class TestClass11[T](i: T)(var j: Int)(val k: Int)
+      (val t: Option[String])
+
+    val a = TestClass11.builder().i("hello generic").j(1).k(22).t(None).build()
+    println(a)
+
+    @builder
+    class TestClass12[T, U](val i: T, var j: U)
+    val b = TestClass12.builder().i(new AnyRef).j(List("helloworld", "generic is ok")).build()
+    println(b)
+  }
 }

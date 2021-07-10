@@ -27,7 +27,6 @@ Learn Scala macro and abstract syntax tree.
 
 ## Known Issues
 
-- Generic is not supported.
 - When `@constructor` and `@toString` are used together, the former must be put last.
 
 ## @toString
