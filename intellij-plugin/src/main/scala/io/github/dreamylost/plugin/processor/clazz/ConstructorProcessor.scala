@@ -2,10 +2,10 @@ package io.github.dreamylost.plugin.processor.clazz
 
 import io.github.dreamylost.plugin.ScalaMacroNames
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
-import io.github.dreamylost.plugin.processor.{AbsProcessor, ProcessType}
+import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScMethodCall
 import org.jetbrains.plugins.scala.lang.psi.api.statements.ScVariableDefinition
-import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScClass, ScTypeDefinition}
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScTypeDefinition }
 import org.jetbrains.plugins.scala.lang.psi.types.ScLiteralType
 
 /**
