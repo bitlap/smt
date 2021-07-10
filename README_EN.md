@@ -217,14 +217,15 @@ println(B2(1, 2))
 
 ## @constructor
 
-The `@constructor` used to generate secondary constructor method for classes, only when it has inner fields.
+The `@constructor` used to generate secondary constructor method for classes, only when it has internal fields.
 
 - Note
   - `verbose` Whether to enable detailed log.
   - `excludeFields` Whether to exclude the specified `var` fields, default is `Nil`.
   - Only support `class`.
-  - The inner fields are placed in the first bracket block if constructor is currying.
-
+  - The internal fields are placed in the first bracket block if constructor is currying.
+  - The type of the internal field must be specified, otherwise the macro extension cannot get the type. 
+    At present, only primitive types and string can be omitted. For example, `var i = 1; var j: int = 1; var k: Object = new Object()` is OK, but `var k = new object()` is not.
 - Example
 
 ```scala

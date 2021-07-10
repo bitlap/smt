@@ -48,6 +48,9 @@ object constructorMacro extends MacroCommon {
           case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
           case _ => false
         }).map {
+          case q"$mods var $pat = $expr" =>
+            // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
+            q"$pat: ${TypeName(toScalaType(evalTree(c)(expr.asInstanceOf[Tree]).getClass.getTypeName))}"
           case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt"
         }
       }

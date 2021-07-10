@@ -284,4 +284,25 @@ trait MacroCommon {
     c.info(c.enclosingPosition, s"getApplyWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
     applyMethod
   }
+
+  /**
+   * Only for primitive types, we can get type and map to scala type.
+   *
+   * @param jType java type name
+   * @return Scala type name
+   */
+  def toScalaType(jType: String): String = {
+    val types = Map(
+      "java.lang.Integer" -> "Int",
+      "java.lang.Long" -> "Long",
+      "java.lang.Double" -> "Double",
+      "java.lang.Float" -> "Float",
+      "java.lang.Short" -> "Short",
+      "java.lang.Byte" -> "Byte",
+      "java.lang.Boolean" -> "Boolean",
+      "java.lang.Character" -> "Char",
+      "java.lang.String" -> "String",
+    )
+    types.getOrElse(jType, jType)
+  }
 }
