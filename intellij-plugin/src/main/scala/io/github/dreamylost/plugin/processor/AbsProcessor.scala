@@ -24,12 +24,10 @@ abstract class AbsProcessor extends Processor {
     } else {
       Seq(clazz.constructor.map(_.asInstanceOf[ScMethodLike]))
     }
-    constructors.filter(_.isDefined).map(_.get).flatMap(_.getParameterList.getParameters)
-      .map {
+    constructors.flatten.flatMap(_.getParameterList.getParameters)
+      .collect {
         case p: ScClassParameter =>
           p.name -> p.`type`().toOption.map(_.toString).getOrElse("Unit")
-        case _ => "" -> ""
       }
-      .filter(_._1 != "")
   }
 }

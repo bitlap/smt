@@ -29,28 +29,26 @@ class ConstructorProcessor extends AbsProcessor {
             val consFields = getConstructorParameters(clazz, withSecond = false)
             val excludeFields = clazz.annotations(ScalaMacroNames.CONSTRUCTOR).lastOption match {
               case Some(an) =>
-                an.getParameterList.getAttributes.findLast(_.getAttributeName == excludeFieldsName)
-                  .map { expr =>
-                    expr.getDetachedValue.asInstanceOf[ScMethodCall].argumentExpressions.map(_.`type`().toOption)
-                      .filter(_.isDefined)
-                      .map(_.get)
-                      .map {
-                        case str: ScLiteralType => str.value.value.toString
-                        case _ => ""
-                      }
-                      .filter(_.nonEmpty)
-                      .mkString(", ")
+                // get excludeFields function call
+                an.getParameterList.getAttributes.findLast(_.getAttributeName == excludeFieldsName).map(_.getDetachedValue)
+                  .collect {
+                    case call: ScMethodCall =>
+                      // get call parameters
+                      call.argumentExpressions.flatMap(_.`type`().toOption)
+                        .collect {
+                          case str: ScLiteralType => str.value.value.toString
+                        }
+                        .mkString(", ")
                   }.getOrElse("")
               case None => ""
             }
             val varFields = clazz.extendsBlock.members
-              .filter {
-                case _: ScVariableDefinition => true // var
-                case _ => false // ScPatternDefinition, ScFunctionDefinition
+              .collect {
+                // var, others: ScPatternDefinition, ScFunctionDefinition
+                case `var`: ScVariableDefinition => `var`
               }
               .flatMap { v =>
-                val vd = v.asInstanceOf[ScVariableDefinition]
-                vd.declaredNames.map(n => (n, vd.`type`().toOption.map(_.toString).getOrElse("Unit")))
+                v.declaredNames.map(n => (n, v.`type`().toOption.map(_.toString).getOrElse("Unit")))
               }
               .filter(v => !excludeFields.contains(v._1))
 
