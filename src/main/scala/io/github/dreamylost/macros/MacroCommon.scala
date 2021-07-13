@@ -133,7 +133,7 @@ trait MacroCommon {
    * @return Return the result of modifyAction
    */
   def handleWithImplType(c: whitebox.Context)(annottees: c.Expr[Any]*)
-    (modifyAction: (c.universe.ClassDef, Option[c.universe.ModuleDef]) => Any): c.Expr[Nothing] = {
+                        (modifyAction: (c.universe.ClassDef, Option[c.universe.ModuleDef]) => Any): c.Expr[Nothing] = {
     import c.universe._
     annottees.map(_.tree) match {
       case (classDecl: ClassDef) :: Nil => modifyAction(classDecl, None).asInstanceOf[c.Expr[Nothing]]
@@ -202,7 +202,7 @@ trait MacroCommon {
    */
   def modifiedCompanion(c: whitebox.Context)(
     compDeclOpt: Option[c.universe.ModuleDef],
-    codeBlock:   c.Tree, className: c.TypeName): c.universe.Tree = {
+    codeBlock: c.Tree, className: c.TypeName): c.universe.Tree = {
     import c.universe._
     compDeclOpt map { compDecl =>
       val q"$mods object $obj extends ..$bases { ..$body }" = compDecl
@@ -233,7 +233,7 @@ trait MacroCommon {
     import c.universe._
     annotteeClassDefinitions.filter(p => p match {
       case _: ValDef => true
-      case _         => false
+      case _ => false
     })
   }
 
@@ -270,18 +270,55 @@ trait MacroCommon {
    * @return A apply method with currying.
    * @example [[def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)]]
    */
-  def getApplyMethodWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]]): c.Tree = {
+  def getApplyMethodWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]], classTypeParams: List[c.Tree]): c.Tree = {
     import c.universe._
     val allFieldsTermName = fieldss.map(f => fieldAssignExpr(c)(f))
+    val returnTypeParams = extractClassTypeParamsTypeName(c)(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
-      q"def apply(..${allFieldsTermName.flatten}): $typeName = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase = false)}"
+      q"def apply[..$classTypeParams](..${allFieldsTermName.flatten}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase = false)}"
     } else {
       // currying
       val first = allFieldsTermName.head
-      q"def apply(..$first)(...${allFieldsTermName.tail}): $typeName = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase = false)}"
+      q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(c)(typeName, fieldss, isCase = false)}"
     }
     c.info(c.enclosingPosition, s"getApplyWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
     applyMethod
+  }
+
+  /**
+   * Only for primitive types, we can get type and map to scala type.
+   *
+   * @param jType java type name
+   * @return Scala type name
+   */
+  def toScalaType(jType: String): String = {
+    val types = Map(
+      "java.lang.Integer" -> "Int",
+      "java.lang.Long" -> "Long",
+      "java.lang.Double" -> "Double",
+      "java.lang.Float" -> "Float",
+      "java.lang.Short" -> "Short",
+      "java.lang.Byte" -> "Byte",
+      "java.lang.Boolean" -> "Boolean",
+      "java.lang.Character" -> "Char",
+      "java.lang.String" -> "String"
+    )
+    types.getOrElse(jType, jType)
+  }
+
+  /**
+   * Gets a list of generic parameters.
+   * This is because the generic parameters of a class cannot be used directly in the return type, and need to be converted.
+   *
+   * @param c
+   * @param tpParams
+   * @return
+   */
+  def extractClassTypeParamsTypeName(c: whitebox.Context)(tpParams: List[c.Tree]): List[c.TypeName] = {
+    import c.universe._
+    tpParams.map {
+      case t: TypeDef => t.name
+    }
   }
 }

@@ -5,15 +5,34 @@
 [![Version](https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools)](https://plugins.jetbrains.com/plugin/17202-scala-macro-tools)
 
 
-我写该库的动机
+该库的目的
 --
 
 学习Scala宏编程（macro）和抽象语法树（ast）。
 
 > 本项目目前处于实验阶段，有建议、意见或者问题欢迎提issue。如果本项目对你有帮助，欢迎点个star。
 
-[中文说明](./README.md) | [English](./README_EN.md)
+**[中文说明](./README.md) | [English](./README_EN.md)**
 
+# 我能学到什么
+
+- Scala2 宏编程
+  - 了解Scala反射
+  - 熟悉插值语法的应用，了解Scala Spec
+  - 了解Scala AST相关的基本使用 
+  - 知道如何编写宏注解（宏拓展）
+  - 知道如何使用宏生成对象，类，方法，字段  
+- 其他    
+  - 知道劝退人的SBT如何优雅配置，诸如发布到云仓库，多版本构建，多模块项目
+  - 了解如何利用Intellij-Scala插件编写自己的Scala插件
+  - 了解Intellij是怎样支持语法提示的，插件工作流程
+  - 知道如何写好scalatest单元测试
+  - 类似的其他思考
+    
+# 环境
+
+- 使用 Java 8, 11 编译通过
+- 使用 Scala 2.11.x ~ 2.13.x 编译通过
 
 # 功能
 
@@ -27,226 +46,7 @@
 
 > 涉及到交互操作的注解在IDEA插件中都得到了支持。在插件市场中搜索`Scala-Macro-Tools`可下载。
 
-## 已知问题
-
-- 不支持泛型。
-- `@constructor`与`@toString`同时使用，必须放最后。
-
-## @toString
-
-`@toString`注解用于为Scala类生成`toString`方法。
-
-- 说明
-  - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - `includeFieldNames` 指定是否在`toString`中包含字段的名称。可选，默认`true`。
-  - `includeInternalFields` 指定是否包含类内部定义的字段。它们不是在主构造函数中。可选，默认`true`。
-  - `callSuper`             指定是否包含`super`的`toString`方法值。如果超级类是一种特质，则不支持。可选，默认`false`。
-  - 支持普通类和样例类。
-
-- 示例
-
-```scala
-@toString class TestClass(val i: Int = 0, var j: Int) {
-  val y: Int = 0
-  var z: String = "hello"
-  var x: String = "world"
-}
-
-println(new TestClass(1, 2));
-```
-
-| includeInternalFields / includeFieldNames | false                                  | true                                             |
-| ----------------------------------------- | -------------------------------------- | ------------------------------------------------ |
-| false                                     | ```TestClass(1, 2)```                  | ```TestClass(i=0, j=2)```                        |
-| true                                      | ```TestClass(1, 2, 0, hello, world)``` | ```TestClass(i=1, j=2, y=0, z=hello, x=world)``` |
-
-## @json
-
-`@json`注解是向Play项目的样例类添加json format对象的最快方法。
-
-- 说明
-  - 此注释启发来自[json-annotation](https://github.com/kifi/json-annotation)，并做了优化，现在它可以与其他注解同时使用。
-  - 只有一个隐式的`val`值会被自动生成（如果伴生对象不存在的话，还会生成一个伴生对象用于存放该隐式值），此外没有其他的操作。
-
-- 示例
-
-```scala
-@json case class Person(name: String, age: Int)
-```
-
-现在，您可以使用Play的转化方法序列化或反序列化对象：
-
-```scala
-import play.api.libs.json._
-
-val person = Person("Victor Hugo", 46)
-val json = Json.toJson(person)
-Json.fromJson[Person](json)
-```
-
-## @builder
-
-`@builder`注解用于为Scala类生成构造器模式。
-
-- 说明
-  - 支持普通类和样例类。
-  - 仅支持对主构造函数使用。   
-  - 如果该类没有伴生对象，将生成一个伴生对象来存储`builder`方法和类。
-
-- 示例
-
-```scala
-@builder
-case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
-
-val ret = TestClass1.builder().i(1).j(0).x("x").build()
-assert(ret.toString == "TestClass1(1,0,x,Some())")
-```
-
-宏生成的中间代码：
-
-```scala
-object TestClass1 extends scala.AnyRef {
-  def <init>() = {
-    super.<init>();
-    ()
-  };
-  def builder(): TestClass1Builder = new TestClass1Builder();
-  class TestClass1Builder extends scala.AnyRef {
-    def <init>() = {
-      super.<init>();
-      ()
-    };
-    private var i: Int = 0;
-    private var j: Int = _;
-    private var x: String = _;
-    private var o: Option[String] = Some("");
-    def i(i: Int): TestClass1Builder = {
-      this.i = i;
-      this
-    };
-    def j(j: Int): TestClass1Builder = {
-      this.j = j;
-      this
-    };
-    def x(x: String): TestClass1Builder = {
-      this.x = x;
-      this
-    };
-    def o(o: Option[String]): TestClass1Builder = {
-      this.o = o;
-      this
-    };
-    def build(): TestClass1 = TestClass1(i, j, x, o)
-  }
-}
-```
-
-## @synchronized
-
-`@synchronized`注解是一个更方便、更灵活的用于同步方法的注解。
-
-- 说明
-  - `lockedName` 指定自定义的锁对象的名称。可选，默认`this`。
-  - 支持静态方法（`object`中的函数）和实例方法（`class`中的函数）。
-
-- 示例
-
-```scala
-
-private final val obj = new Object
-
-@synchronized(lockedName = "obj") // 如果您填写一个不存在的字段名，编译将失败。
-def getStr3(k: Int): String = {
-  k + ""
-}
-
-// 或者
-@synchronized //使用 this 作为锁对象
-def getStr(k: Int): String = {
-  k + ""
-}
-```
-
-宏生成的中间代码：
-
-```scala
-// 注意，它不会判断synchronized是否已经存在，因此如果synchronized已经存在，它将被使用两次。如下 
-// `def getStr(k: Int): String = this.synchronized(this.synchronized(k.$plus("")))
-// 目前还不确定是否在字节码级别会被优化。
-def getStr(k: Int): String = this.synchronized(k.$plus(""))
-```
-
-## @log
-
-`@log`注解不使用混入和包装，而是直接使用宏生成默认的log对象来操作log。
-
-- 说明
-  - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - `logType` 指定需要生成的`log`的类型。可选，默认`JLog`
-    - `io.github.dreamylost.logs.LogType.JLog` 使用 `java.util.logging.Logger`
-    - `io.github.dreamylost.logs.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
-    - `io.github.dreamylost.logs.LogType.Slf4j` 使用 `org.slf4j.Logger`
-  - 支持普通类，样例类，单例对象。
-
-- 示例
-
-```scala
-@log(verbose = true) class TestClass1(val i: Int = 0, var j: Int) {
-  log.info("hello")
-}
-
-@log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
-```
-
-## @apply
-
-`@apply`注解用于为普通类的主构造函数生成`apply`方法。
-
-- 说明
-  - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - 仅支持在`class`上使用且仅支持主构造函数。
-
-- 示例
-
-```scala
-@apply @toString class B2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))
-println(B2(1, 2, None, None)) //0.1.0，不携带字段的默认值到apply参数中，所以参数都是必传
-```
-
-## @constructor
-
-`@constructor`注解用于为普通类生成辅助构造函数。仅当类有内部字段时可用。
-
-- 说明
-  - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - `excludeFields` 指定是否需要排除不需要用于构造函数的`var`字段。可选，默认空（所有class内部的`var`字段都将作为构造函数的入参）。
-  - 仅支持在`class`上使用。
-  - 主构造函数存在柯里化时，内部字段被放置在柯里化的第一个括号块中。（生成的仍然是柯里化的辅助构造）
-
-- 示例
-
-```scala
-@constructor(excludeFields = Seq("c")) //排除c字段。其中，a是val的不需要手动指定，自动排除。
-class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-  private val a: Int = 1
-  var b: Int = 1 // 不携带字段的默认值到apply参数中，所以参数都是必传
-  protected var c: Int = _
-
-  def helloWorld: String = "hello world"
-}
-
-println(new A2(1, 2, None, None, 100))
-```
-
-宏生成的中间代码（仅构造函数部分）：
-
-```scala
-def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
-  <init>(int, j, k, t);
-  this.b = b
-}
-```
+[各个注解的说明](./docs/howToUse.md)
 
 # 如何使用
 
@@ -258,19 +58,7 @@ def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
 "io.github.jxnu-liguobin" %% "scala-macro-tools" % "<VERSION>"
 ```
 
-该库已发布到maven中央仓库，请使用最新版本。
-
-| Library Version | Scala 2.11                                                                                                                                                                                                  | Scala 2.12                                                                                                                                                                                                  | Scala 2.13                                                                                                                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0.1.0           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.1.0/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.1.0/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.1.0)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.1.0/jar) |
-| 0.0.6           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.6/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.6/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.6)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.6/jar) |
-| 0.0.5           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.5/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.5/jar) |
-| 0.0.4           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.4/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.4/jar) |
-| 0.0.3           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.3/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.3/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.3/jar) |
-| 0.0.2           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.11/0.0.2/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.12/0.0.2/jar) | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.2/jar) |
-| 0.0.1           | -                                                                                                                                                                                                           | -                                                                                                                                                                                                           | [![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1)](https://search.maven.org/artifact/io.github.jxnu-liguobin/scala-macro-tools_2.13/0.0.1/jar) |
-
-仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。
+该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。
 
 | Scala 2.11               | Scala 2.12               | Scala 2.13                            |
 | ------------------------ | ------------------------ | ------------------------------------- |

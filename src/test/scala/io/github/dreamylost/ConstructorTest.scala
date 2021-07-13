@@ -105,7 +105,7 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |    }""".stripMargin should compile
   }
 
-  "constructor3" should "failed at object" in {
+  "constructor3" should "ok when construction is  currying" in {
     @apply
     @toString
     @builder
@@ -141,4 +141,29 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
      */
 
   }
+
+  "constructor4" should "ok when type is omitted" in {
+    @toString
+    class B
+    @toString
+    @constructor
+    class TestClass12(val i: Int = 0)(var j: Int)(val k: Int) {
+      var b = "hello" //primitive type, support no type declared
+      var c: B = new B() //not support no type declared, `var c = new B ()` cannot be compiled.
+    }
+    val t = new TestClass12(1, "helloo", new B())(1)(1)
+    println(t)
+
+  }
+
+  "constructor5" should "ok when type is generic" in {
+    @toString
+    @constructor
+    class TestClass12[T, U](val i: U)(var j: Int)(val k: T) {
+      var b: List[T] = _
+    }
+    val t = new TestClass12(1, List("helloo"))(1)("1")
+    println(t)
+  }
+
 }

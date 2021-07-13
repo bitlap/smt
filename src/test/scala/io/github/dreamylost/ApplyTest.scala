@@ -38,8 +38,19 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     """@apply @toString class C(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
   }
 
-  "apply2" should "ok with currying" in {
+  "apply3" should "ok with currying" in {
     @apply
     @toString class B3(int: Int)(val j: Int)(var k: Option[String] = None)(t: Option[Long] = Some(1L))
+  }
+
+  "apply4" should "ok with generic" in {
+    @apply
+    @toString class B3[T, U](int: T)(val j: U)
+    println(B3(1)(2))
+
+    @toString
+    @apply class B4[T, U](int: T, val j: U)
+    println(B4("helloworld", 2))
+
   }
 }

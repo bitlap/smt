@@ -26,17 +26,17 @@ object applyMacro extends MacroCommon {
     if (isCase) c.abort(c.enclosingPosition, s"Annotation is only supported on 'case class'")
 
     def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, annotteeClassParams) = classDecl match {
+      val (className, classParams, classTypeParams) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-          (tpname, paramss.asInstanceOf[List[List[Tree]]])
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams)
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $annotteeClassParams", force = args._1)
+      c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $classParams", force = args._1)
       val tpName = className match {
         case t: TypeName => t
       }
-      val apply = getApplyMethodWithCurrying(c)(tpName, annotteeClassParams)
+      val apply = getApplyMethodWithCurrying(c)(tpName, classParams, classTypeParams)
       val compDecl = modifiedCompanion(c)(compDeclOpt, apply, tpName)
       c.Expr(
         q"""
