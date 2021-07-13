@@ -13,6 +13,11 @@ Learn Scala macro and abstract syntax tree.
 
 [中文说明](./README.md) | [English](./README_EN.md)
 
+# Environment
+
+- It is compiled in Java 8, 11
+- It is compiled in Scala 2.11.x ~ 2.13.x
+
 # Features
 
 - `@toString`
@@ -25,7 +30,7 @@ Learn Scala macro and abstract syntax tree.
 
 > Annotations involving interaction are supported in the idea plug-in (named `Scala-Macro-Tools` in Marketplace).
 
-## Known Issues
+# Known Issues
 
 - When `@constructor` and `@toString` are used together, the former must be put last.
 

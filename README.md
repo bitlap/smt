@@ -14,6 +14,10 @@
 
 [中文说明](./README.md) | [English](./README_EN.md)
 
+# 环境
+
+- 使用 Java 8, 11 编译通过
+- 使用 Scala 2.11.x ~ 2.13.x 编译通过
 
 # 功能
 
@@ -27,7 +31,7 @@
 
 > 涉及到交互操作的注解在IDEA插件中都得到了支持。在插件市场中搜索`Scala-Macro-Tools`可下载。
 
-## 已知问题
+# 已知问题
 
 - `@constructor`与`@toString`同时使用，必须放最后。
 
