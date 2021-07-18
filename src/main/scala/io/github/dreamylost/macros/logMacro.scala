@@ -57,6 +57,7 @@ object logMacro extends MacroCommon {
         q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
+        // see https://docs.scala-lang.org/overviews/macros/annotations.html
     }
 
     printTree(c)(force = args._1, resTree)
