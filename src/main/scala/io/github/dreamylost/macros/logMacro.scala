@@ -55,16 +55,8 @@ object logMacro extends MacroCommon {
         treeResultWithCompanionObject(c)(resTree, annottees: _*) //we should return with companion object. Even if we didn't change it.
       case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
         q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
-      //we should return with class def. Even if we didn't change it, but the context class was not passed in.
-      //        val annotateeClassOpt: Option[ClassDef] = getClassDef(c)(annottees: _*)
-      //        if(annotateeClassOpt.isEmpty){
-      //          resTree
-      //        } else {
-      //          q"""
-      //              ${annotateeClassOpt.get}
-      //              $resTree
-      //            """
-      //        }
+        // Note: If a class is annotated and it has a companion, then both are passed into the macro.
+        // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
     }
 
     printTree(c)(force = args._1, resTree)
