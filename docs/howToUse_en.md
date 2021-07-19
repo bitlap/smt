@@ -229,7 +229,7 @@ The `@equalsAndHashCode` annotation is used to generate `equals` and `hashCode` 
       default is `Nil` (all non private `var` and `val` fields in the class will be used to generate the two methods). 
     - Both `equals` and `hashCode` methods are affected by super classes, and `canEqual` uses `isInstanceOf` in `equals` method.
       Some equals implementations use `that.getClass == this.getClass`
-    - It uses simple hashcode algorithm, and the hashcodes of the parent class are accumulated directly.
+    - It uses simple hashcode algorithm, and the hashcodes of the parent class are accumulated directly. The algorithm is also used by `case class`. 
   
 - Example
 
