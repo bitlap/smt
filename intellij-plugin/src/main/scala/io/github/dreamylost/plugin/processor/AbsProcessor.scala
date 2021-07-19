@@ -25,7 +25,9 @@ abstract class AbsProcessor extends Processor {
   /**
    * get constructor parameters with currying
    *
-   * @return (name: type, name: type)(name: type)...
+   * @return
+   *   if `withCurrying` = true, return (name: type, name: type)(name: type)...
+   *   else return (name: type, name: type, name: type, ...)
    */
   protected def getConstructorCurryingParameters(clazz: ScClass, withSecond: Boolean = true, withCurrying: Boolean = true): Seq[Seq[(String, String)]] = {
     val constructors = if (withSecond) {
