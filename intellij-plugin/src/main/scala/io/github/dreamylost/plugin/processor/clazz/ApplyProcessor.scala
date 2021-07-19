@@ -21,10 +21,11 @@ class ApplyProcessor extends AbsProcessor {
         source match {
           case obj: ScObject =>
             val clazz = obj.fakeCompanionClassOrCompanionClass.asInstanceOf[ScClass]
-            val nameAndTypes = getConstructorParameters(clazz, withSecond = false)
-              .map(o => s"${o._1}: ${o._2}")
-              .mkString(", ")
-            Seq(s"def apply($nameAndTypes): ${clazz.getName} = ???")
+            val nameAndTypes = getConstructorCurryingParameters(clazz, withSecond = false)
+              .map(_.map(o => s"${o._1}: ${o._2}").mkString(", "))
+              .mkString(")(")
+            val genericTypes = clazz.typeParamString
+            Seq(s"def apply$genericTypes($nameAndTypes): ${clazz.getName}$genericTypes = ???")
           case _ => Nil
         }
       case _ => Nil

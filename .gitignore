@@ -18,4 +18,4 @@ examples2-13/target/
 intellij-plugin/target/
 intellij-plugin/project/project/
 intellij-plugin/project/target/
-/.idea/
+.run/
