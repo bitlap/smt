@@ -115,11 +115,9 @@ trait MacroCommon {
     if (companionOpt.isEmpty) {
       resTree
     } else {
-      val q"$mods object $obj extends ..$bases { ..$body }" = companionOpt.get
-      val companion = q"$mods object $obj extends ..$bases { ..$body }"
       q"""
          $resTree
-         $companion
+         ${companionOpt.get}
          """
     }
   }
@@ -133,7 +131,7 @@ trait MacroCommon {
    * @return Return the result of modifyAction
    */
   def handleWithImplType(c: whitebox.Context)(annottees: c.Expr[Any]*)
-                        (modifyAction: (c.universe.ClassDef, Option[c.universe.ModuleDef]) => Any): c.Expr[Nothing] = {
+    (modifyAction: (c.universe.ClassDef, Option[c.universe.ModuleDef]) => Any): c.Expr[Nothing] = {
     import c.universe._
     annottees.map(_.tree) match {
       case (classDecl: ClassDef) :: Nil => modifyAction(classDecl, None).asInstanceOf[c.Expr[Nothing]]
@@ -173,6 +171,23 @@ trait MacroCommon {
     field match {
       case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
+      case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName] //for equalsAndHashcode, need contains all fields.
+      case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
+    }
+  }
+
+  /**
+   * Expand the constructor and get the field TermName, filter `private[this]`, because it cannot be used in equals method.
+   *
+   * @param c
+   * @param field
+   * @return
+   */
+  def classParamsIsPrivate(c: whitebox.Context)(field: c.universe.Tree): Boolean = {
+    import c.universe._
+    field match {
+      case q"$mods val $tname: $tpt = $expr" => if (mods.asInstanceOf[Modifiers].hasFlag(Flag.PRIVATE)) false else true
+      case q"$mods var $tname: $tpt = $expr" => true
     }
   }
 
@@ -202,7 +217,7 @@ trait MacroCommon {
    */
   def modifiedCompanion(c: whitebox.Context)(
     compDeclOpt: Option[c.universe.ModuleDef],
-    codeBlock: c.Tree, className: c.TypeName): c.universe.Tree = {
+    codeBlock:   c.Tree, className: c.TypeName): c.universe.Tree = {
     import c.universe._
     compDeclOpt map { compDecl =>
       val q"$mods object $obj extends ..$bases { ..$body }" = compDecl
@@ -233,7 +248,7 @@ trait MacroCommon {
     import c.universe._
     annotteeClassDefinitions.filter(p => p match {
       case _: ValDef => true
-      case _ => false
+      case _         => false
     })
   }
 

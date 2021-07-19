@@ -71,7 +71,7 @@ val ret = TestClass1.builder().i(1).j(0).x("x").build()
 assert(ret.toString == "TestClass1(1,0,x,Some())")
 ```
 
-Compiler macro code:
+Macro expansion code:
 
 ```scala
 object TestClass1 extends scala.AnyRef {
@@ -136,7 +136,7 @@ def getStr(k: Int): String = {
 }
 ```
 
-Compiler macro code:
+Macro expansion code:
 
 ```scala
 // Note that it will not judge whether synchronized already exists, so if synchronized already exists, it will be used twice. 
@@ -194,6 +194,7 @@ The `@constructor` used to generate secondary constructor method for classes, on
     - The internal fields are placed in the first bracket block if constructor is currying.
     - The type of the internal field must be specified, otherwise the macro extension cannot get the type.
       At present, only primitive types and string can be omitted. For example, `var i = 1; var j: int = 1; var k: Object = new Object()` is OK, but `var k = new object()` is not.
+
 - Example
 
 ```scala
@@ -209,11 +210,52 @@ class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = S
 println(new A2(1, 2, None, None, 100))
 ```
 
-Compiler macro code(Only constructor def):
+Macro expansion code (Only constructor def):
 
 ```scala
 def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
   <init>(int, j, k, t);
   this.b = b
+}
+```
+
+## @equalsAndHashCode
+
+The `@equalsAndHashCode` annotation is used to generate `equals` and `hashCode` methods for ordinary classes, and them takes into account the influence of super classes.
+
+- Note
+    - `verbose` Whether to enable detailed log.
+    - `excludeFields` specifies whether to exclude fields that are not required for the `equals` and `hashCode` methods. Optional, 
+      default is `Nil` (all non private `var` and `val` fields in the class will be used to generate the two methods). 
+    - Both `equals` and `hashCode` methods are affected by super classes, and `canEqual` uses `isInstanceOf` in `equals` method.
+      Some equals implementations use `that.getClass == this.getClass`
+    - It uses simple hashcode algorithm, and the hashcodes of the parent class are accumulated directly.
+  
+- Example
+
+```scala
+@equalsAndHashCode(verbose = true)
+class Person(var name: String, var age: Int)
+```
+
+Macro expansion code:
+
+```scala
+class Person extends scala.AnyRef {
+  <paramaccessor> var name: String = _;
+  <paramaccessor> var age: Int = _;
+  def <init>(name: String, age: Int) = {
+    super.<init>();
+    ()
+  };
+  def canEqual(that: Any) = that.isInstanceOf[Person];
+  override def equals(that: Any): Boolean = that match {
+    case (t @ (_: Person)) => t.canEqual(this).$amp$amp(Seq(this.name.equals(t.name), this.age.equals(t.age)).forall(((f) => f))).$amp$amp(true)
+    case _ => false
+  };
+  override def hashCode(): Int = {
+    val state = Seq(name, age);
+    state.map(((x$2) => x$2.hashCode())).foldLeft(0)(((a, b) => 31.$times(a).$plus(b)))
+  }
 }
 ```
