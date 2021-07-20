@@ -177,7 +177,7 @@ trait MacroCommon {
   }
 
   /**
-   * Expand the constructor and get the field TermName, filter `private[this]`, because it cannot be used in equals method.
+   * Check whether the mods of the fields has a `private[this]`, because it cannot be used in equals method.
    *
    * @param c
    * @param field
