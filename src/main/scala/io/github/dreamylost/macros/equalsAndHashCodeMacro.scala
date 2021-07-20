@@ -35,22 +35,29 @@ object equalsAndHashCodeMacro extends MacroCommon {
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       val ctorFieldNames = annotteeClassParams.asInstanceOf[List[List[Tree]]].flatten.filter(cf => classParamsIsPrivate(c)(cf))
-      val allFieldsTermName = ctorFieldNames.map(f => fieldTermName(c)(f))
+      val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(c)(f))
 
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, ctorFieldNames: $ctorFieldNames, " +
-        s"annotteeClassParams: ${superClasses}", force = args._1)
+        s"annotteeClassParams: $superClasses", force = args._1)
 
       /**
        * Extract the internal fields of members belonging to the class.
        */
       def getClassMemberAllTermName: Seq[c.TermName] = {
-        getClassMemberValDef(c)(annotteeClassDefinitions).filter(_ match {
+        getClassMemberValDefs(c)(annotteeClassDefinitions).filter(_ match {
           case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
           case q"$mods val $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
           case q"$mods val $pat = $expr" if !excludeFields.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
           case q"$mods var $pat = $expr" if !excludeFields.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
           case _ => false
-        }).map(f => fieldTermName(c)(f))
+        }).map(f => getFieldTermName(c)(f))
+      }
+
+      val existsCanEqual = getClassMemberDefDefs(c)(annotteeClassDefinitions) exists {
+        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.toString() == "canEqual" && paramss.nonEmpty =>
+          val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(c)(pp))
+          params.exists(p => p.decodedName.toString == "Any")
+        case _ => false
       }
 
       // + super.hashCode
@@ -66,8 +73,9 @@ object equalsAndHashCodeMacro extends MacroCommon {
         }
         val equalsExprs = termNames.map(getEqualsExpr)
         val modifiers = if (canEqualsExistsInSuper) Modifiers(Flag.OVERRIDE, typeNames.EMPTY, List()) else Modifiers(NoFlags, typeNames.EMPTY, List())
+        val canEqual = if (existsCanEqual) q"" else q"$modifiers def canEqual(that: Any) = that.isInstanceOf[$className]"
         q"""
-        $modifiers def canEqual(that: Any) = that.isInstanceOf[$className]
+        $canEqual
 
         override def equals(that: Any): Boolean =
           that match {

@@ -36,7 +36,7 @@ object constructorMacro extends MacroCommon {
       }
 
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
-      val classFieldDefinitions = getClassMemberValDef(c)(annotteeClassDefinitions)
+      val classFieldDefinitions = getClassMemberValDefs(c)(annotteeClassDefinitions)
       val excludeFields = args._2
 
       /**
@@ -44,7 +44,7 @@ object constructorMacro extends MacroCommon {
        */
       def getClassMemberVarDefOnlyAssignExpr(): Seq[c.Tree] = {
         import c.universe._
-        getClassMemberValDef(c)(annotteeClassDefinitions).filter(_ match {
+        getClassMemberValDefs(c)(annotteeClassDefinitions).filter(_ match {
           case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
           case _ => false
         }).map {
@@ -72,7 +72,7 @@ object constructorMacro extends MacroCommon {
 
       // Extract the field of the primary constructor.
       val ctorFieldNamess = annotteeClassParams.asInstanceOf[List[List[Tree]]]
-      val allFieldsTermName = ctorFieldNamess.map(f => f.map(ff => fieldTermName(c)(ff)))
+      val allFieldsTermName = ctorFieldNamess.map(f => f.map(ff => getFieldTermName(c)(ff)))
 
       /**
        * We generate this method with currying, and we have to deal with the first layer of currying alone.
@@ -80,7 +80,7 @@ object constructorMacro extends MacroCommon {
       def getThisMethodWithCurrying(): c.Tree = {
         // not currying
         // Extract the field of the primary constructor.
-        val classParamsAssignExpr = fieldAssignExpr(c)(ctorFieldNamess.flatten)
+        val classParamsAssignExpr = getFieldAssignExprs(c)(ctorFieldNamess.flatten)
         val applyMethod = if (ctorFieldNamess.isEmpty || ctorFieldNamess.size == 1) {
           q"""
           def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
@@ -90,7 +90,7 @@ object constructorMacro extends MacroCommon {
           """
         } else {
           // NOTE: currying constructor overload must be placed in the first bracket block.
-          val allClassParamsAssignExpr = ctorFieldNamess.map(cc => fieldAssignExpr(c)(cc))
+          val allClassParamsAssignExpr = ctorFieldNamess.map(cc => getFieldAssignExprs(c)(cc))
           q"""
           def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})

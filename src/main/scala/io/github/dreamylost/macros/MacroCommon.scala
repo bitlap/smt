@@ -166,13 +166,27 @@ trait MacroCommon {
    * @param field
    * @return
    */
-  def fieldTermName(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
+  def getFieldTermName(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
     import c.universe._
     field match {
       case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName] //for equalsAndHashcode, need contains all fields.
       case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
+    }
+  }
+
+  /**
+   * Expand the method params and get the param Name.
+   *
+   * @param c
+   * @param field
+   * @return
+   */
+  def getMethodParamName(c: whitebox.Context)(field: c.universe.Tree): c.universe.Name = {
+    import c.universe._
+    field match {
+      case q"$mods val $tname: $tpt = $expr" => tpt.asInstanceOf[Ident].name.decodedName
     }
   }
 
@@ -198,7 +212,7 @@ trait MacroCommon {
    * @param annotteeClassParams
    * @return
    */
-  def fieldAssignExpr(c: whitebox.Context)(annotteeClassParams: Seq[c.Tree]): Seq[c.Tree] = {
+  def getFieldAssignExprs(c: whitebox.Context)(annotteeClassParams: Seq[c.Tree]): Seq[c.Tree] = {
     import c.universe._
     annotteeClassParams.map {
       case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt" //Ignore expr
@@ -244,10 +258,24 @@ trait MacroCommon {
    * @param c
    * @param annotteeClassDefinitions
    */
-  def getClassMemberValDef(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
+  def getClassMemberValDefs(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
     import c.universe._
     annotteeClassDefinitions.filter(p => p match {
       case _: ValDef => true
+      case _         => false
+    })
+  }
+
+  /**
+   * Extract the methods belonging to the class， contains Secondary Constructor.
+   *
+   * @param c
+   * @param annotteeClassDefinitions
+   */
+  def getClassMemberDefDefs(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
+    import c.universe._
+    annotteeClassDefinitions.filter(p => p match {
+      case _: DefDef => true
       case _         => false
     })
   }
@@ -263,7 +291,7 @@ trait MacroCommon {
    */
   def getConstructorWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]], isCase: Boolean): c.Tree = {
     import c.universe._
-    val allFieldsTermName = fieldss.map(f => f.map(ff => fieldTermName(c)(ff)))
+    val allFieldsTermName = fieldss.map(f => f.map(ff => getFieldTermName(c)(ff)))
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
       q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
@@ -287,7 +315,7 @@ trait MacroCommon {
    */
   def getApplyMethodWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]], classTypeParams: List[c.Tree]): c.Tree = {
     import c.universe._
-    val allFieldsTermName = fieldss.map(f => fieldAssignExpr(c)(f))
+    val allFieldsTermName = fieldss.map(f => getFieldAssignExprs(c)(f))
     val returnTypeParams = extractClassTypeParamsTypeName(c)(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {

@@ -12,8 +12,10 @@ import org.scalatest.matchers.should.Matchers
 class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
 
   @equalsAndHashCode(verbose = true)
+  @toString
   class Employee(name: String, age: Int, var role: String) extends Person(name, age)
 
+  @toString
   @equalsAndHashCode(verbose = true)
   class Person(var name: String, var age: Int)
 
@@ -23,6 +25,9 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
     val nimoy2 = new Person("Leonard Nimoy", 82)
     val shatner = new Person("William Shatner", 82)
     val stewart = new Person("Patrick Stewart", 47)
+
+    println(nimoy)
+    println(nimoy.hashCode())
 
     // all tests pass
     assert(nimoy != null)
@@ -56,5 +61,17 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
     assert(pNimoy != eNimoy1)
     assert(eNimoy1 != eShatner)
     assert(eShatner != eNimoy1)
+
+    println(eNimoy1)
+    println(eNimoy1.hashCode())
+  }
+
+  "equals3" should "ok even if exists a canEqual" in {
+    """
+      |    @equalsAndHashCode
+      |    class Employee(name: String, age: Int, var role: String) extends Person(name, age) {
+      |      override def canEqual(that: Any) = that.getClass == classOf[Employee];
+      |    }
+      |""".stripMargin should compile
   }
 }
