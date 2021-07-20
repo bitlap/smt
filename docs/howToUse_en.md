@@ -230,7 +230,7 @@ The `@equalsAndHashCode` annotation is used to generate `equals` and `hashCode` 
     - Both `equals` and `hashCode` methods are affected by super classes, and `canEqual` uses `isInstanceOf` in `equals` method.
       Some equals implementations use `that.getClass == this.getClass`
     - It uses simple hashcode algorithm, and the hashcode of the parent class are accumulated directly. The algorithm is also used by `case class`.
-    - If the class of the annotation has already defined the `canEqual` method with the same signature, it will not be generated.
+    - If the class of the annotation has already defined the `canEqual` method with the same signature, `canEqual` will not be generated.
   
 - Example
 
