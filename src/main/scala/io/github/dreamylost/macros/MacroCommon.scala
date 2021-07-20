@@ -115,11 +115,9 @@ trait MacroCommon {
     if (companionOpt.isEmpty) {
       resTree
     } else {
-      val q"$mods object $obj extends ..$bases { ..$body }" = companionOpt.get
-      val companion = q"$mods object $obj extends ..$bases { ..$body }"
       q"""
          $resTree
-         $companion
+         ${companionOpt.get}
          """
     }
   }
@@ -133,7 +131,7 @@ trait MacroCommon {
    * @return Return the result of modifyAction
    */
   def handleWithImplType(c: whitebox.Context)(annottees: c.Expr[Any]*)
-                        (modifyAction: (c.universe.ClassDef, Option[c.universe.ModuleDef]) => Any): c.Expr[Nothing] = {
+    (modifyAction: (c.universe.ClassDef, Option[c.universe.ModuleDef]) => Any): c.Expr[Nothing] = {
     import c.universe._
     annottees.map(_.tree) match {
       case (classDecl: ClassDef) :: Nil => modifyAction(classDecl, None).asInstanceOf[c.Expr[Nothing]]
@@ -168,11 +166,42 @@ trait MacroCommon {
    * @param field
    * @return
    */
-  def fieldTermName(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
+  def getFieldTermName(c: whitebox.Context)(field: c.universe.Tree): c.universe.TermName = {
     import c.universe._
     field match {
       case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
+      case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName] //for equalsAndHashcode, need contains all fields.
+      case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
+    }
+  }
+
+  /**
+   * Expand the method params and get the param Name.
+   *
+   * @param c
+   * @param field
+   * @return
+   */
+  def getMethodParamName(c: whitebox.Context)(field: c.universe.Tree): c.universe.Name = {
+    import c.universe._
+    field match {
+      case q"$mods val $tname: $tpt = $expr" => tpt.asInstanceOf[Ident].name.decodedName
+    }
+  }
+
+  /**
+   * Check whether the mods of the fields has a `private[this]`, because it cannot be used in equals method.
+   *
+   * @param c
+   * @param field
+   * @return
+   */
+  def classParamsIsPrivate(c: whitebox.Context)(field: c.universe.Tree): Boolean = {
+    import c.universe._
+    field match {
+      case q"$mods val $tname: $tpt = $expr" => if (mods.asInstanceOf[Modifiers].hasFlag(Flag.PRIVATE)) false else true
+      case q"$mods var $tname: $tpt = $expr" => true
     }
   }
 
@@ -183,7 +212,7 @@ trait MacroCommon {
    * @param annotteeClassParams
    * @return
    */
-  def fieldAssignExpr(c: whitebox.Context)(annotteeClassParams: Seq[c.Tree]): Seq[c.Tree] = {
+  def getFieldAssignExprs(c: whitebox.Context)(annotteeClassParams: Seq[c.Tree]): Seq[c.Tree] = {
     import c.universe._
     annotteeClassParams.map {
       case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt" //Ignore expr
@@ -202,7 +231,7 @@ trait MacroCommon {
    */
   def modifiedCompanion(c: whitebox.Context)(
     compDeclOpt: Option[c.universe.ModuleDef],
-    codeBlock: c.Tree, className: c.TypeName): c.universe.Tree = {
+    codeBlock:   c.Tree, className: c.TypeName): c.universe.Tree = {
     import c.universe._
     compDeclOpt map { compDecl =>
       val q"$mods object $obj extends ..$bases { ..$body }" = compDecl
@@ -229,11 +258,25 @@ trait MacroCommon {
    * @param c
    * @param annotteeClassDefinitions
    */
-  def getClassMemberValDef(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
+  def getClassMemberValDefs(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
     import c.universe._
     annotteeClassDefinitions.filter(p => p match {
       case _: ValDef => true
-      case _ => false
+      case _         => false
+    })
+  }
+
+  /**
+   * Extract the methods belonging to the class， contains Secondary Constructor.
+   *
+   * @param c
+   * @param annotteeClassDefinitions
+   */
+  def getClassMemberDefDefs(c: whitebox.Context)(annotteeClassDefinitions: Seq[c.Tree]): Seq[c.Tree] = {
+    import c.universe._
+    annotteeClassDefinitions.filter(p => p match {
+      case _: DefDef => true
+      case _         => false
     })
   }
 
@@ -248,7 +291,7 @@ trait MacroCommon {
    */
   def getConstructorWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]], isCase: Boolean): c.Tree = {
     import c.universe._
-    val allFieldsTermName = fieldss.map(f => f.map(ff => fieldTermName(c)(ff)))
+    val allFieldsTermName = fieldss.map(f => f.map(ff => getFieldTermName(c)(ff)))
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
       q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
@@ -272,7 +315,7 @@ trait MacroCommon {
    */
   def getApplyMethodWithCurrying(c: whitebox.Context)(typeName: c.TypeName, fieldss: List[List[c.Tree]], classTypeParams: List[c.Tree]): c.Tree = {
     import c.universe._
-    val allFieldsTermName = fieldss.map(f => fieldAssignExpr(c)(f))
+    val allFieldsTermName = fieldss.map(f => getFieldAssignExprs(c)(f))
     val returnTypeParams = extractClassTypeParamsTypeName(c)(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
