@@ -11,8 +11,9 @@
 .idea/
 *.iml
 .bsp
-examples2-12/target/
-examples2-13/target/
+examples/scala2-11/target/
+examples/scala2-12/target/
+examples/scala2-13/target/
 
 ## plugin
 intellij-plugin/target/
