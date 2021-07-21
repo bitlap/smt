@@ -52,10 +52,10 @@ object equalsAndHashCodeMacro extends MacroCommon {
       val (className, annotteeClassParams, annotteeClassDefinitions, superClasses) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-          (tpname, paramss, stats.asInstanceOf[Seq[Tree]], parents)
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents)
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.asInstanceOf[List[List[Tree]]].flatten.filter(cf => classParamsIsPrivate(c)(cf))
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsPrivate(c)(cf))
       val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(c)(f))
 
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, ctorFieldNames: $ctorFieldNames, " +

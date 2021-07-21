@@ -50,13 +50,11 @@ object applyMacro extends MacroCommon {
       val (className, classParams, classTypeParams) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-          (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams)
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $classParams", force = args._1)
-      val tpName = className match {
-        case t: TypeName => t
-      }
+      val tpName = className.asInstanceOf[TypeName]
       val apply = getApplyMethodWithCurrying(c)(tpName, classParams, classTypeParams)
       val compDecl = modifiedCompanion(c)(compDeclOpt, apply, tpName)
       c.Expr(

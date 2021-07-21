@@ -50,15 +50,13 @@ object jsonMacro extends MacroCommon {
             c.abort(c.enclosingPosition, s"Annotation is only supported on case class. classDef: $classDecl, mods: $mods")
           } else {
             c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
-            (tpname, paramss)
+            (tpname, paramss.asInstanceOf[List[List[Tree]]])
           }
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration className: $className, fields: $fields", force = true)
-      val cName = className match {
-        case t: TypeName => t
-      }
-      val format = jsonFormatter(cName, fields.asInstanceOf[List[List[Tree]]].flatten)
+      val cName = className.asInstanceOf[TypeName]
+      val format = jsonFormatter(cName, fields.flatten)
       val compDecl = modifiedCompanion(c)(compDeclOpt, format, cName)
       c.info(c.enclosingPosition, s"format: $format, compDecl: $compDecl", force = true)
       // Return both the class and companion object declarations

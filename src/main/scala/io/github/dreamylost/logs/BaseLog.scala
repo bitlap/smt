@@ -23,7 +23,6 @@ package io.github.dreamylost.logs
 
 import io.github.dreamylost.logs.LogType.LogType
 
-import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 trait BaseLog {

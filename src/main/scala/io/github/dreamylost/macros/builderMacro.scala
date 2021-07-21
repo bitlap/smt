@@ -93,14 +93,12 @@ object builderMacro extends MacroCommon {
         // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
         case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
-          (tpname, paramss, tparams)
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, fieldss: $fieldss", force = true)
 
-      val cName = className match {
-        case t: TypeName => t
-      }
+      val cName = className.asInstanceOf[TypeName]
       val isCase = isCaseClass(c)(classDecl)
       val builder = builderTemplate(cName, fieldss, classTypeParams, isCase)
       val compDecl = modifiedCompanion(c)(compDeclOpt, builder, cName)
