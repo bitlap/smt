@@ -29,6 +29,9 @@ lazy val root = (project in file("."))
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     } ++ Seq("-language:experimental.macros"),
+    organizationName := "jxnu-liguobin && contributors",
+    startYear := Some(2021),
+    licenses += ("MIT", new URL("https://github.com/jxnu-liguobin/scala-macro-tools/blob/master/LICENSE")),
     Test / testOptions += Tests.Argument("-oDF"),
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
@@ -46,9 +49,9 @@ lazy val root = (project in file("."))
       commitNextVersion,
       pushChanges
     )
-  ).settings(Publishing.publishSettings).settings(paradise())
+  ).settings(Publishing.publishSettings).settings(paradise()).enablePlugins(AutomateHeaderPlugin)
 
-lazy val `examples2-13` = (project in file("examples2-13")).settings(scalaVersion := scala213)
+lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(
@@ -56,7 +59,15 @@ lazy val `examples2-13` = (project in file("examples2-13")).settings(scalaVersio
   Compile / scalacOptions += "-Ymacro-annotations"
 )
 
-lazy val `examples2-12` = (project in file("examples2-12")).settings(scalaVersion := scala212)
+lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVersion := scala212)
+  .settings(libraryDependencies ++= Seq(
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
+  )).settings(
+  publish / skip := true,
+  paradise()
+)
+
+lazy val `scala2-11` = (project in file("examples/scala2-11")).settings(scalaVersion := scala211)
   .settings(libraryDependencies ++= Seq(
     "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
   )).settings(

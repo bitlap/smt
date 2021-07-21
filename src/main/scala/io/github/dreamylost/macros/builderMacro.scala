@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2021 jxnu-liguobin && contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
@@ -72,14 +93,12 @@ object builderMacro extends MacroCommon {
         // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
         case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
-          (tpname, paramss, tparams)
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, fieldss: $fieldss", force = true)
 
-      val cName = className match {
-        case t: TypeName => t
-      }
+      val cName = className.asInstanceOf[TypeName]
       val isCase = isCaseClass(c)(classDecl)
       val builder = builderTemplate(cName, fieldss, classTypeParams, isCase)
       val compDecl = modifiedCompanion(c)(compDeclOpt, builder, cName)

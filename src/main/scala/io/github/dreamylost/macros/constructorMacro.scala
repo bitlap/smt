@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2021 jxnu-liguobin && contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
@@ -31,7 +52,7 @@ object constructorMacro extends MacroCommon {
       val (annotteeClassParams, annotteeClassDefinitions) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-          (paramss, stats.asInstanceOf[Seq[Tree]])
+          (paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
 
@@ -42,7 +63,7 @@ object constructorMacro extends MacroCommon {
       /**
        * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
        */
-      def getClassMemberVarDefOnlyAssignExpr(): Seq[c.Tree] = {
+      def getClassMemberVarDefOnlyAssignExpr: Seq[c.Tree] = {
         import c.universe._
         getClassMemberValDefs(c)(annotteeClassDefinitions).filter(_ match {
           case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
@@ -55,7 +76,7 @@ object constructorMacro extends MacroCommon {
         }
       }
 
-      val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr()
+      val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr
 
       if (classFieldDefinitionsOnlyAssignExpr.isEmpty) {
         c.abort(c.enclosingPosition, s"Annotation is only supported on class when the internal field (declare as 'var') is nonEmpty. classDef: $classDecl")
@@ -71,17 +92,16 @@ object constructorMacro extends MacroCommon {
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $annotteeClassParams", force = args._1)
 
       // Extract the field of the primary constructor.
-      val ctorFieldNamess = annotteeClassParams.asInstanceOf[List[List[Tree]]]
-      val allFieldsTermName = ctorFieldNamess.map(f => f.map(ff => getFieldTermName(c)(ff)))
+      val allFieldsTermName = annotteeClassParams.map(f => f.map(ff => getFieldTermName(c)(ff)))
 
       /**
        * We generate this method with currying, and we have to deal with the first layer of currying alone.
        */
-      def getThisMethodWithCurrying(): c.Tree = {
+      def getThisMethodWithCurrying: c.Tree = {
         // not currying
         // Extract the field of the primary constructor.
-        val classParamsAssignExpr = getFieldAssignExprs(c)(ctorFieldNamess.flatten)
-        val applyMethod = if (ctorFieldNamess.isEmpty || ctorFieldNamess.size == 1) {
+        val classParamsAssignExpr = getFieldAssignExprs(c)(annotteeClassParams.flatten)
+        val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
           q"""
           def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
             this(..${allFieldsTermName.flatten})
@@ -90,7 +110,7 @@ object constructorMacro extends MacroCommon {
           """
         } else {
           // NOTE: currying constructor overload must be placed in the first bracket block.
-          val allClassParamsAssignExpr = ctorFieldNamess.map(cc => getFieldAssignExprs(c)(cc))
+          val allClassParamsAssignExpr = annotteeClassParams.map(cc => getFieldAssignExprs(c)(cc))
           q"""
           def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})
@@ -103,7 +123,7 @@ object constructorMacro extends MacroCommon {
 
       val resTree = annotateeClass match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(getThisMethodWithCurrying())} }"
+          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(getThisMethodWithCurrying)} }"
       }
       c.Expr[Any](treeResultWithCompanionObject(c)(resTree, annottees: _*))
     }

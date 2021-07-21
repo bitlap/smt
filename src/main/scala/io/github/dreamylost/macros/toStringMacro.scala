@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2021 jxnu-liguobin && contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
@@ -10,7 +31,7 @@ import scala.reflect.macros.whitebox
  */
 object toStringMacro extends MacroCommon {
 
-  final case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
+  private final case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
 
   def printField(c: whitebox.Context)(argument: Argument, lastParam: Option[String], field: c.universe.Tree): c.universe.Tree = {
     import c.universe._
@@ -44,11 +65,11 @@ object toStringMacro extends MacroCommon {
       annotateeClass match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
           c.info(c.enclosingPosition, s"parents: $parents", force = argument.verbose)
-          (tpname, paramss, parents, stats)
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], parents, stats.asInstanceOf[List[Tree]])
       }
     }
     // Check the type of the class, whether it already contains its own toString
-    val annotteeClassFieldDefinitions = annotteeClassDefinitions.asInstanceOf[List[Tree]].filter(p => p match {
+    val annotteeClassFieldDefinitions = annotteeClassDefinitions.filter(p => p match {
       case _: ValDef => true
       case mem: MemberDef =>
         c.info(c.enclosingPosition, s"MemberDef:  ${mem.toString}", force = argument.verbose)
@@ -60,7 +81,7 @@ object toStringMacro extends MacroCommon {
     })
 
     // For the parameters of a given constructor, separate the parameter components and extract the constructor parameters containing val and var
-    val ctorParams = annotteeClassParams.asInstanceOf[List[List[Tree]]].flatten.map {
+    val ctorParams = annotteeClassParams.flatten.map {
       case tree @ q"$mods val $tname: $tpt = $expr" => tree
       case tree @ q"$mods var $tname: $tpt = $expr" => tree
     }

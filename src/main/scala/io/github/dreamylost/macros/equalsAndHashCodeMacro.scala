@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2021 jxnu-liguobin && contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
@@ -31,10 +52,10 @@ object equalsAndHashCodeMacro extends MacroCommon {
       val (className, annotteeClassParams, annotteeClassDefinitions, superClasses) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
           c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-          (tpname, paramss, stats.asInstanceOf[Seq[Tree]], parents)
+          (tpname, paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents)
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.asInstanceOf[List[List[Tree]]].flatten.filter(cf => classParamsIsPrivate(c)(cf))
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsPrivate(c)(cf))
       val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(c)(f))
 
       c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, ctorFieldNames: $ctorFieldNames, " +
