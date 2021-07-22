@@ -53,6 +53,11 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
     // all tests pass
     assert(nimoy != null)
 
+    // canEqual
+    assert(nimoy.canEqual(nimoy))
+    assert(nimoy.canEqual(nimoy2))
+    assert(nimoy2.canEqual(nimoy))
+
     // these should be equal
     assert(nimoy == nimoy)
     assert(nimoy == nimoy2)
@@ -71,6 +76,11 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
     val eNimoy2 = new Employee("Leonard Nimoy", 82, "Actor")
     val pNimoy = new Person("Leonard Nimoy", 82)
     val eShatner = new Employee("William Shatner", 82, "Actor")
+
+    // canEqual
+    assert(eNimoy1.canEqual(eNimoy1))
+    assert(eNimoy1.canEqual(eNimoy2))
+    assert(eNimoy2.canEqual(eNimoy1))
 
     // equality tests
     assert(eNimoy1 == eNimoy1)

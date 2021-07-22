@@ -2,7 +2,6 @@ package io.github.dreamylost.plugin.processor.clazz
 
 import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
-import org.jetbrains.plugins.scala.lang.psi.api.statements.params.ScClassParameter
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 
 /**
@@ -26,7 +25,8 @@ class BuilderProcessor extends AbsProcessor {
           case obj: ScObject =>
             obj.fakeCompanionClassOrCompanionClass match {
               case clazz: ScClass =>
-                Seq(s"""def builder(): ${genBuilderName(clazz.getName, returnType = true)} = ???""")
+                val genericTypes = clazz.typeParamString
+                Seq(s"""def builder$genericTypes(): ${genBuilderName(clazz.getName, returnType = true)}$genericTypes = ???""")
               case _ => Nil
             }
           case _ => Nil
@@ -36,17 +36,18 @@ class BuilderProcessor extends AbsProcessor {
       case ProcessType.Inner =>
         source match {
           case obj: ScObject =>
-            val clazz = obj.fakeCompanionClassOrCompanionClass
+            val clazz = obj.fakeCompanionClassOrCompanionClass.asInstanceOf[ScClass]
             val className = clazz.getName
             // support constructor and second constructor
             val nameAndTypes = getConstructorParameters(clazz.asInstanceOf[ScClass])
+            val genericTypes = clazz.typeParamString
             val assignMethods = nameAndTypes.map(term =>
-              s"def ${term._1}(${term._1}: ${term._2}): ${genBuilderName(className, returnType = true)} = ???"
+              s"def ${term._1}(${term._1}: ${term._2}) = this"
             )
             Seq(
               s"""
-                 |class ${genBuilderName(className)} {
-                 |  def build(): $className = ???
+                 |class ${genBuilderName(className)}$genericTypes {
+                 |  def build(): $className$genericTypes = ???
                  |  ${assignMethods.mkString("\n")}
                  |}
                  |""".stripMargin
