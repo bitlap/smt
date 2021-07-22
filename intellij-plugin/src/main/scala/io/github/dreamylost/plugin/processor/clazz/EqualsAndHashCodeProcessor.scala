@@ -1,8 +1,8 @@
 package io.github.dreamylost.plugin.processor.clazz
 
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
-import io.github.dreamylost.plugin.processor.{AbsProcessor, ProcessType}
-import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScClass, ScTypeDefinition}
+import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScTypeDefinition }
 
 /**
  * Desc: Processor for annotation equalsAndHashCode

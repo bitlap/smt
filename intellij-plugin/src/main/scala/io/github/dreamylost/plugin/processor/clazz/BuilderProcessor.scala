@@ -2,7 +2,6 @@ package io.github.dreamylost.plugin.processor.clazz
 
 import io.github.dreamylost.plugin.processor.{ AbsProcessor, ProcessType }
 import io.github.dreamylost.plugin.processor.ProcessType.ProcessType
-import org.jetbrains.plugins.scala.lang.psi.api.statements.params.ScClassParameter
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScObject, ScTypeDefinition }
 
 /**
