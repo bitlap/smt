@@ -31,12 +31,7 @@ jobs:
       - name: Run Test
         run: sbt coverage test coverageReport
 
-      - uses: actions/checkout@master
-      - uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          files: ./coverage1.xml,./coverage2.xml # optional
-          flags: unittests # optional
-          name: codecov-umbrella # optional
-          fail_ci_if_error: true # optional (default = false)
-          verbose: true # optional (default = false)
+      - name: Aggregate coverage report
+        run: sbt coverageAggregate
+      - name: Upload test coverage report
+        run: bash <(curl -s https://codecov.io/bash)
