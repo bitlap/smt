@@ -29,4 +29,9 @@ jobs:
         run: sbt +compile
 
       - name: Run Test
-        run: sbt test
+        run: sbt coverage test coverageReport
+
+      - name: Aggregate coverage report
+        run: sbt coverageAggregate
+      - name: Upload test coverage report
+        run: bash <(curl -s https://codecov.io/bash)
