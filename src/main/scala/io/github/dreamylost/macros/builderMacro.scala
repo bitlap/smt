@@ -37,46 +37,45 @@ object builderMacro {
 
     import c.universe._
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      def getBuilderClassName(classTree: TypeName): TypeName = {
-        TypeName(classTree.toTermName.decodedName.toString + BUFFER_CLASS_NAME_SUFFIX)
-      }
+    private def getBuilderClassName(classTree: TypeName): TypeName = {
+      TypeName(classTree.toTermName.decodedName.toString + BUFFER_CLASS_NAME_SUFFIX)
+    }
 
-      def fieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
-        val builderClassName = getBuilderClassName(typeName)
-        val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-        field match {
-          case q"$mods var $tname: $tpt = $expr" =>
-            q"""
+    private def fieldDefinition(field: Tree): Tree = {
+      field match {
+        case q"$mods val $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
+        case q"$mods var $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
+      }
+    }
+
+    private def fieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
+      val builderClassName = getBuilderClassName(typeName)
+      val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      field match {
+        case q"$mods var $tname: $tpt = $expr" =>
+          q"""
               def $tname($tname: $tpt): $builderClassName[..$returnTypeParams] = {
                   this.$tname = $tname
                   this
               }
            """
-          case q"$mods val $tname: $tpt = $expr" =>
-            q"""
+        case q"$mods val $tname: $tpt = $expr" =>
+          q"""
               def $tname($tname: $tpt): $builderClassName[..$returnTypeParams] = {
                   this.$tname = $tname
                   this
               }
            """
-        }
       }
+    }
 
-      def fieldDefinition(field: Tree): Tree = {
-        field match {
-          case q"$mods val $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
-          case q"$mods var $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
-        }
-      }
-
-      def builderTemplate(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
-        val fields = fieldss.flatten
-        val builderClassName = getBuilderClassName(typeName)
-        val builderFieldMethods = fields.map(f => fieldSetMethod(typeName, f, classTypeParams))
-        val builderFieldDefinitions = fields.map(f => fieldDefinition(f))
-        val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-        q"""
+    private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
+      val fields = fieldss.flatten
+      val builderClassName = getBuilderClassName(typeName)
+      val builderFieldMethods = fields.map(f => fieldSetMethod(typeName, f, classTypeParams))
+      val builderFieldDefinitions = fields.map(f => fieldDefinition(f))
+      val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      q"""
       def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()
 
       class $builderClassName[..$classTypeParams] {
@@ -88,34 +87,30 @@ object builderMacro {
           def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase)}
       }
        """
+    }
+
+    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+      val (className, fieldss, classTypeParams) = classDecl match {
+        // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
+        case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
+          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
+          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
+        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
 
-      // Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
-      def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-        val (className, fieldss, classTypeParams) = classDecl match {
-          // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
-          case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
-            c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
-            (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-          case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-        }
-
-        val cName = className.asInstanceOf[TypeName]
-        val isCase = isCaseClass(classDecl)
-        val builder = builderTemplate(cName, fieldss, classTypeParams, isCase)
-        val compDecl = modifiedCompanion(compDeclOpt, builder, cName)
-        c.info(c.enclosingPosition, s"builderTree: $builder, compDecl: $compDecl", force = true)
-        // Return both the class and companion object declarations
-        c.Expr(
-          q"""
+      val builder = getBuilderClassAndMethod(className, fieldss, classTypeParams, isCaseClass(classDecl))
+      val compDecl = modifiedCompanion(compDeclOpt, builder, className)
+      // Return both the class and companion object declarations
+      c.Expr(
+        q"""
         $classDecl
         $compDecl
       """)
-      }
+    }
 
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
       printTree(force = true, resTree.tree)
-
       resTree
     }
   }

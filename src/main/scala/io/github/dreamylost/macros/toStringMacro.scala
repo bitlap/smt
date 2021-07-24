@@ -37,37 +37,33 @@ object toStringMacro {
 
     import c.universe._
 
+    private val extractArgumentsDetail: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4 {
+      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
+        (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
+        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
+      case q"new toString($aa, $bb, $cc)" =>
+        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
+      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
+        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+      case q"new toString($aa, $bb, $cc, $dd)" =>
+        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" =>
+        (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
+      case q"new toString(includeInternalFields=$bb)" =>
+        (false, evalTree(bb.asInstanceOf[Tree]), true, false)
+      case q"new toString(includeFieldNames=$cc)" =>
+        (false, true, evalTree(cc.asInstanceOf[Tree]), false)
+      case q"new toString()" => (false, true, true, false)
+      case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+    }
+
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       // extract parameters of annotation, must in order
-      val arg: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4 {
-        case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
-          (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
-        case q"new toString($aa, $bb, $cc)" =>
-          (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
-
-        case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
-          (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
-        case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
-          (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
-        case q"new toString($aa, $bb, $cc, $dd)" =>
-          (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
-
-        case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" =>
-          (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
-        case q"new toString(includeInternalFields=$bb)" =>
-          (false, evalTree(bb.asInstanceOf[Tree]), true, false)
-        case q"new toString(includeFieldNames=$cc)" =>
-          (false, true, evalTree(cc.asInstanceOf[Tree]), false)
-        case q"new toString()" => (false, true, true, false)
-        case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-      }
-      val argument = Argument(arg._1, arg._2, arg._3, arg._4)
-      c.info(c.enclosingPosition, s"toString annottees: $annottees", force = argument.verbose)
+      val argument = Argument(extractArgumentsDetail._1, extractArgumentsDetail._2, extractArgumentsDetail._3, extractArgumentsDetail._4)
       // Check the type of the class, which can only be defined on the ordinary class
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
       val isCase: Boolean = isCaseClass(annotateeClass)
-
-      c.info(c.enclosingPosition, s"impl argument: $argument, isCase: $isCase", force = argument.verbose)
       val resMethod = toStringTemplateImpl(argument, annotateeClass)
       val resTree = annotateeClass match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
@@ -79,7 +75,7 @@ object toStringMacro {
       c.Expr[Any](res)
     }
 
-    def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree = {
+    private def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree = {
       // Print one field as <name of the field>+"="+fieldName
       if (argument.includeFieldNames) {
         lastParam.fold(q"$field") { lp =>
@@ -99,7 +95,6 @@ object toStringMacro {
             case _                                 => if (field.toString() != lp) q"""$field+${", "}""" else q"""$field"""
           }
         }
-
       }
     }
 
@@ -108,8 +103,7 @@ object toStringMacro {
       val (className, annotteeClassParams, superClasses, annotteeClassDefinitions) = {
         annotateeClass match {
           case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            c.info(c.enclosingPosition, s"parents: $parents", force = argument.verbose)
-            (tpname, paramss.asInstanceOf[List[List[Tree]]], parents, stats.asInstanceOf[List[Tree]])
+            (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], parents, stats.asInstanceOf[List[Tree]])
         }
       }
       // Check the type of the class, whether it already contains its own toString
@@ -129,8 +123,6 @@ object toStringMacro {
         case tree @ q"$mods val $tname: $tpt = $expr" => tree
         case tree @ q"$mods var $tname: $tpt = $expr" => tree
       }
-      c.info(c.enclosingPosition, s"className： $className, ctorParams: ${ctorParams.toString()}, superClasses: $superClasses", force = argument.verbose)
-      c.info(c.enclosingPosition, s"className： $className, fields: ${annotteeClassFieldDefinitions.toString()}", force = argument.verbose)
       val member = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
       val lastParam = member.lastOption.map {
@@ -139,7 +131,7 @@ object toStringMacro {
       }
       val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(argument, lastParam, acc)}")
       //scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
-      val toString = q"""override def toString: String = ${className.toString()} + ${"("} + $paramsWithName + ${")"}"""
+      val toString = q"""override def toString: String = ${className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
 
       // Have super class ?
       if (argument.callSuper && superClasses.nonEmpty) {
@@ -150,7 +142,7 @@ object toStringMacro {
         superClassDef.fold(toString)(_ => {
           val superClass = q"${"super="}"
           c.info(c.enclosingPosition, s"member: $member, superClass： $superClass, superClassDef: $superClassDef, paramsWithName: $paramsWithName", force = argument.verbose)
-          q"override def toString: String = StringContext(${className.toString()} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
+          q"override def toString: String = StringContext(${className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
         )
       } else {

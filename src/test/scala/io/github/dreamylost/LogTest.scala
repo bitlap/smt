@@ -116,7 +116,7 @@ class LogTest extends AnyFlatSpec with Matchers {
     """@log(logType=io.github.dreamylost.logs.LogType.Slf4j) class TestClass5(val i: Int = 0, var j: Int)""" should compile
     """@log(verbose=true, logType=io.github.dreamylost.logs.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int)""" should compile
     """@log(verbose=true, logType=io.github.dreamylost.logs.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }""" should compile
-    """@log(io.github.dreamylost.logs.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }""" should compile //default verbose is false
+    """@log(logType = io.github.dreamylost.logs.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }""" should compile //default verbose is false
   }
 
   "log8 slf4j" should "ok on class and has object" in {
@@ -130,14 +130,14 @@ class LogTest extends AnyFlatSpec with Matchers {
     """@log(logType=io.github.dreamylost.logs.LogType.Slf4j) class TestClass5(val i: Int = 0, var j: Int)""" should compile
     """@log(verbose=true, logType=io.github.dreamylost.logs.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int)""" should compile
     """@log(verbose=true, logType=io.github.dreamylost.logs.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }""" should compile
-    """@log(io.github.dreamylost.logs.LogType.Slf4j) @builder class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
-      | @log(io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 { log.info("hello world");builder() }""".stripMargin should compile //default verbose is false
+    """@log(logType = io.github.dreamylost.logs.LogType.Slf4j) @builder class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
+      | @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 { log.info("hello world");builder() }""".stripMargin should compile //default verbose is false
   }
 
   "log9 slf4j" should "ok on class and it object" in {
     """
-      |@log(io.github.dreamylost.logs.LogType.Slf4j) @builder  class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
-      |@log(io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 { log.info("hello world"); builder()}
+      |@log(logType = io.github.dreamylost.logs.LogType.Slf4j) @builder  class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
+      |@log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 { log.info("hello world"); builder()}
       |""".stripMargin should compile
   }
 
@@ -162,22 +162,22 @@ class LogTest extends AnyFlatSpec with Matchers {
 
   "log11 slf4j" should "ok on class and it object" in {
     """
-      | @log(io.github.dreamylost.logs.LogType.Slf4j)
+      | @log(logType = io.github.dreamylost.logs.LogType.Slf4j)
       | @builder class TestClass6(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
-      |    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 {
+      |@log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 {
       |      log.info("hello world"); builder()
       |    }
       |""".stripMargin should compile
 
     """
       | @builder
-      | @log(io.github.dreamylost.logs.LogType.Slf4j)
+      | @log(logType = io.github.dreamylost.logs.LogType.Slf4j)
       |    class TestClass6(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
-      |    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 {
+      |@log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 {
       |      log.info("hello world"); builder()
       |    }
       |""".stripMargin should compile
@@ -202,4 +202,13 @@ class LogTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  "log12 slf4j" should "failed when input not in order" in {
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.Slf4j, verbose = true)
+      | @builder class TestClass6(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin shouldNot compile
+  }
 }

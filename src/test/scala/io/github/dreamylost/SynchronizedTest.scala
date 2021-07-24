@@ -58,7 +58,7 @@ class SynchronizedTest extends AnyFlatSpec with Matchers {
 
     val obj = new Object
 
-    @synchronized(lockedName = "obj")
+    @synchronized(verbose = true, lockedName = "obj")
     def getStr3(k: Int): String = {
       k + ""
     }
@@ -77,6 +77,9 @@ class SynchronizedTest extends AnyFlatSpec with Matchers {
         this.synchronized(k + "")
       }
     }
+  }
+
+  "synchronized3" should "fail when obj not exists or it was used on fields" in {
 
     """
      @synchronized(lockedName = "obj")
@@ -87,6 +90,16 @@ class SynchronizedTest extends AnyFlatSpec with Matchers {
      @synchronized(lockedName = "obj")
      val s = "1"
       """ shouldNot compile
+  }
+
+  "synchronized4" should "failed when input not in order" in {
+    """
+      |    val obj = new Object
+      |    @synchronized(lockedName = "obj", verbose = true)
+      |    def getStr3(k: Int): String = {
+      |      k + ""
+      |    }
+      |""".stripMargin shouldNot compile
   }
 
 }

@@ -26,6 +26,7 @@ import io.github.dreamylost.logs.LogType
 import io.github.dreamylost.logs.LogType._
 
 import scala.reflect.macros.whitebox
+import io.github.dreamylost.logs
 
 /**
  *
@@ -39,37 +40,33 @@ object logMacro {
 
     import c.universe._
 
+    private val extractArgumentsDetail: (Boolean, logs.LogType.Value) = extractArgumentsTuple2 {
+      case q"new log(logType=$logType)" =>
+        val tpe = getLogType(logType.asInstanceOf[Tree])
+        (false, tpe)
+      case q"new log(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), LogType.JLog)
+      case q"new log(verbose=$verbose, logType=$logType)" =>
+        val tpe = getLogType(logType.asInstanceOf[Tree])
+        (evalTree(verbose.asInstanceOf[Tree]), tpe)
+      case q"new log()" => (false, LogType.JLog)
+      case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+    }
+
+    private def getLogType(logType: Tree): LogType = {
+      if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
+        evalTree(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
+      } else {
+        LogType.getLogType(logType.toString())
+      }
+    }
+
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      def getLogType(logType: Tree): LogType = {
-        if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
-          evalTree(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
-        } else {
-          LogType.getLogType(logType.toString())
-        }
-      }
-      val args: (Boolean, LogType) = extractArgumentsTuple2 {
-        case q"new log(logType=$logType)" =>
-          val tpe = getLogType(logType.asInstanceOf[Tree])
-          (false, tpe)
-        case q"new log(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), LogType.JLog)
-        case q"new log($logType)" =>
-          val tpe = getLogType(logType.asInstanceOf[Tree])
-          (false, tpe)
-        case q"new log(verbose=$verbose, logType=$logType)" =>
-          val tpe = getLogType(logType.asInstanceOf[Tree])
-          (evalTree(verbose.asInstanceOf[Tree]), tpe)
-        case q"new log()" => (false, LogType.JLog)
-        case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-      }
-
-      c.info(c.enclosingPosition, s"annottees: $annottees, args: $args", force = args._1)
-
       val logTree = annottees.map(_.tree) match {
         // Match a class, and expand, get class/object name.
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
         case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
       }
 
@@ -85,8 +82,9 @@ object logMacro {
       }
 
       val res = treeResultWithCompanionObject(resTree, annottees: _*)
-      printTree(force = args._1, res)
+      printTree(force = extractArgumentsDetail._1, res)
       c.Expr[Any](resTree)
     }
   }
+
 }

@@ -135,4 +135,23 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |    }
       |""".stripMargin should compile
   }
+
+  "equals5" should "failed when input not in order" in {
+    """
+      |    @equalsAndHashCode(excludeFields = Nil, verbose = true)
+      |    class Employee4(name: String, age: Int, var role: String) extends Person(name, age) {
+      |      val i = 0
+      |      def hello: String = ???
+      |    }
+      |""".stripMargin shouldNot compile
+
+    """
+      |    @equalsAndHashCode(verbose = true, excludeFields = Seq("i"))
+      |    class Employee4(name: String, age: Int, var role: String) extends Person(name, age) {
+      |      val i = 0
+      |      def hello: String = ???
+      |    }
+      |""".stripMargin should compile
+  }
+
 }
