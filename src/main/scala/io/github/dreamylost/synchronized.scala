@@ -39,5 +39,5 @@ final class synchronized(
     verbose:    Boolean = false,
     lockedName: String  = "this"
 ) extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro synchronizedMacro.impl
+  def macroTransform(annottees: Any*): Any = macro synchronizedMacro.SynchronizedProcessor.impl
 }

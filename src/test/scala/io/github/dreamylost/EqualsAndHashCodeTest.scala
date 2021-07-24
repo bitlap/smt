@@ -98,10 +98,40 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
   }
 
   "equals3" should "ok even if exists a canEqual" in {
+    @equalsAndHashCode
+    class Employee1(name: String, age: Int, var role: String) extends Person(name, age) {
+      override def canEqual(that: Any) = that.getClass == classOf[Employee1];
+    }
     """
       |    @equalsAndHashCode
-      |    class Employee(name: String, age: Int, var role: String) extends Person(name, age) {
+      |    class Employee2(name: String, age: Int, var role: String) extends Person(name, age) {
       |      override def canEqual(that: Any) = that.getClass == classOf[Employee];
+      |    }
+      |""".stripMargin should compile
+  }
+
+  "equals4" should "ok when there are members" in {
+    @equalsAndHashCode
+    class Employee1(name: String, age: Int, var role: String) extends Person(name, age) {
+      val i = 0
+    }
+    """
+      |    @equalsAndHashCode
+      |    class Employee2(name: String, age: Int, var role: String) extends Person(name, age) {
+      |      val i = 0
+      |    }
+      |""".stripMargin should compile
+
+    @equalsAndHashCode
+    class Employee3(name: String, age: Int, var role: String) extends Person(name, age) {
+      val i = 0
+      def hello: String = ???
+    }
+    """
+      |    @equalsAndHashCode
+      |    class Employee4(name: String, age: Int, var role: String) extends Person(name, age) {
+      |      val i = 0
+      |      def hello: String = ???
       |    }
       |""".stripMargin should compile
   }

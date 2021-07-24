@@ -39,5 +39,5 @@ final class constructor(
     verbose:       Boolean     = false,
     excludeFields: Seq[String] = Nil
 ) extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro constructorMacro.impl
+  def macroTransform(annottees: Any*): Any = macro constructorMacro.ConstructorProcessor.impl
 }

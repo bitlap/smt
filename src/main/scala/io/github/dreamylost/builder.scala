@@ -34,5 +34,5 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class builder extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro builderMacro.impl
+  def macroTransform(annottees: Any*): Any = macro builderMacro.BuilderProcessor.impl
 }

@@ -37,5 +37,5 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 final class apply(
     verbose: Boolean = false
 ) extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro applyMacro.impl
+  def macroTransform(annottees: Any*): Any = macro applyMacro.applyProcessor.impl
 }

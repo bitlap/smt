@@ -54,20 +54,24 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     object B3
     println(B3(1, 2, None, None))
   }
-  "apply2" should "failed at class" in {
-    // FAILED, not support currying!!
-    """@apply @toString class C(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
+  "apply2" should "failed on case class" in {
+    """@apply @toString case class C3(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
   }
 
   "apply3" should "ok with currying" in {
+    """@apply @toString class C2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" should compile
+    @apply
+    @toString class C1(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)
     @apply
     @toString class B3(int: Int)(val j: Int)(var k: Option[String] = None)(t: Option[Long] = Some(1L))
+    @apply
+    @toString class B4(int: Int, a: Seq[Seq[String]])(val j: Int, b: Seq[String])(var k: Option[String] = None, c: Seq[Option[String]])(t: Option[Long] = Some(1L))
   }
 
   "apply4" should "ok with generic" in {
     @apply
-    @toString class B3[T, U](int: T)(val j: U)
-    println(B3(1)(2))
+    @toString class B3[T, U](int: T, yy: Int)(val j: U)
+    println(B3(1, 2)(2))
 
     @toString
     @apply class B4[T, U](int: T, val j: U)

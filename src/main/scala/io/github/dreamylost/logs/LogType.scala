@@ -21,7 +21,7 @@
 
 package io.github.dreamylost.logs
 
-import io.github.dreamylost.PACKAGE
+import io.github.dreamylost.ROOT_PACKAGE
 
 object LogType extends Enumeration {
 
@@ -39,9 +39,11 @@ object LogType extends Enumeration {
   }
 
   def getLogType(shortType: String): LogType = {
-    val tpe = PACKAGE + "." + shortType
+    val tpe1 = s"$ROOT_PACKAGE.logs.$shortType" //LogType.JLog
+    val tpe2 = s"$ROOT_PACKAGE.logs.LogType.$shortType" // JLog
     val v = LogType.values.find(p => {
-      s"$PACKAGE.${p.toString}" == tpe || s"$PACKAGE.$LogType.${p.toString}" == tpe
+      s"$ROOT_PACKAGE.logs.LogType.${p.toString}" == tpe1 ||
+        s"$ROOT_PACKAGE.logs.LogType.${p.toString}" == tpe2 || s"$ROOT_PACKAGE.logs.LogType.${p.toString}" == shortType
     }).getOrElse(throw new Exception(s"Not support log type: $shortType")).toString
     LogType.withName(v)
   }

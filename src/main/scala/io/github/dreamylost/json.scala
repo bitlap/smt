@@ -34,5 +34,5 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class json extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro jsonMacro.impl
+  def macroTransform(annottees: Any*): Any = macro jsonMacro.JsonProcessor.impl
 }

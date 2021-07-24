@@ -40,5 +40,5 @@ final class equalsAndHashCode(
     excludeFields: Seq[String] = Nil
 ) extends StaticAnnotation {
 
-  def macroTransform(annottees: Any*): Any = macro equalsAndHashCodeMacro.impl
+  def macroTransform(annottees: Any*): Any = macro equalsAndHashCodeMacro.EqualsAndHashCodeProcessor.impl
 }

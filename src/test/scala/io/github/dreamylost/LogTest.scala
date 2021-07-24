@@ -141,22 +141,29 @@ class LogTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
   }
 
-  "log10 slf4j" should "failed on case class and it object" in {
+  "log10 slf4j" should "ok on case class and it object" in {
+    @log(logType = LogType.JLog)
+    @builder case class TestClass6_1(val i: Int = 0, var j: Int) {
+      log.info("hello world")
+    }
+    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6_1 {
+      log.info("hello world"); builder()
+    }
     """
-      |    @log(io.github.dreamylost.logs.LogType.Slf4j)
-      |    @builder case class TestClass6(val i: Int = 0, var j: Int) {
+      |    @log(verbose=false, logType = LogType.JLog)
+      |    @builder case class TestClass6_2(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
-      |    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 {
+      |    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6_2 {
       |      log.info("hello world"); builder()
       |    }
-      |""".stripMargin shouldNot compile //The context of class was not passed in object macro
+      |""".stripMargin should compile
   }
 
   "log11 slf4j" should "ok on class and it object" in {
     """
       | @log(io.github.dreamylost.logs.LogType.Slf4j)
-      | @builder  class TestClass6(val i: Int = 0, var j: Int) {
+      | @builder class TestClass6(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
       |    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6 {
