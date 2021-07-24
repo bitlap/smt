@@ -32,7 +32,7 @@ import org.scalatest.matchers.should.Matchers
  */
 class ConstructorTest extends AnyFlatSpec with Matchers {
 
-  "constructor1" should "failed at object" in {
+  "constructor1" should "failed" in {
     """    @constructor
       |    object A2 {
       |      private val a: Int = 1
@@ -49,6 +49,16 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |      def helloWorld: String = "hello world"
       |    }
       |    A2(1, 2, None, None).c
+      |    """.stripMargin shouldNot compile
+
+    """    @apply @toString @builder @constructor(excludeFields=Seq("c"), verbose = true) //verbose should in front
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }
       |    """.stripMargin shouldNot compile
   }
 

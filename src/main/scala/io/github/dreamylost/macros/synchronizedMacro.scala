@@ -35,7 +35,7 @@ object synchronizedMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail = extractArgumentsTuple2 {
+    private val extractArgumentsDetail: (Boolean, String) = extractArgumentsTuple2 {
       case q"new synchronized(verbose=$verbose, lockedName=$lock)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(lock.asInstanceOf[Tree]))
       case q"new synchronized(lockedName=$lock)" => (false, evalTree(lock.asInstanceOf[Tree]))
       case q"new synchronized()" => (false, "this")

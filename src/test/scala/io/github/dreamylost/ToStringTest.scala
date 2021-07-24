@@ -44,7 +44,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString2" should "contains internal field and with name" in {
-    @toString(true, true, true)
+    @toString(includeInternalFields = true)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -109,7 +109,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString7" should "case class contains internal field and with name" in {
-    @toString(true, true, true)
+    @toString(includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -234,6 +234,9 @@ class ToStringTest extends AnyFlatSpec with Matchers {
     println(s1)
     assert(s1 == "TestClass2(j=1)")
 
+    @toString(true, true, true, false)
+    case class TestClass2_2(j: Int = 1) extends TestClass1(1)
+
     @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass3(j: Int) extends TestClass1(j)
     val s2 = TestClass3(0).toString
@@ -280,6 +283,14 @@ class ToStringTest extends AnyFlatSpec with Matchers {
     println(s5)
     // Because not support if super class is a trait
     assert(s5.startsWith("TestClass5(super=io.github.dreamylost.ToStringTes") && s5.endsWith("1)"))
+  }
+
+  "toString17" should "failed when input not in order" in {
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @toString(includeInternalFields = true, includeFieldNames = false, callSuper = true, verbose = true)
+      | class TestClass6(val i: Int = 0, var j: Int)
+      |""".stripMargin shouldNot compile
   }
 
 }

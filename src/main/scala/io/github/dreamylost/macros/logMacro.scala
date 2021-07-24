@@ -26,6 +26,7 @@ import io.github.dreamylost.logs.LogType
 import io.github.dreamylost.logs.LogType._
 
 import scala.reflect.macros.whitebox
+import io.github.dreamylost.logs
 
 /**
  *
@@ -39,7 +40,7 @@ object logMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail = extractArgumentsTuple2 {
+    private val extractArgumentsDetail: (Boolean, logs.LogType.Value) = extractArgumentsTuple2 {
       case q"new log(logType=$logType)" =>
         val tpe = getLogType(logType.asInstanceOf[Tree])
         (false, tpe)

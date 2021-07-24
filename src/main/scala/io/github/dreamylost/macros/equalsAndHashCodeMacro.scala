@@ -35,7 +35,7 @@ object equalsAndHashCodeMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail = extractArgumentsTuple2 {
+    private val extractArgumentsDetail: (Boolean, Nil.type) = extractArgumentsTuple2 {
       case q"new equalsAndHashCode(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), Nil)
       case q"new equalsAndHashCode(excludeFields=$excludeFields)" => (false, evalTree(excludeFields.asInstanceOf[Tree]))
       case q"new equalsAndHashCode(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(excludeFields.asInstanceOf[Tree]))

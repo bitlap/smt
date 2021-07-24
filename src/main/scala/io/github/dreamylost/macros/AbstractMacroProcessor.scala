@@ -41,7 +41,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param classDecl
    * @param compDeclOpt
    * @return c.Expr[Any], Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
-
+   *
    */
   def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
 

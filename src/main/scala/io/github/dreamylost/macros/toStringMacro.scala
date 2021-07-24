@@ -37,7 +37,7 @@ object toStringMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail = extractArgumentsTuple4 {
+    private val extractArgumentsDetail: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4 {
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
         (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
       case q"new toString($aa, $bb, $cc)" =>
@@ -103,7 +103,6 @@ object toStringMacro {
       val (className, annotteeClassParams, superClasses, annotteeClassDefinitions) = {
         annotateeClass match {
           case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            c.info(c.enclosingPosition, s"parents: $parents", force = argument.verbose)
             (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], parents, stats.asInstanceOf[List[Tree]])
         }
       }
