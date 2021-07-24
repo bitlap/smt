@@ -36,7 +36,7 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     // int: Int => private[this] val int: Int = _;
     // val j: Int => val j: Int = _;
     // apply => def apply(int: Int, j: Int, k: Option[String] = None, t: Option[Long] = Some(1L)): A = new A(int, j, k, t)
-
+    """@apply(verbose = true) class C2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" should compile
     """@toString @apply class A(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))""" should compile
     @toString
     @apply class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))
@@ -76,6 +76,8 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     @toString
     @apply class B4[T, U](int: T, val j: U)
     println(B4("helloworld", 2))
-
+  }
+  "apply5" should "failed when input not invalid" in {
+    """@apply(true) class C2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
   }
 }

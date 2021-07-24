@@ -45,9 +45,6 @@ object logMacro {
         val tpe = getLogType(logType.asInstanceOf[Tree])
         (false, tpe)
       case q"new log(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), LogType.JLog)
-      case q"new log($logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        (false, tpe)
       case q"new log(verbose=$verbose, logType=$logType)" =>
         val tpe = getLogType(logType.asInstanceOf[Tree])
         (evalTree(verbose.asInstanceOf[Tree]), tpe)

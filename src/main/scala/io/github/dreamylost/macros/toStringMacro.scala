@@ -40,12 +40,12 @@ object toStringMacro {
     private val extractArgumentsDetail: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4 {
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
         (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
+        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
       case q"new toString($aa, $bb, $cc)" =>
         (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
       case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
         (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
-      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
-        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
       case q"new toString($aa, $bb, $cc, $dd)" =>
         (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" =>

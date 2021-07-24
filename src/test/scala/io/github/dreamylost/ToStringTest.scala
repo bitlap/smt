@@ -234,6 +234,9 @@ class ToStringTest extends AnyFlatSpec with Matchers {
     println(s1)
     assert(s1 == "TestClass2(j=1)")
 
+    @toString(verbose = true, includeInternalFields = true, includeFieldNames = true)
+    case class TestClass2_1(j: Int = 1) extends TestClass1(1)
+
     @toString(true, true, true, false)
     case class TestClass2_2(j: Int = 1) extends TestClass1(1)
 
@@ -288,7 +291,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString17" should "failed when input not in order" in {
     """
       | import io.github.dreamylost.logs.LogType
-      | @toString(includeInternalFields = true, includeFieldNames = false, callSuper = true, verbose = true)
+      | @toString(includeFieldNames = false, callSuper = true, verbose = true)
       | class TestClass6(val i: Int = 0, var j: Int)
       |""".stripMargin shouldNot compile
   }
