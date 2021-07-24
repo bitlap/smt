@@ -33,55 +33,60 @@ import scala.reflect.macros.whitebox
  * @since 2021/7/7
  * @version 1.0
  */
-object logMacro extends MacroCommon {
-  def impl(c: whitebox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
+object logMacro {
+
+  class LogProcessor(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+
     import c.universe._
-    def getLogType(logType: c.Tree): LogType = {
-      if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
-        evalTree(c)(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
-      } else {
-        LogType.getLogType(logType.toString())
+
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+      def getLogType(logType: Tree): LogType = {
+        if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
+          evalTree(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
+        } else {
+          LogType.getLogType(logType.toString())
+        }
       }
-    }
-    val args: (Boolean, LogType) = extractArgumentsTuple2(c) {
-      case q"new log(logType=$logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        (false, tpe)
-      case q"new log(verbose=$verbose)" => (evalTree(c)(verbose.asInstanceOf[Tree]), LogType.JLog)
-      case q"new log($logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        (false, tpe)
-      case q"new log(verbose=$verbose, logType=$logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        (evalTree(c)(verbose.asInstanceOf[Tree]), tpe)
-      case q"new log()" => (false, LogType.JLog)
-      case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-    }
+      val args: (Boolean, LogType) = extractArgumentsTuple2 {
+        case q"new log(logType=$logType)" =>
+          val tpe = getLogType(logType.asInstanceOf[Tree])
+          (false, tpe)
+        case q"new log(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), LogType.JLog)
+        case q"new log($logType)" =>
+          val tpe = getLogType(logType.asInstanceOf[Tree])
+          (false, tpe)
+        case q"new log(verbose=$verbose, logType=$logType)" =>
+          val tpe = getLogType(logType.asInstanceOf[Tree])
+          (evalTree(verbose.asInstanceOf[Tree]), tpe)
+        case q"new log()" => (false, LogType.JLog)
+        case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      }
 
-    c.info(c.enclosingPosition, s"annottees: $annottees, args: $args", force = args._1)
+      c.info(c.enclosingPosition, s"annottees: $annottees, args: $args", force = args._1)
 
-    val logTree = annottees.map(_.tree) match {
-      // Match a class, and expand, get class/object name.
-      case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-        LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
-      case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-        LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
-      case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
+      val logTree = annottees.map(_.tree) match {
+        // Match a class, and expand, get class/object name.
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
+          LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
+        case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
+          LogType.getLogImpl(args._2).getTemplate(c)(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
+        case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
+      }
+
+      // add result into class
+      val resTree = annottees.map(_.tree) match {
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
+          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+        case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
+          q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+        // Note: If a class is annotated and it has a companion, then both are passed into the macro.
+        // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
+        // see https://docs.scala-lang.org/overviews/macros/annotations.html
+      }
+
+      val res = treeResultWithCompanionObject(resTree, annottees: _*)
+      printTree(force = args._1, res)
+      c.Expr[Any](resTree)
     }
-
-    // add result into class
-    val resTree = annottees.map(_.tree) match {
-      case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-        val resTree = q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
-        treeResultWithCompanionObject(c)(resTree, annottees: _*) //we should return with companion object. Even if we didn't change it.
-      case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-        q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
-      // Note: If a class is annotated and it has a companion, then both are passed into the macro.
-      // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
-      // see https://docs.scala-lang.org/overviews/macros/annotations.html
-    }
-
-    printTree(c)(force = args._1, resTree)
-    c.Expr[Any](resTree)
   }
 }

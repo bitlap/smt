@@ -38,6 +38,7 @@ class BuilderTest extends AnyFlatSpec with Matchers {
     // field : <caseaccessor> <paramaccessor> val i: Int = 0， so default value is "_"
     val ret = TestClass1.builder().i(1).j(0).x("x").build()
     println(ret)
+    assert(TestClass1.builder().getClass.getTypeName == "io.github.dreamylost.BuilderTest$TestClass1$2$TestClass1Builder")
     assert(ret.toString == "TestClass1(1,0,x,Some())")
 
   }

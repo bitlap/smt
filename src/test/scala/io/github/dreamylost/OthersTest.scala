@@ -21,24 +21,22 @@
 
 package io.github.dreamylost
 
-import io.github.dreamylost.logs._
-import io.github.dreamylost.macros.logMacro
-
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
- * annotation to generate log.
  *
  * @author 梦境迷离
- * @param verbose Whether to enable detailed log.
- * @param logType Specifies the type of `log` that needs to be generated
- * @since 2021/6/28
+ * @since 2021/7/24
  * @version 1.0
  */
-@compileTimeOnly("enable macro to expand macro annotations")
-final class log(
-    verbose: Boolean         = false,
-    logType: LogType.LogType = LogType.JLog
-) extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro logMacro.LogProcessor.impl
+class OthersTest extends AnyFlatSpec with Matchers {
+  "others" should "ok" in {
+    assert(PACKAGE == "io.github.dreamylost")
+
+    """
+      |    @builder
+      |    object A
+      |""".stripMargin shouldNot compile
+  }
 }
