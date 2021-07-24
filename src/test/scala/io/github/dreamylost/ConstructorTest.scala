@@ -34,7 +34,7 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
 
   "constructor1" should "failed" in {
     """    @constructor
-      |    case class A2 {
+      |    case class A2() {
       |      private val a: Int = 1
       |      var b: Int = 1
       |      def helloWorld: String = "hello world"
