@@ -65,7 +65,7 @@ object constructorMacro {
         /**
          * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
          */
-        def getClassMemberVarDefOnlyAssignExpr: Seq[c.Tree] = {
+        def getClassMemberVarDefOnlyAssignExpr: Seq[Tree] = {
           import c.universe._
           getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
             case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true

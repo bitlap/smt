@@ -36,7 +36,7 @@ object jsonMacro {
     import c.universe._
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      def jsonFormatter(className: TypeName, fields: List[Tree]): c.universe.Tree = {
+      def jsonFormatter(className: TypeName, fields: List[Tree]): Tree = {
         fields.length match {
           case 0 => c.abort(c.enclosingPosition, "Cannot create json formatter for case class with no fields")
           case _ =>

@@ -41,17 +41,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @tparam T
    * @return
    */
-  def evalTree[T: WeakTypeTag](tree: c.Tree): T = c.eval(c.Expr[T](c.untypecheck(tree.duplicate)))
+  def evalTree[T: WeakTypeTag](tree: Tree): T = c.eval(c.Expr[T](c.untypecheck(tree.duplicate)))
 
-  def extractArgumentsTuple1[T: WeakTypeTag](partialFunction: PartialFunction[c.Tree, Tuple1[T]]): Tuple1[T] = {
+  def extractArgumentsTuple1[T: WeakTypeTag](partialFunction: PartialFunction[Tree, Tuple1[T]]): Tuple1[T] = {
     partialFunction.apply(c.prefix.tree)
   }
 
-  def extractArgumentsTuple2[T1: WeakTypeTag, T2: WeakTypeTag](partialFunction: PartialFunction[c.Tree, (T1, T2)]): (T1, T2) = {
+  def extractArgumentsTuple2[T1: WeakTypeTag, T2: WeakTypeTag](partialFunction: PartialFunction[Tree, (T1, T2)]): (T1, T2) = {
     partialFunction.apply(c.prefix.tree)
   }
 
-  def extractArgumentsTuple4[T1: WeakTypeTag, T2: WeakTypeTag, T3: WeakTypeTag, T4: WeakTypeTag](partialFunction: PartialFunction[c.Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
+  def extractArgumentsTuple4[T1: WeakTypeTag, T2: WeakTypeTag, T3: WeakTypeTag, T4: WeakTypeTag](partialFunction: PartialFunction[Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
     partialFunction.apply(c.prefix.tree)
   }
 
@@ -61,7 +61,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param force
    * @param resTree
    */
-  def printTree(force: Boolean, resTree: c.Tree): Unit = {
+  def printTree(force: Boolean, resTree: Tree): Unit = {
     c.info(
       c.enclosingPosition,
       "\n###### Expanded macro ######\n" + resTree.toString() + "\n###### Expanded macro ######\n",
@@ -75,7 +75,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return Return ClassDef
    */
-  def checkAndGetClassDef(annottees: c.Expr[Any]*): ClassDef = {
+  def checkAndGetClassDef(annottees: Expr[Any]*): ClassDef = {
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
@@ -89,7 +89,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return
    */
-  def tryGetCompanionObject(annottees: c.Expr[Any]*): Option[ModuleDef] = {
+  def tryGetCompanionObject(annottees: Expr[Any]*): Option[ModuleDef] = {
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => None
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
@@ -212,8 +212,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def modifiedCompanion(
-    compDeclOpt: Option[c.universe.ModuleDef],
-    codeBlock:   c.Tree, className: c.TypeName): Tree = {
+    compDeclOpt: Option[ModuleDef],
+    codeBlock:   Tree, className: TypeName): Tree = {
     compDeclOpt map { compDecl =>
       val q"$mods object $obj extends ..$bases { ..$body }" = compDecl
       val o =
