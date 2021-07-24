@@ -28,5 +28,5 @@ package io.github
  * @version 1.0
  */
 package object dreamylost {
-  final val ROOT_PACKAGE = "io.github.dreamylost"
+  final val PACKAGE = "io.github.dreamylost"
 }

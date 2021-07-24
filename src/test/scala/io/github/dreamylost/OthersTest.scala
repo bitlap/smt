@@ -32,7 +32,7 @@ import org.scalatest.matchers.should.Matchers
  */
 class OthersTest extends AnyFlatSpec with Matchers {
   "others" should "ok" in {
-    assert(ROOT_PACKAGE == "io.github.dreamylost")
+    assert(PACKAGE == "io.github.dreamylost")
 
     """
       |    @builder

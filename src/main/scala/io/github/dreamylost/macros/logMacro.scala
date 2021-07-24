@@ -21,7 +21,7 @@
 
 package io.github.dreamylost.macros
 
-import io.github.dreamylost.ROOT_PACKAGE
+import io.github.dreamylost.PACKAGE
 import io.github.dreamylost.logs.LogType
 import io.github.dreamylost.logs.LogType._
 
@@ -41,7 +41,7 @@ object logMacro {
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       def getLogType(logType: Tree): LogType = {
-        if (logType.children.exists(t => t.toString().contains(ROOT_PACKAGE))) {
+        if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
           evalTree(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
         } else {
           LogType.getLogType(logType.toString())
