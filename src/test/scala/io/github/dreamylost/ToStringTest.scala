@@ -293,6 +293,8 @@ class ToStringTest extends AnyFlatSpec with Matchers {
       | import io.github.dreamylost.logs.LogType
       | @toString(includeFieldNames = false, callSuper = true, verbose = true)
       | class TestClass6(val i: Int = 0, var j: Int)
+      |
+      | @toString(verbose = false, includeFieldNames = false) class TestClass6(val i: Int = 0, var j: Int)
       |""".stripMargin shouldNot compile
   }
 
