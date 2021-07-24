@@ -35,29 +35,29 @@ object synchronizedMacro {
 
     import c.universe._
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val args: (Boolean, String) = extractArgumentsTuple2 {
-        case q"new synchronized(verbose=$verbose, lockedName=$lock)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(lock.asInstanceOf[Tree]))
-        case q"new synchronized(lockedName=$lock)" => (false, evalTree(lock.asInstanceOf[Tree]))
-        case q"new synchronized()" => (false, "this")
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-      }
+    private val extractArgumentsDetail = extractArgumentsTuple2 {
+      case q"new synchronized(verbose=$verbose, lockedName=$lock)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(lock.asInstanceOf[Tree]))
+      case q"new synchronized(lockedName=$lock)" => (false, evalTree(lock.asInstanceOf[Tree]))
+      case q"new synchronized()" => (false, "this")
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+    }
 
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees map (_.tree) match {
         // Match a method, and expand.
         case _@ q"$modrs def $tname[..$tparams](...$paramss): $tpt = $expr" :: _ =>
-          if (args._2 != null) {
-            if (args._2 == "this") {
+          if (extractArgumentsDetail._2 != null) {
+            if (extractArgumentsDetail._2 == "this") {
               q"""def $tname[..$tparams](...$paramss): $tpt = ${This(TypeName(""))}.synchronized { $expr }"""
             } else {
-              q"""def $tname[..$tparams](...$paramss): $tpt = ${TermName(args._2)}.synchronized { $expr }"""
+              q"""def $tname[..$tparams](...$paramss): $tpt = ${TermName(extractArgumentsDetail._2)}.synchronized { $expr }"""
             }
           } else {
             c.abort(c.enclosingPosition, "Invalid args, lockName cannot be a null!")
           }
         case _ => c.abort(c.enclosingPosition, "Invalid annotation target: not a method")
       }
-      printTree(args._1, resTree)
+      printTree(extractArgumentsDetail._1, resTree)
       c.Expr[Any](resTree)
     }
   }

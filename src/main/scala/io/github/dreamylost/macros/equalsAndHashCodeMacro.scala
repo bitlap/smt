@@ -35,70 +35,68 @@ object equalsAndHashCodeMacro {
 
     import c.universe._
 
+    private val extractArgumentsDetail = extractArgumentsTuple2 {
+      case q"new equalsAndHashCode(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), Nil)
+      case q"new equalsAndHashCode(excludeFields=$excludeFields)" => (false, evalTree(excludeFields.asInstanceOf[Tree]))
+      case q"new equalsAndHashCode(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(excludeFields.asInstanceOf[Tree]))
+      case q"new equalsAndHashCode()" => (false, Nil)
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+    }
+
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val args: (Boolean, Seq[String]) = extractArgumentsTuple2 {
-        case q"new equalsAndHashCode(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), Nil)
-        case q"new equalsAndHashCode(excludeFields=$excludeFields)" => (false, evalTree(excludeFields.asInstanceOf[Tree]))
-        case q"new equalsAndHashCode(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(excludeFields.asInstanceOf[Tree]))
-        case q"new equalsAndHashCode()" => (false, Nil)
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-      }
-
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      val isCase: Boolean = isCaseClass(annotateeClass)
-      if (isCase) {
-        c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
+      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
+
+      val tmpTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      // return with object if it exists
+      val resTree = annotateeClass match {
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
+          val originalStatus = q"{ ..$stats }"
+          val append =
+            q"""
+              ..$originalStatus
+              ..$tmpTree
+             """
+          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${append} }"
       }
-      val excludeFields = args._2
+      val res = c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
+      printTree(force = extractArgumentsDetail._1, res.tree)
+      res
+    }
 
-      def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-        val (className, annotteeClassParams, annotteeClassDefinitions, superClasses) = classDecl match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-            (tpname, paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents)
-          case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-        }
-        val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsPrivate(cf))
-        val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
+    /**
+     * Extract the internal fields of members belonging to the class.
+     */
+    private def getClassMemberAllTermName(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
+      getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
+        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
+        case q"$mods val $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
+        case q"$mods val $pat = $expr" if !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
+        case q"$mods var $pat = $expr" if !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
+        case _ => false
+      }).map(f => getFieldTermName(f))
+    }
 
-        c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, ctorFieldNames: $ctorFieldNames, " +
-          s"annotteeClassParams: $superClasses", force = args._1)
+    // equals method
+    private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
+      val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions) exists {
+        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.toString() == "canEqual" && paramss.nonEmpty =>
+          val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
+          params.exists(p => p.decodedName.toString == "Any")
+        case _ => false
+      }
+      val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
+      val canEqualsExistsInSuper = if (superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))) { // TODO better way
+        true
+      } else false
 
-        /**
-         * Extract the internal fields of members belonging to the class.
-         */
-        def getClassMemberAllTermName: Seq[TermName] = {
-          getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
-            case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-            case q"$mods val $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-            case q"$mods val $pat = $expr" if !excludeFields.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
-            case q"$mods var $pat = $expr" if !excludeFields.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
-            case _ => false
-          }).map(f => getFieldTermName(f))
-        }
-
-        val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions) exists {
-          case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.toString() == "canEqual" && paramss.nonEmpty =>
-            val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
-            params.exists(p => p.decodedName.toString == "Any")
-          case _ => false
-        }
-
-        // + super.hashCode
-        val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
-        val canEqualsExistsInSuper = if (superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))) { // TODO better way
-          true
-        } else false
-
-        // equals template
-        def ==(termNames: Seq[TermName]): Tree = {
-          val getEqualsExpr = (termName: TermName) => {
-            q"this.$termName.equals(t.$termName)"
-          }
-          val equalsExprs = termNames.map(getEqualsExpr)
-          val modifiers = if (canEqualsExistsInSuper) Modifiers(Flag.OVERRIDE, typeNames.EMPTY, List()) else Modifiers(NoFlags, typeNames.EMPTY, List())
-          val canEqual = if (existsCanEqual) q"" else q"$modifiers def canEqual(that: Any) = that.isInstanceOf[$className]"
-          q"""
+      val getEqualsExpr = (termName: TermName) => {
+        q"this.$termName.equals(t.$termName)"
+      }
+      val equalsExprs = termNames.map(getEqualsExpr)
+      val modifiers = if (canEqualsExistsInSuper) Modifiers(Flag.OVERRIDE, typeNames.EMPTY, List()) else Modifiers(NoFlags, typeNames.EMPTY, List())
+      val canEqual = if (existsCanEqual) q"" else q"$modifiers def canEqual(that: Any) = that.isInstanceOf[$className]"
+      q"""
         $canEqual
 
         override def equals(that: Any): Boolean =
@@ -107,55 +105,51 @@ object equalsAndHashCodeMacro {
             case _ => false
         }
        """
-        }
+    }
 
-        // hashcode template
-        def ##(termNames: Seq[TermName]): Tree = {
-          // the algorithm see https://alvinalexander.com/scala/how-to-define-equals-hashcode-methods-in-scala-object-equality/
-          // We use default 1.
-          if (!canEqualsExistsInSuper) {
-            q"""
+    private def getHashcodeMethod(termNames: Seq[TermName], superClasses: Seq[Tree]): Tree = {
+      // we append super.hashCode by `+`
+      val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
+      val canEqualsExistsInSuper = if (superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))) { // TODO better way
+        true
+      } else false
+      // the algorithm see https://alvinalexander.com/scala/how-to-define-equals-hashcode-methods-in-scala-object-equality/
+      // We use default 1.
+      if (!canEqualsExistsInSuper) {
+        q"""
          override def hashCode(): Int = {
             val state = Seq(..$termNames)
             state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
           }
           """
-          } else {
-            q"""
+      } else {
+        q"""
          override def hashCode(): Int = {
             val state = Seq(..$termNames)
             state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b) + super.hashCode
           }
           """
-          }
-        }
-
-        val allTernNames = allFieldsTermName ++ getClassMemberAllTermName
-        val hashcode = ##(allTernNames)
-        val equals = ==(allTernNames)
-        val equalsAndHashcode =
-          q"""
-          ..$equals
-          $hashcode
-         """
-        // return with object if it exists
-        val resTree = annotateeClass match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            val originalStatus = q"{ ..$stats }"
-            val append =
-              q"""
-              ..$originalStatus
-              ..$equalsAndHashcode
-             """
-            q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${append} }"
-        }
-        c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
       }
+    }
 
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
-      printTree(force = args._1, resTree.tree)
-
-      resTree
+    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
+      val (className, annotteeClassParams, annotteeClassDefinitions, superClasses) = classDecl match {
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
+          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = extractArgumentsDetail._1)
+          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
+        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
+      }
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsPrivate(cf))
+      val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
+      val allTernNames = allFieldsTermName ++ getClassMemberAllTermName(annotteeClassDefinitions)
+      val hash = getHashcodeMethod(allTernNames, superClasses)
+      val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)
+      c.Expr(
+        q"""
+          ..$equals
+          $hash
+         """)
     }
   }
+
 }

@@ -35,105 +35,98 @@ object constructorMacro {
 
     import c.universe._
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val args: (Boolean, Seq[String]) = extractArgumentsTuple2 {
+    private val extractArgumentsDetail: Tuple2[Boolean, Seq[String]] = {
+      extractArgumentsTuple2 {
         case q"new constructor(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), Nil)
         case q"new constructor(excludeFields=$excludeFields)" => (false, evalTree(excludeFields.asInstanceOf[Tree]))
         case q"new constructor(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(excludeFields.asInstanceOf[Tree]))
         case q"new constructor()" => (false, Nil)
         case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
+    }
 
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      val isCase: Boolean = isCaseClass(annotateeClass)
-      if (isCase) {
-        c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
+    /**
+     * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
+     */
+    private def getClassMemberVarDefOnlyAssignExpr(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
+      getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
+        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
+        case _ => false
+      }).map {
+        case q"$mods var $pat = $expr" =>
+          // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
+          q"$pat: ${TypeName(toScalaType(evalTree(expr.asInstanceOf[Tree]).getClass.getTypeName))}"
+        case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt"
+      }
+    }
+
+    /**
+     * We generate this method with currying, and we have to deal with the first layer of currying alone.
+     */
+    private def getThisMethodWithCurrying(annotteeClassParams: List[List[Tree]], annotteeClassDefinitions: Seq[Tree]): Tree = {
+      val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr(annotteeClassDefinitions)
+
+      if (classFieldDefinitionsOnlyAssignExpr.isEmpty) {
+        c.abort(c.enclosingPosition, s"Annotation is only supported on class when the internal field (declare as 'var') is nonEmpty.")
+      }
+      // Extract the internal fields of members belonging to the class， but not in primary constructor.
+      val classFieldDefinitions = getClassMemberValDefs(annotteeClassDefinitions)
+
+      val annotteeClassFieldNames = classFieldDefinitions.filter(_ match {
+        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
+        case _ => false
+      }).map {
+        case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       }
 
-      def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-        val (annotteeClassParams, annotteeClassDefinitions) = classDecl match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-            (paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]])
-          case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-        }
+      // Extract the field of the primary constructor.
+      val allFieldsTermName = annotteeClassParams.map(f => f.map(ff => getFieldTermName(ff)))
 
-        // Extract the internal fields of members belonging to the class， but not in primary constructor.
-        val classFieldDefinitions = getClassMemberValDefs(annotteeClassDefinitions)
-        val excludeFields = args._2
-
-        /**
-         * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
-         */
-        def getClassMemberVarDefOnlyAssignExpr: Seq[Tree] = {
-          import c.universe._
-          getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
-            case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-            case _ => false
-          }).map {
-            case q"$mods var $pat = $expr" =>
-              // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
-              q"$pat: ${TypeName(toScalaType(evalTree(expr.asInstanceOf[Tree]).getClass.getTypeName))}"
-            case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt"
-          }
-        }
-
-        val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr
-
-        if (classFieldDefinitionsOnlyAssignExpr.isEmpty) {
-          c.abort(c.enclosingPosition, s"Annotation is only supported on class when the internal field (declare as 'var') is nonEmpty. classDef: $classDecl")
-        }
-
-        val annotteeClassFieldNames = classFieldDefinitions.filter(_ match {
-          case q"$mods var $tname: $tpt = $expr" if !excludeFields.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-          case _ => false
-        }).map {
-          case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-        }
-
-        c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $annotteeClassParams", force = args._1)
-
-        // Extract the field of the primary constructor.
-        val allFieldsTermName = annotteeClassParams.map(f => f.map(ff => getFieldTermName(ff)))
-
-        /**
-         * We generate this method with currying, and we have to deal with the first layer of currying alone.
-         */
-        def getThisMethodWithCurrying: Tree = {
-          // not currying
-          // Extract the field of the primary constructor.
-          val classParamsAssignExpr = getFieldAssignExprs(annotteeClassParams.flatten)
-          val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
-            q"""
+      // Extract the field of the primary constructor.
+      val classParamsAssignExpr = getFieldAssignExprs(annotteeClassParams.flatten)
+      val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
+        q"""
           def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
             this(..${allFieldsTermName.flatten})
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }
           """
-          } else {
-            // NOTE: currying constructor overload must be placed in the first bracket block.
-            val allClassParamsAssignExpr = annotteeClassParams.map(cc => getFieldAssignExprs(cc))
-            q"""
+      } else {
+        // NOTE: currying constructor overload must be placed in the first bracket block.
+        val allClassParamsAssignExpr = annotteeClassParams.map(cc => getFieldAssignExprs(cc))
+        q"""
           def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }
          """
-          }
-          applyMethod
-        }
-
-        val resTree = annotateeClass match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(getThisMethodWithCurrying)} }"
-        }
-        c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
       }
+      applyMethod
+    }
 
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
-      printTree(force = args._1, resTree.tree)
+    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+      val (annotteeClassParams, annotteeClassDefinitions) = classDecl match {
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
+          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = extractArgumentsDetail._1)
+          (paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]])
+        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
+      }
+      c.Expr(getThisMethodWithCurrying(annotteeClassParams, annotteeClassDefinitions))
+    }
 
-      resTree
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
+      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
+
+      val tmpTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      val resTree = annotateeClass match {
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
+          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(tmpTree.tree)} }"
+      }
+      val res = c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
+      printTree(force = extractArgumentsDetail._1, res.tree)
+      res
     }
   }
+
 }

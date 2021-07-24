@@ -35,40 +35,37 @@ object applyMacro {
 
     import c.universe._
 
-    override def impl(annottees: Expr[Any]*): Expr[Any] = {
-      val args: Tuple1[Boolean] = extractArgumentsTuple1 {
+    private val extractArgumentsDetail: Tuple1[Boolean] = {
+      extractArgumentsTuple1 {
         case q"new apply(verbose=$verbose)" => Tuple1(evalTree(verbose.asInstanceOf[Tree]))
         case q"new apply()"                 => Tuple1(false)
         case _                              => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      val isCase: Boolean = isCaseClass(annotateeClass)
-      c.info(c.enclosingPosition, s"impl argument: $args, isCase: $isCase", force = args._1)
+    }
 
-      if (isCase) c.abort(c.enclosingPosition, s"Annotation is only supported on 'case class'")
-
-      def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-        val (className, classParams, classTypeParams) = classDecl match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
-            c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = args._1)
-            (tpname, paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-          case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-        }
-        c.info(c.enclosingPosition, s"modifiedDeclaration compDeclOpt: $compDeclOpt, annotteeClassParams: $classParams", force = args._1)
-        val tpName = className.asInstanceOf[TypeName]
-        val apply = getApplyMethodWithCurrying(tpName, classParams, classTypeParams)
-        val compDecl = modifiedCompanion(compDeclOpt, apply, tpName)
-        c.Expr(
-          q"""
+    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+      val (className, classParamss, classTypeParams) = classDecl match {
+        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
+          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = extractArgumentsDetail._1)
+          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
+        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
+      }
+      val apply = getApplyMethodWithCurrying(className, classParamss, classTypeParams)
+      val compDecl = modifiedCompanion(compDeclOpt, apply, className)
+      c.Expr(
+        q"""
             $classDecl
             $compDecl
           """)
-      }
+    }
 
+    override def impl(annottees: Expr[Any]*): Expr[Any] = {
+      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
+      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"Annotation is only supported on 'case class'")
       val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
-      printTree(force = args._1, resTree.tree)
-
+      printTree(force = extractArgumentsDetail._1, resTree.tree)
       resTree
     }
   }
+
 }
