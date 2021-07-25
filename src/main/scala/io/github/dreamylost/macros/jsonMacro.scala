@@ -63,7 +63,6 @@ object jsonMacro {
       }
       val format = jsonFormatter(className, fields.flatten)
       val compDecl = modifiedCompanion(compDeclOpt, format, className)
-      c.info(c.enclosingPosition, s"format: $format, compDecl: $compDecl", force = true)
       // Return both the class and companion object declarations
       c.Expr(
         q"""

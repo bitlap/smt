@@ -66,7 +66,7 @@ object logMacro {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TermName].toTermName.decodedName.toString, isClass = false)
         case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
       }
 

@@ -40,6 +40,13 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |      def helloWorld: String = "hello world"
       |    }""".stripMargin shouldNot compile
 
+    """    @constructor
+      |    object A2 {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin shouldNot compile
+
     """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
       |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
       |      private val a: Int = 1
@@ -127,6 +134,15 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |    }""".stripMargin should compile
 
     """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
+      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
+      |      private val a: Int = 1
+      |      var b: Int = 1
+      |      protected var c: Int = _
+      |
+      |      def helloWorld: String = "hello world"
+      |    }""".stripMargin should compile
+
+    """    @apply @toString @builder @constructor(verbose = true, excludeFields=Seq("c"))
       |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
       |      private val a: Int = 1
       |      var b: Int = 1
