@@ -114,7 +114,6 @@ object equalsAndHashCodeMacro {
         true
       } else false
       // the algorithm see https://alvinalexander.com/scala/how-to-define-equals-hashcode-methods-in-scala-object-equality/
-      // We use default 1.
       if (!canEqualsExistsInSuper) {
         q"""
          override def hashCode(): Int = {
@@ -139,7 +138,7 @@ object equalsAndHashCodeMacro {
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsPrivate(cf))
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsNotPrivate(cf))
       val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
       val allTernNames = allFieldsTermName ++ getClassMemberAllTermName(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)

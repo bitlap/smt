@@ -31,24 +31,22 @@ import scala.reflect.macros.whitebox
  */
 object builderMacro {
 
-  private final val BUFFER_CLASS_NAME_SUFFIX = "Builder"
-
   class BuilderProcessor(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
     private def getBuilderClassName(classTree: TypeName): TypeName = {
-      TypeName(classTree.toTermName.decodedName.toString + BUFFER_CLASS_NAME_SUFFIX)
+      TypeName(classTree.toTermName.decodedName.toString + "Builder")
     }
 
-    private def fieldDefinition(field: Tree): Tree = {
+    private def getFieldDefinition(field: Tree): Tree = {
       field match {
         case q"$mods val $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
         case q"$mods var $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
       }
     }
 
-    private def fieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
+    private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
       val builderClassName = getBuilderClassName(typeName)
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
       field match {
@@ -72,8 +70,8 @@ object builderMacro {
     private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
       val fields = fieldss.flatten
       val builderClassName = getBuilderClassName(typeName)
-      val builderFieldMethods = fields.map(f => fieldSetMethod(typeName, f, classTypeParams))
-      val builderFieldDefinitions = fields.map(f => fieldDefinition(f))
+      val builderFieldMethods = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
+      val builderFieldDefinitions = fields.map(f => getFieldDefinition(f))
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
       q"""
       def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()

@@ -22,7 +22,7 @@
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
-
+import io.github.dreamylost.macros.ErrorMessage.UNEXPECTED_PATTERN
 /**
  *
  * @author 梦境迷离
@@ -113,7 +113,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       case (classDecl: ClassDef) :: Nil => None
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case (compDecl: ModuleDef) :: Nil => Some(compDecl)
-      case _ => None
+      case _ => c.abort(c.enclosingPosition, UNEXPECTED_PATTERN)
     }
   }
 
@@ -165,7 +165,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
           c.info(c.enclosingPosition, "Annotation is used on 'case class'.", force = true)
           true
         } else false
-      case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
     }
   }
 
@@ -202,7 +202,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param field
    * @return
    */
-  def classParamsIsPrivate(field: Tree): Boolean = {
+  def classParamsIsNotPrivate(field: Tree): Boolean = {
     field match {
       case q"$mods val $tname: $tpt = $expr" => if (mods.asInstanceOf[Modifiers].hasFlag(Flag.PRIVATE)) false else true
       case q"$mods var $tname: $tpt = $expr" => true
