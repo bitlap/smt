@@ -24,7 +24,6 @@ package io.github.dreamylost
 import io.github.dreamylost.logs.LogType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import play.api.libs.json.Json
 
 /**
  *
@@ -297,7 +296,10 @@ class LogTest extends AnyFlatSpec with Matchers {
   @json case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
 
   "log15 add @transient" should "ok" in {
-    val a = Json.toJson(TestClass1(1, 1, "hello")).toString()
-    assert("""{"i":1,"j":1,"x":"hello","o":""}""" == a) //does have `log` field
+    """
+      |val str = Json.toJson(TestClass1(1, 1, "hello")).toString()
+      |val obj = Json.fromJson[TestClass1](str)
+      |obj.log
+      |""".stripMargin shouldNot compile
   }
 }
