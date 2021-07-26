@@ -152,9 +152,11 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
 - Note
     - `verbose` Whether to enable detailed log.
     - `logType` Specifies the type of `log` that needs to be generated, default is `io.github.dreamylost.LogType.JLog`.
-        - `io.github.dreamylost.logs.LogType.JLog` use `java.util.logging.Logger`
-        - `io.github.dreamylost.logs.LogType.Log4j2` use `org.apache.logging.log4j.Logger`
-        - `io.github.dreamylost.logs.LogType.Slf4j` use `org.slf4j.Logger`
+        - `LogType.JLog` use `java.util.logging.Logger`
+        - `LogType.Log4j2` use `org.apache.logging.log4j.Logger`
+        - `LogType.Slf4j` use `org.slf4j.Logger`
+        - `LogType.ScalaLoggingLazy` implement by `scalalogging.LazyLogging` but field was renamed to `log` 
+        - `LogType.ScalaLoggingStrict` implement by `scalalogging.StrictLogging` but field was renamed to `log`
     - Support `class`, `case class` and `object`.
 
 - Example

@@ -109,12 +109,8 @@ object equalsAndHashCodeMacro {
 
     private def getHashcodeMethod(termNames: Seq[TermName], superClasses: Seq[Tree]): Tree = {
       // we append super.hashCode by `+`
-      val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
-      val canEqualsExistsInSuper = if (superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))) { // TODO better way
-        true
-      } else false
       // the algorithm see https://alvinalexander.com/scala/how-to-define-equals-hashcode-methods-in-scala-object-equality/
-      if (!canEqualsExistsInSuper) {
+      if (!existsSuperClassExcludeSdkClass(superClasses)) {
         q"""
          override def hashCode(): Int = {
             val state = Seq(..$termNames)

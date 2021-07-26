@@ -153,6 +153,8 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
         - `io.github.dreamylost.logs.LogType.JLog` 使用 `java.util.logging.Logger`
         - `io.github.dreamylost.logs.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
         - `io.github.dreamylost.logs.LogType.Slf4j` 使用 `org.slf4j.Logger`
+        - `LogType.ScalaLoggingLazy` 基于 `scalalogging.LazyLogging` 实现，但字段被重命名为`log`
+        - `LogType.ScalaLoggingStrict` 基于 `scalalogging.StrictLogging`实现， 但字段被重命名为`log`
     - 支持普通类，样例类，单例对象。
 
 - 示例

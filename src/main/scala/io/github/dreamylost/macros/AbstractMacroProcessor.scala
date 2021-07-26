@@ -33,6 +33,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   import c.universe._
 
+  protected lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
+
   /**
    * Subclasses should override the method and return the final result abstract syntax tree, or an abstract syntax tree close to the final result.
    * When the macro implementation is very simple, we don't need to use this method, so we don't need to implement it.
@@ -355,6 +357,15 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     tpParams.map {
       case t: TypeDef => t.name
     }
+  }
+
+  /**
+   * Is there a parent class? Does not contains sdk class, such as AnyRef Object
+   * @param superClasses
+   * @return
+   */
+  def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean = {
+    superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
   }
 
 }
