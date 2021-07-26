@@ -7,6 +7,7 @@ organization := "io.github.jxnu-liguobin"
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.6"
+lazy val lastVersionForExamples = "0.2.0"
 
 scalaVersion := scala213
 
@@ -53,7 +54,7 @@ lazy val root = (project in file("."))
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
   Compile / scalacOptions += "-Ymacro-annotations"
@@ -61,7 +62,7 @@ lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVer
 
 lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVersion := scala212)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
   paradise()
@@ -69,7 +70,7 @@ lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVer
 
 lazy val `scala2-11` = (project in file("examples/scala2-11")).settings(scalaVersion := scala211)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % (ThisBuild / version).value,
+    "io.github.jxnu-liguobin" %% "scala-macro-tools" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
   paradise()
