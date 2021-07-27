@@ -223,13 +223,13 @@ class LogTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
 
     import io.github.dreamylost.logs.LogType
-    @log(logType = LogType.ScalaLoggingStrict)
+    @log(logType = LogType.ScalaLoggingLazy)
     class TestClass2(val i: Int = 0, var j: Int) {
       log.info("hello world")
     }
     """
       | import io.github.dreamylost.logs.LogType
-      | @log(logType = LogType.ScalaLoggingStrict)
+      | @log(logType = LogType.ScalaLoggingLazy)
       | class TestClass3(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
@@ -237,7 +237,7 @@ class LogTest extends AnyFlatSpec with Matchers {
 
     """
       | import io.github.dreamylost.logs.LogType
-      | @log(logType = LogType.ScalaLoggingStrict)
+      | @log(logType = LogType.ScalaLoggingLazy)
       | object TestClass4 {
       |      log.info("hello world")
       |    }
@@ -245,17 +245,17 @@ class LogTest extends AnyFlatSpec with Matchers {
 
     """
       | import io.github.dreamylost.logs.LogType
-      | @log(logType = LogType.ScalaLoggingStrict)
+      | @log(logType = LogType.ScalaLoggingLazy)
       | case class TestClass5(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
       |""".stripMargin should compile
   }
 
-  "log14 scala loggging lazy" should "ok when exists super class" in {
+  "log14 scala loggging strict" should "ok when exists super class" in {
     """
       | import io.github.dreamylost.logs.LogType
-      | @log(logType = LogType.ScalaLoggingLazy)
+      | @log(logType = LogType.ScalaLoggingStrict)
       | class TestClass1(val i: Int = 0, var j: Int) extends Serializable {
       |      log.info("hello world")
       |    }
