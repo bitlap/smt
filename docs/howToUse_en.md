@@ -151,7 +151,7 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
 
 - Note
     - `verbose` Whether to enable detailed log.
-    - `logType` Specifies the type of `log` that needs to be generated, default is `io.github.dreamylost.LogType.JLog`.
+    - `logType` Specifies the type of `log` that needs to be generated, default is `io.github.dreamylost.logs.LogType.JLog`.
         - `LogType.JLog` use `java.util.logging.Logger`
         - `LogType.Log4j2` use `org.apache.logging.log4j.Logger`
         - `LogType.Slf4j` use `org.slf4j.Logger`
@@ -166,7 +166,10 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
   log.info("hello")
 }
 
-@log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
+@log(verbose=true, logType=io.github.dreamylost.logs.LogType.Slf4j) 
+class TestClass6(val i: Int = 0, var j: Int){ 
+  log.info("hello world") 
+}
 ```
 
 ## @apply
