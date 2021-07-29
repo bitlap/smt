@@ -68,7 +68,7 @@ object logMacro {
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
           val argument = LogTransferArgument(tpname.asInstanceOf[TermName].decodedName.toString, isCaseClass = false)
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
-        case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
+        case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }
 
       // add result into class

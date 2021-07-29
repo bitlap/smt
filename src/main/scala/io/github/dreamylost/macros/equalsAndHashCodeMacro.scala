@@ -80,28 +80,24 @@ object equalsAndHashCodeMacro {
     // equals method
     private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
       val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions) exists {
-        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.toString() == "canEqual" && paramss.nonEmpty =>
+        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
           val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
           params.exists(p => p.decodedName.toString == "Any")
         case _ => false
       }
-      val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
-      val canEqualsExistsInSuper = if (superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))) { // TODO better way
-        true
-      } else false
-
-      val getEqualsExpr = (termName: TermName) => {
+      lazy val getEqualsExpr = (termName: TermName) => {
         q"this.$termName.equals(t.$termName)"
       }
       val equalsExprs = termNames.map(getEqualsExpr)
-      val modifiers = if (canEqualsExistsInSuper) Modifiers(Flag.OVERRIDE, typeNames.EMPTY, List()) else Modifiers(NoFlags, typeNames.EMPTY, List())
+      // Make a rough judgment on whether override is needed.
+      val modifiers = if (existsSuperClassExcludeSdkClass(superClasses)) Modifiers(Flag.OVERRIDE, typeNames.EMPTY, List()) else Modifiers(NoFlags, typeNames.EMPTY, List())
       val canEqual = if (existsCanEqual) q"" else q"$modifiers def canEqual(that: Any) = that.isInstanceOf[$className]"
       q"""
         $canEqual
 
         override def equals(that: Any): Boolean =
           that match {
-            case t: $className => t.canEqual(this) && Seq(..$equalsExprs).forall(f => f) && ${if (canEqualsExistsInSuper) q"super.equals(that)" else q"true"}
+            case t: $className => t.canEqual(this) && Seq(..$equalsExprs).forall(f => f) && ${if (existsSuperClassExcludeSdkClass(superClasses)) q"super.equals(that)" else q"true"}
             case _ => false
         }
        """
@@ -130,7 +126,6 @@ object equalsAndHashCodeMacro {
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
       val (className, annotteeClassParams, annotteeClassDefinitions, superClasses) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = extractArgumentsDetail._1)
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }

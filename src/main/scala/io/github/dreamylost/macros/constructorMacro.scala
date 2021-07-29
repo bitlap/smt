@@ -67,7 +67,7 @@ object constructorMacro {
       val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr(annotteeClassDefinitions)
 
       if (classFieldDefinitionsOnlyAssignExpr.isEmpty) {
-        c.abort(c.enclosingPosition, s"Annotation is only supported on class when the internal field (declare as 'var') is nonEmpty.")
+        c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} and the internal fields (declare as 'var') should not be Empty.")
       }
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
       val classFieldDefinitions = getClassMemberValDefs(annotteeClassDefinitions)
@@ -107,7 +107,6 @@ object constructorMacro {
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val (annotteeClassParams, annotteeClassDefinitions) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = extractArgumentsDetail._1)
           (paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }

@@ -60,7 +60,7 @@ object applyMacro {
 
     override def impl(annottees: Expr[Any]*): Expr[Any] = {
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"Annotation is only supported on 'case class'")
+      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
       printTree(force = extractArgumentsDetail._1, resTree.tree)
       resTree
