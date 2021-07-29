@@ -19,23 +19,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost.logs
+package io.github.dreamylost.logs.extension
 
-import io.github.dreamylost.logs.LogType.LogType
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
-import scala.reflect.macros.whitebox
+/**
+ * Defines `logger` as a lazy value initialized with an underlying `org.slf4j.Logger`
+ * named according to the class into which this trait is mixed.
+ */
+trait ScalaLazyLogging {
 
-object JLogImpl extends BaseLog {
-
-  override val typ: LogType = LogType.JLog
-
-  override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
-    import c.universe._
-    if (logTransferArgument.isCaseClass) {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}].getName)"""
-    } else {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass.getName)"""
-    }
-  }
+  @transient
+  protected lazy val log: Logger = Logger(LoggerFactory.getLogger(getClass.getName))
 
 }

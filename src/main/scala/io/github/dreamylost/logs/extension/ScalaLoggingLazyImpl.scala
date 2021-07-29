@@ -19,23 +19,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost.logs
+package io.github.dreamylost.logs.extension
 
 import io.github.dreamylost.logs.LogType.LogType
+import io.github.dreamylost.logs.{ BaseLog, LogTransferArgument, LogType }
 
 import scala.reflect.macros.whitebox
 
-object JLogImpl extends BaseLog {
+/**
+ * scalalogging  LazyLogging
+ *
+ * @author 梦境迷离
+ * @since 2021/7/26
+ * @version 1.0
+ */
+object ScalaLoggingLazyImpl extends BaseLog {
 
-  override val typ: LogType = LogType.JLog
+  override val typ: LogType = LogType.ScalaLoggingLazy
 
   override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
     import c.universe._
-    if (logTransferArgument.isCaseClass) {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}].getName)"""
-    } else {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass.getName)"""
-    }
+    tq"_root_.io.github.dreamylost.logs.extension.ScalaLazyLogging"
   }
-
 }

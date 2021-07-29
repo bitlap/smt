@@ -21,21 +21,12 @@
 
 package io.github.dreamylost.logs
 
-import io.github.dreamylost.logs.LogType.LogType
-
-import scala.reflect.macros.whitebox
-
-object JLogImpl extends BaseLog {
-
-  override val typ: LogType = LogType.JLog
-
-  override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
-    import c.universe._
-    if (logTransferArgument.isCaseClass) {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}].getName)"""
-    } else {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass.getName)"""
-    }
-  }
-
-}
+/**
+ *
+ * @author 梦境迷离
+ * @param classNameStr The Class Name.
+ * @param isCaseClass  Is it a case class?
+ * @since 2021/7/26
+ * @version 1.0
+ */
+case class LogTransferArgument(classNameStr: String, isCaseClass: Boolean)

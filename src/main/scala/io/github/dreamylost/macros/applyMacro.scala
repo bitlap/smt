@@ -46,7 +46,6 @@ object applyMacro {
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val (className, classParamss, classTypeParams) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
-          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = extractArgumentsDetail._1)
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
@@ -61,7 +60,7 @@ object applyMacro {
 
     override def impl(annottees: Expr[Any]*): Expr[Any] = {
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"Annotation is only supported on 'case class'")
+      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
       printTree(force = extractArgumentsDetail._1, resTree.tree)
       resTree

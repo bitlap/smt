@@ -22,7 +22,7 @@
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
-import io.github.dreamylost.macros.ErrorMessage.UNEXPECTED_PATTERN
+
 /**
  *
  * @author 梦境迷离
@@ -32,6 +32,8 @@ import io.github.dreamylost.macros.ErrorMessage.UNEXPECTED_PATTERN
 abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   import c.universe._
+
+  protected lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
 
   /**
    * Subclasses should override the method and return the final result abstract syntax tree, or an abstract syntax tree close to the final result.
@@ -98,7 +100,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
-      case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
   }
 
@@ -113,7 +115,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       case (classDecl: ClassDef) :: Nil => None
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case (compDecl: ModuleDef) :: Nil => Some(compDecl)
-      case _ => c.abort(c.enclosingPosition, UNEXPECTED_PATTERN)
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
   }
 
@@ -126,12 +128,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def treeResultWithCompanionObject(resTree: Tree, annottees: Expr[Any]*): Tree = {
     val companionOpt = tryGetCompanionObject(annottees: _*)
-    if (companionOpt.isEmpty) {
-      resTree
-    } else {
+    companionOpt.fold(resTree) { t =>
       q"""
          $resTree
-         ${companionOpt.get}
+         $t
          """
     }
   }
@@ -161,10 +161,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def isCaseClass(annotateeClass: ClassDef): Boolean = {
     annotateeClass match {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-        if (mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
-          c.info(c.enclosingPosition, "Annotation is used on 'case class'.", force = true)
-          true
-        } else false
+        mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)
       case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
     }
   }
@@ -191,9 +188,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def getMethodParamName(field: Tree): Name = {
-    field match {
-      case q"$mods val $tname: $tpt = $expr" => tpt.asInstanceOf[Ident].name.decodedName
-    }
+    val q"$mods val $tname: $tpt = $expr" = field
+    tpt.asInstanceOf[Ident].name.decodedName
   }
 
   /**
@@ -283,7 +279,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param fieldss
    * @param isCase
    * @return A constructor with currying, it not contains tpt, provide for calling method.
-   * @example [[new TestClass12(i)(j)(k)(t)]]
+   * @example {{ new TestClass12(i)(j)(k)(t) }}
    */
   def getConstructorWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
     val allFieldsTermName = fieldss.map(f => f.map(ff => getFieldTermName(ff)))
@@ -306,7 +302,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param typeName
    * @param fieldss
    * @return A apply method with currying.
-   * @example [[def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)]]
+   * @example {{ def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t) }}
    */
   def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
     val allFieldsTermName = fieldss.map(f => getFieldAssignExprs(f))
@@ -319,7 +315,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       val first = allFieldsTermName.head
       q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
     }
-    c.info(c.enclosingPosition, s"getApplyWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
+    c.info(c.enclosingPosition, s"getApplyMethodWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
     applyMethod
   }
 
@@ -352,9 +348,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] = {
-    tpParams.map {
-      case t: TypeDef => t.name
-    }
+    tpParams.map(_.asInstanceOf[TypeDef].name)
+  }
+
+  /**
+   * Is there a parent class? Does not contains sdk class, such as AnyRef Object
+   *
+   * @param superClasses
+   * @return
+   */
+  def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean = {
+    superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
   }
 
 }

@@ -37,23 +37,32 @@ object toStringMacro {
 
     import c.universe._
 
+    private def extractTree(aa: Tree, bb: Tree, cc: Tree, dd: Tree): (Boolean, Boolean, Boolean, Boolean) = {
+      (
+        evalTree[Boolean](aa),
+        evalTree[Boolean](bb),
+        evalTree[Boolean](cc),
+        evalTree[Boolean](dd)
+      )
+    }
+
     private val extractArgumentsDetail: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4 {
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
-        (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+        extractTree(q"false", bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], dd.asInstanceOf[Tree])
       case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
-        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
+        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], q"false")
       case q"new toString($aa, $bb, $cc)" =>
-        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
+        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], q"false")
       case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
-        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], dd.asInstanceOf[Tree])
       case q"new toString($aa, $bb, $cc, $dd)" =>
-        (evalTree(aa.asInstanceOf[Tree]), evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), evalTree(dd.asInstanceOf[Tree]))
+        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], dd.asInstanceOf[Tree])
       case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" =>
-        (false, evalTree(bb.asInstanceOf[Tree]), evalTree(cc.asInstanceOf[Tree]), false)
+        extractTree(q"false", bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], q"false")
       case q"new toString(includeInternalFields=$bb)" =>
-        (false, evalTree(bb.asInstanceOf[Tree]), true, false)
+        extractTree(q"false", bb.asInstanceOf[Tree], q"true", q"false")
       case q"new toString(includeFieldNames=$cc)" =>
-        (false, true, evalTree(cc.asInstanceOf[Tree]), false)
+        extractTree(q"false", q"true", cc.asInstanceOf[Tree], q"false")
       case q"new toString()" => (false, true, true, false)
       case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
@@ -110,7 +119,6 @@ object toStringMacro {
       val annotteeClassFieldDefinitions = annotteeClassDefinitions.filter(p => p match {
         case _: ValDef => true
         case mem: MemberDef =>
-          c.info(c.enclosingPosition, s"MemberDef:  ${mem.toString}", force = argument.verbose)
           if (mem.toString().startsWith("override def toString")) { // TODO better way
             c.abort(mem.pos, "'toString' method has already defined, please remove it or not use'@toString'")
           }
@@ -141,7 +149,6 @@ object toStringMacro {
         }
         superClassDef.fold(toString)(_ => {
           val superClass = q"${"super="}"
-          c.info(c.enclosingPosition, s"member: $member, superClass： $superClass, superClassDef: $superClassDef, paramsWithName: $paramsWithName", force = argument.verbose)
           q"override def toString: String = StringContext(${className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
         )

@@ -20,14 +20,14 @@ jobs:
         with:
           java-version: 11
 
-      - name: Publish Local
-        run: sbt +publishLocal
+#      - name: Publish Local
+#        run: sbt +publishLocal
 
       - name: Build
         run: sbt +compile
 
       - name: Run Test
-        run: sbt coverage test coverageReport
+        run: sbt coverage test coverageReport # test in scala2.13.x
 
       - name: Aggregate coverage report
         run: sbt coverageAggregate
