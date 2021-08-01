@@ -68,7 +68,7 @@ object equalsAndHashCodeMacro {
      * Extract the internal fields of members belonging to the class.
      */
     private def getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(p => classParamsIsNotLocal(p) && (p match {
+      getClassMemberValDefs(annotteeClassDefinitions).filter(p => classMemberIsNotLocal(p) && (p match {
         case q"$mods var $tname: $tpt = $expr" =>
           !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
         //`val i = 1` will match `q"$mods val $tname: $tpt = $expr"` and tpt is `<type ?>`, not `q"$mods val $pat = $expr"`
@@ -130,7 +130,7 @@ object equalsAndHashCodeMacro {
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsNotLocal(cf))
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classMemberIsNotLocal(cf))
       val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
       val allTernNames = allFieldsTermName ++ getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)

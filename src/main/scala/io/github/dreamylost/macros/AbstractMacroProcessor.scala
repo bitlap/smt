@@ -193,18 +193,18 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Check whether the mods of the fields has a `private[this]`, because it cannot be used in equals method.
+   * Check whether the mods of the fields has a `private[this]` or `protected[this]`, because it cannot be used out of class.
    *
-   * @param field
+   * @param tree a field or method
    * @return
    */
-  def classParamsIsNotLocal(field: Tree): Boolean = {
+  def classMemberIsNotLocal(tree: Tree): Boolean = {
     lazy val modifierNotLocal = (mods: Modifiers) => {
       !(
         mods.hasFlag(Flag.PRIVATE | Flag.LOCAL) | mods.hasFlag(Flag.PROTECTED | Flag.LOCAL)
       )
     }
-    field match {
+    tree match {
       case q"$mods val $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
       case q"$mods var $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
       case _ => true
