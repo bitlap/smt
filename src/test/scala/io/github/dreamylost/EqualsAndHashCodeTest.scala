@@ -137,7 +137,7 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
 
     """
-      |    @equalsAndHashCode(excludeFields = Nil)
+      |    @equalsAndHashCode(excludeFields = Seq("avatar3"))
       |    class Employee5(name: String, age: Int, var role: String, private [this] val sex1: Int, protected [this] val avatar1: String) extends Person(name, age) {
       |      protected [this] var sex2: Int = _
       |      private [this] val avatar2: String = ""
@@ -171,7 +171,7 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
 
     """
-      |    @equalsAndHashCode(verbose = true, excludeFields = Nil)
+      |    @equalsAndHashCode(verbose = true, excludeFields = Seq("i", "j"))
       |    class Employee6(name: String, age: Int, var role: String) extends Person(name, age) {
       |      val i = 0
       |      var j = 0

@@ -226,10 +226,11 @@ def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
 
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - `excludeFields` 指定是否需要排除不需要用于`equals`和`hashCode`方法的字段。可选，默认空（class内部所有非私有的`var、val`字段都将被应用于生成这两个方法）。
+  - `excludeFields` 指定是否需要排除不需要用于`equals`和`hashCode`方法的字段。可选，默认空（class内部所有非`protected [this]`和`private [this]`的`var、val`字段都将被应用于生成这两个方法）。
   - `equals`和`hashCode`方法均会被超类影响，`canEqual`使用`isInstanceOf`，有些人在实现时，使用的是`this.getClass == that.getClass`。
   - 采用简单hashCode算法，父类的hashCode是直接被累加的。该算法也是`case class`所使用的。
   - 如果注解所在类已经定义了相同签名的`canEqual`方法，则不会生成该方法。
+  - 包括在类内部中定义的成员字段，在本库中称为内部字段。
 
 - 示例
 
