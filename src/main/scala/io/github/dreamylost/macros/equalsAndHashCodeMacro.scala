@@ -67,22 +67,18 @@ object equalsAndHashCodeMacro {
     /**
      * Extract the internal fields of members belonging to the class.
      */
-    private def getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(p => isNotLocalClassMember(p) && (p match {
-        case v: ValDef => !extractArgumentsDetail._2.contains(v.name.decodedName.toString)
-        case _         => false
-      })).map {
-        case v: ValDef => v.name.toTermName
+    private def getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
+      if (annotteeClassDefinitions.exists(f => isNotLocalClassMember(f))) {
+        c.info(c.enclosingPosition, s"There is a non private class definition inside the class", extractArgumentsDetail._1)
       }
+      getClassMemberValDefs(annotteeClassDefinitions).filter(p => isNotLocalClassMember(p) &&
+        !extractArgumentsDetail._2.contains(p.name.decodedName.toString)).map(_.name.toTermName)
     }
 
     // equals method
     private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
-      val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions) exists {
+      val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions).exists {
         case tree @ q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
-          if (!isNotLocalClassMember(tree)) {
-            c.info(c.enclosingPosition, "The canEqual method has been found in class, and method mods exists private[this] or protected[this]", extractArgumentsDetail._1)
-          }
           val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
           params.exists(p => p.decodedName.toString == "Any")
         case _ => false
@@ -135,7 +131,7 @@ object equalsAndHashCodeMacro {
       val allFieldsTermName = ctorFieldNames.map {
         case v: ValDef => v.name.toTermName
       }
-      val allTernNames = allFieldsTermName ++ getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions)
+      val allTernNames = allFieldsTermName ++ getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)
       val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)
       c.Expr(

@@ -198,7 +198,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassParams
    * @return {{ i: Int}}
    */
-  def getConstructorFieldNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
+  def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
     annotteeClassParams.map {
       case v: ValDef => q"${v.name}: ${v.tpt}"
     }
@@ -239,11 +239,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param annotteeClassDefinitions
    */
-  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
+  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] = {
     annotteeClassDefinitions.filter(_ match {
       case _: ValDef => true
       case _         => false
-    })
+    }).map(_.asInstanceOf[ValDef])
   }
 
   /**
@@ -251,11 +251,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param annotteeClassDefinitions
    */
-  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
+  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] = {
     annotteeClassDefinitions.filter(_ match {
       case _: DefDef => true
       case _         => false
-    })
+    }).map(_.asInstanceOf[DefDef])
   }
 
   /**
@@ -293,7 +293,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @example {{ def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t) }}
    */
   def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
-    val allFieldsTermName = fieldss.map(f => getConstructorFieldNameWithType(f))
+    val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
     val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {

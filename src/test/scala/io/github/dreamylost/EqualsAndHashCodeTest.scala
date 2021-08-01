@@ -100,7 +100,8 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
   "equals3" should "ok even if exists a canEqual" in {
     @equalsAndHashCode
     class Employee1(name: String, age: Int, var role: String) extends Person(name, age) {
-      override def canEqual(that: Any) = that.getClass == classOf[Employee1];
+      class A {}
+      override def canEqual(that: Any) = that.getClass == classOf[Employee1]
     }
     """
       |    @equalsAndHashCode

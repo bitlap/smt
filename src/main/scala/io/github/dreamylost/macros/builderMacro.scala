@@ -48,13 +48,13 @@ object builderMacro {
     private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
       val builderClassName = getBuilderClassName(typeName)
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-      val valDefMapTo = (v: ValDef) => {
+      lazy val valDefMapTo = (v: ValDef) => {
         q"""
-              def ${v.name}(${v.name}: ${v.tpt}): $builderClassName[..$returnTypeParams] = {
-                  this.${v.name} = ${v.name}
-                  this
-              }
-           """
+          def ${v.name}(${v.name}: ${v.tpt}): $builderClassName[..$returnTypeParams] = {
+              this.${v.name} = ${v.name}
+              this
+          }
+         """
       }
       field match {
         case v: ValDef => valDefMapTo(v)
