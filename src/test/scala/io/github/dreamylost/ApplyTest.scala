@@ -76,6 +76,10 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     @toString
     @apply class B4[T, U](int: T, val j: U)
     println(B4("helloworld", 2))
+
+    @toString
+    @apply class B5[T <: Any, U](int: T, val j: U)
+    println(B5("helloworld", 2))
   }
   "apply5" should "failed when input not invalid" in {
     """@apply(true) class C2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
