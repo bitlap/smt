@@ -41,29 +41,23 @@ object builderMacro {
 
     private def getFieldDefinition(field: Tree): Tree = {
       field match {
-        case q"$mods val $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
-        case q"$mods var $tname: $tpt = $expr" => q"""private var $tname: $tpt = $expr"""
+        case v: ValDef => q"private var ${v.name}: ${v.tpt} = ${v.rhs}"
       }
     }
 
     private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
       val builderClassName = getBuilderClassName(typeName)
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      val valDefMapTo = (v: ValDef) => {
+        q"""
+              def ${v.name}(${v.name}: ${v.tpt}): $builderClassName[..$returnTypeParams] = {
+                  this.${v.name} = ${v.name}
+                  this
+              }
+           """
+      }
       field match {
-        case q"$mods var $tname: $tpt = $expr" =>
-          q"""
-              def $tname($tname: $tpt): $builderClassName[..$returnTypeParams] = {
-                  this.$tname = $tname
-                  this
-              }
-           """
-        case q"$mods val $tname: $tpt = $expr" =>
-          q"""
-              def $tname($tname: $tpt): $builderClassName[..$returnTypeParams] = {
-                  this.$tname = $tname
-                  this
-              }
-           """
+        case v: ValDef => valDefMapTo(v)
       }
     }
 
@@ -91,7 +85,6 @@ object builderMacro {
       val (className, fieldss, classTypeParams) = classDecl match {
         // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
         case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
-          c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }

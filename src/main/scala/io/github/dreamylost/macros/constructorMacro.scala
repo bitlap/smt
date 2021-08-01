@@ -50,8 +50,8 @@ object constructorMacro {
      */
     private def getClassMemberVarDefOnlyAssignExpr(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
       getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
-        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case _ => false
+        case v: ValDef if v.mods.hasFlag(Flag.MUTABLE) => !extractArgumentsDetail._2.contains(v.name.decodedName.toString)
+        case _                                         => false
       }).map {
         case q"$mods var $pat = $expr" =>
           // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
@@ -73,17 +73,19 @@ object constructorMacro {
       val classFieldDefinitions = getClassMemberValDefs(annotteeClassDefinitions)
 
       val annotteeClassFieldNames = classFieldDefinitions.filter(_ match {
-        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case _ => false
+        case v: ValDef if v.mods.hasFlag(Flag.MUTABLE) => !extractArgumentsDetail._2.contains(v.name.decodedName.toString)
+        case _                                         => false
       }).map {
-        case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
+        case v: ValDef if v.mods.hasFlag(Flag.MUTABLE) => v.name
       }
 
       // Extract the field of the primary constructor.
-      val allFieldsTermName = annotteeClassParams.map(f => f.map(ff => getFieldTermName(ff)))
+      val allFieldsTermName = annotteeClassParams.map(f => f.map {
+        case v: ValDef => v.name.toTermName
+      })
 
       // Extract the field of the primary constructor.
-      val classParamsAssignExpr = getConstructorFieldAssignExprs(annotteeClassParams.flatten)
+      val classParamsAssignExpr = getConstructorFieldNameWithType(annotteeClassParams.flatten)
       val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
         q"""
           def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
@@ -93,7 +95,7 @@ object constructorMacro {
           """
       } else {
         // NOTE: currying constructor overload must be placed in the first bracket block.
-        val allClassParamsAssignExpr = annotteeClassParams.map(cc => getConstructorFieldAssignExprs(cc))
+        val allClassParamsAssignExpr = annotteeClassParams.map(cc => getConstructorFieldNameWithType(cc))
         q"""
           def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})

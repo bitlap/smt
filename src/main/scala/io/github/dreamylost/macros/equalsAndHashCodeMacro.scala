@@ -68,20 +68,21 @@ object equalsAndHashCodeMacro {
      * Extract the internal fields of members belonging to the class.
      */
     private def getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(p => classMemberIsNotLocal(p) && (p match {
-        case q"$mods var $tname: $tpt = $expr" =>
-          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
-        //`val i = 1` will match `q"$mods val $tname: $tpt = $expr"` and tpt is `<type ?>`, not `q"$mods val $pat = $expr"`
-        case q"$mods val $tname: $tpt = $expr" =>
-          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
-        case _ => false
-      })).map(f => getFieldTermName(f))
+      getClassMemberValDefs(annotteeClassDefinitions).filter(p => isNotLocalClassMember(p) && (p match {
+        case v: ValDef => !extractArgumentsDetail._2.contains(v.name.decodedName.toString)
+        case _         => false
+      })).map {
+        case v: ValDef => v.name.toTermName
+      }
     }
 
     // equals method
     private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
       val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions) exists {
-        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
+        case tree @ q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
+          if (!isNotLocalClassMember(tree)) {
+            c.info(c.enclosingPosition, "The canEqual method has been found in class, and method mods exists private[this] or protected[this]", extractArgumentsDetail._1)
+          }
           val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
           params.exists(p => p.decodedName.toString == "Any")
         case _ => false
@@ -130,8 +131,10 @@ object equalsAndHashCodeMacro {
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classMemberIsNotLocal(cf))
-      val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => isNotLocalClassMember(cf))
+      val allFieldsTermName = ctorFieldNames.map {
+        case v: ValDef => v.name.toTermName
+      }
       val allTernNames = allFieldsTermName ++ getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)
       val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)

@@ -153,32 +153,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Expand the class and check whether the class is a case class.
+   * Check whether the class is a case class.
    *
    * @param annotateeClass classDef
    * @return Return true if it is a case class
    */
   def isCaseClass(annotateeClass: ClassDef): Boolean = {
-    annotateeClass match {
-      case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-        mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
-    }
-  }
-
-  /**
-   * Expand the constructor and get the field TermName.
-   *
-   * @param field
-   * @return
-   */
-  def getFieldTermName(field: Tree): TermName = {
-    field match {
-      case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-      case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-      //      case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName]
-      //      case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
-    }
+    annotateeClass.mods.hasFlag(Flag.CASE)
   }
 
   /**
@@ -198,31 +179,28 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param tree a field or method
    * @return
    */
-  def classMemberIsNotLocal(tree: Tree): Boolean = {
+  def isNotLocalClassMember(tree: Tree): Boolean = {
     lazy val modifierNotLocal = (mods: Modifiers) => {
       !(
         mods.hasFlag(Flag.PRIVATE | Flag.LOCAL) | mods.hasFlag(Flag.PROTECTED | Flag.LOCAL)
       )
     }
     tree match {
-      case q"$mods val $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
-      case q"$mods var $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
-      case _ => true
-      //      case q"$mods val $pat = $expr"         => modifierNotLocal(mods.asInstanceOf[Modifiers])
-      //      case q"$mods var $pat = $expr"         => modifierNotLocal(mods.asInstanceOf[Modifiers])
+      case v: ValDef => modifierNotLocal(v.mods)
+      case d: DefDef => modifierNotLocal(d.mods)
+      case _         => true
     }
   }
 
   /**
-   * Expand the constructor and get the field with assign.
+   * Get the field TermName with type.
    *
    * @param annotteeClassParams
-   * @return
+   * @return {{ i: Int}}
    */
-  def getConstructorFieldAssignExprs(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
+  def getConstructorFieldNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
     annotteeClassParams.map {
-      case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt" //Ignore expr
-      case q"$mods val $tname: $tpt = $expr" => q"$tname: $tpt"
+      case v: ValDef => q"${v.name}: ${v.tpt}"
     }
   }
 
@@ -262,7 +240,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassDefinitions
    */
   def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
-    annotteeClassDefinitions.filter(p => p match {
+    annotteeClassDefinitions.filter(_ match {
       case _: ValDef => true
       case _         => false
     })
@@ -274,7 +252,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassDefinitions
    */
   def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
-    annotteeClassDefinitions.filter(p => p match {
+    annotteeClassDefinitions.filter(_ match {
       case _: DefDef => true
       case _         => false
     })
@@ -290,7 +268,9 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @example {{ new TestClass12(i)(j)(k)(t) }}
    */
   def getConstructorWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
-    val allFieldsTermName = fieldss.map(f => f.map(ff => getFieldTermName(ff)))
+    val allFieldsTermName = fieldss.map(f => f.map {
+      case v: ValDef => v.name.toTermName
+    })
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
       q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
@@ -313,7 +293,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @example {{ def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t) }}
    */
   def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
-    val allFieldsTermName = fieldss.map(f => getConstructorFieldAssignExprs(f))
+    val allFieldsTermName = fieldss.map(f => getConstructorFieldNameWithType(f))
     val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
