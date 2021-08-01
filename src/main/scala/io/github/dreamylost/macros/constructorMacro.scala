@@ -54,14 +54,13 @@ object constructorMacro {
      * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
      */
     private def getMemberVarDefTermNameWithType(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
-      getMutableValDefAndExcludeFields(annotteeClassDefinitions).map {
-        case v: ValDef if v.mods.hasFlag(Flag.MUTABLE) =>
-          if (v.tpt.isEmpty) { // val i = 1, tpt is `<type ?>`
-            // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
-            q"${v.name}: ${TypeName(toScalaType(evalTree(v.rhs).getClass.getTypeName))}"
-          } else {
-            q"${v.name}: ${v.tpt}"
-          }
+      getMutableValDefAndExcludeFields(annotteeClassDefinitions).map { v =>
+        if (v.tpt.isEmpty) { // val i = 1, tpt is `<type ?>`
+          // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
+          q"${v.name}: ${TypeName(toScalaType(evalTree(v.rhs).getClass.getTypeName))}"
+        } else {
+          q"${v.name}: ${v.tpt}"
+        }
       }
     }
 
@@ -75,15 +74,8 @@ object constructorMacro {
         c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} and the internal fields (declare as 'var') should not be Empty.")
       }
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
-      val annotteeClassFieldNames = getMutableValDefAndExcludeFields(annotteeClassDefinitions).map {
-        case v: ValDef if v.mods.hasFlag(Flag.MUTABLE) => v.name
-      }
-
-      // Extract the field of the primary constructor.
-      val allFieldsTermName = annotteeClassParams.map(f => f.map {
-        case v: ValDef => v.name.toTermName
-      })
-
+      val annotteeClassFieldNames = getMutableValDefAndExcludeFields(annotteeClassDefinitions).map(_.name)
+      val allFieldsTermName = getClassConstructorValDefsNotFlatten(annotteeClassParams).map(_.map(_.name.toTermName))
       // Extract the field of the primary constructor.
       val classParamsNameWithType = getConstructorParamsNameWithType(annotteeClassParams.flatten)
       val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {

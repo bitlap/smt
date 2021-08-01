@@ -176,8 +176,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   /**
    * Check whether the mods of the fields has a `private[this]` or `protected[this]`, because it cannot be used out of class.
    *
-   * @param tree a field or method
-   * @return
+   * @param tree Tree is a field or method?
+   * @return false if mods exists private[this] or protected[this]
    */
   def isNotLocalClassMember(tree: Tree): Boolean = {
     lazy val modifierNotLocal = (mods: Modifiers) => {
@@ -247,6 +247,26 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
+   * Extract the constructor params ValDef and flatten for currying.
+   *
+   * @param annotteeClassParams
+   * @return {{ Seq(ValDef) }}
+   */
+  def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] = {
+    annotteeClassParams.flatten.map(_.asInstanceOf[ValDef])
+  }
+
+  /**
+   * Extract the constructor params ValDef not flatten.
+   *
+   * @param annotteeClassParams
+   * @return {{ Seq(Seq(ValDef)) }}
+   */
+  def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] = {
+    annotteeClassParams.map(_.map(_.asInstanceOf[ValDef]))
+  }
+
+  /**
    * Extract the methods belonging to the class， contains Secondary Constructor.
    *
    * @param annotteeClassDefinitions
@@ -268,9 +288,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @example {{ new TestClass12(i)(j)(k)(t) }}
    */
   def getConstructorWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
-    val allFieldsTermName = fieldss.map(f => f.map {
-      case v: ValDef => v.name.toTermName
-    })
+    val fieldssValDefNotFlatten = getClassConstructorValDefsNotFlatten(fieldss)
+    val allFieldsTermName = fieldssValDefNotFlatten.map(_.map(_.name.toTermName))
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
       q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
@@ -280,7 +299,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       if (isCase) q"${typeName.toTermName}(...$first)(...${allFieldsTermName.tail})"
       else q"new $typeName(..$first)(...${allFieldsTermName.tail})"
     }
-    c.info(c.enclosingPosition, s"getConstructorWithCurrying constructor: $constructor, paramss: $fieldss", force = true)
     constructor
   }
 
@@ -303,7 +321,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       val first = allFieldsTermName.head
       q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
     }
-    c.info(c.enclosingPosition, s"getApplyMethodWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
     applyMethod
   }
 

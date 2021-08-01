@@ -127,10 +127,7 @@ object equalsAndHashCodeMacro {
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => isNotLocalClassMember(cf))
-      val allFieldsTermName = ctorFieldNames.map {
-        case v: ValDef => v.name.toTermName
-      }
+      val allFieldsTermName = getClassConstructorValDefsFlatten(annotteeClassParams).filter(cf => isNotLocalClassMember(cf)).map(_.name.toTermName)
       val allTernNames = allFieldsTermName ++ getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)
       val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)

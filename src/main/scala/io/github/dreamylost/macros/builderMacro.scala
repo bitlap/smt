@@ -82,14 +82,14 @@ object builderMacro {
     }
 
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, fieldss, classTypeParams) = classDecl match {
+      val (className, annotteeClassParams, classTypeParams) = classDecl match {
         // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
         case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
 
-      val builder = getBuilderClassAndMethod(className, fieldss, classTypeParams, isCaseClass(classDecl))
+      val builder = getBuilderClassAndMethod(className, annotteeClassParams, classTypeParams, isCaseClass(classDecl))
       val compDecl = modifiedCompanion(compDeclOpt, builder, className)
       // Return both the class and companion object declarations
       c.Expr(
