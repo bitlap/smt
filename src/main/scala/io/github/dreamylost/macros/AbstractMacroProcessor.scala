@@ -198,10 +198,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param field
    * @return
    */
-  def classParamsIsNotPrivate(field: Tree): Boolean = {
+  def classParamsIsNotLocal(field: Tree): Boolean = {
+    lazy val modifierNotLocal = (mods: Modifiers) => {
+      !(
+        mods.hasFlag(Flag.PRIVATE | Flag.LOCAL) | mods.hasFlag(Flag.PROTECTED | Flag.LOCAL)
+      )
+    }
     field match {
-      case q"$mods val $tname: $tpt = $expr" => if (mods.asInstanceOf[Modifiers].hasFlag(Flag.PRIVATE)) false else true
-      case q"$mods var $tname: $tpt = $expr" => true
+      case q"$mods val $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
+      case q"$mods var $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
+      case q"$mods val $pat = $expr"         => modifierNotLocal(mods.asInstanceOf[Modifiers])
+      case q"$mods var $pat = $expr"         => modifierNotLocal(mods.asInstanceOf[Modifiers])
     }
   }
 
@@ -211,7 +218,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassParams
    * @return
    */
-  def getFieldAssignExprs(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
+  def getConstructorFieldAssignExprs(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
     annotteeClassParams.map {
       case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt" //Ignore expr
       case q"$mods val $tname: $tpt = $expr" => q"$tname: $tpt"
@@ -305,7 +312,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @example {{ def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t) }}
    */
   def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
-    val allFieldsTermName = fieldss.map(f => getFieldAssignExprs(f))
+    val allFieldsTermName = fieldss.map(f => getConstructorFieldAssignExprs(f))
     val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {

@@ -67,14 +67,18 @@ object equalsAndHashCodeMacro {
     /**
      * Extract the internal fields of members belonging to the class.
      */
-    private def getClassMemberAllTermName(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
+    private def getClassMemberTermNameExcludeLocalTerm(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
       getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
-        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case q"$mods val $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case q"$mods val $pat = $expr" if !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
-        case q"$mods var $pat = $expr" if !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
+        case q"$mods var $tname: $tpt = $expr" =>
+          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
+        case q"$mods val $tname: $tpt = $expr" =>
+          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
+        case q"$mods val $pat = $expr" =>
+          !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString)
+        case q"$mods var $pat = $expr" =>
+          !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString)
         case _ => false
-      }).map(f => getFieldTermName(f))
+      }).filter(p => classParamsIsNotLocal(p)).map(f => getFieldTermName(f))
     }
 
     // equals method
@@ -129,9 +133,9 @@ object equalsAndHashCodeMacro {
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsNotPrivate(cf))
+      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsNotLocal(cf))
       val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
-      val allTernNames = allFieldsTermName ++ getClassMemberAllTermName(annotteeClassDefinitions)
+      val allTernNames = allFieldsTermName ++ getClassMemberTermNameExcludeLocalTerm(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)
       val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)
       c.Expr(

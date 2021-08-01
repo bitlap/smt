@@ -83,7 +83,7 @@ object constructorMacro {
       val allFieldsTermName = annotteeClassParams.map(f => f.map(ff => getFieldTermName(ff)))
 
       // Extract the field of the primary constructor.
-      val classParamsAssignExpr = getFieldAssignExprs(annotteeClassParams.flatten)
+      val classParamsAssignExpr = getConstructorFieldAssignExprs(annotteeClassParams.flatten)
       val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
         q"""
           def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
@@ -93,7 +93,7 @@ object constructorMacro {
           """
       } else {
         // NOTE: currying constructor overload must be placed in the first bracket block.
-        val allClassParamsAssignExpr = annotteeClassParams.map(cc => getFieldAssignExprs(cc))
+        val allClassParamsAssignExpr = annotteeClassParams.map(cc => getConstructorFieldAssignExprs(cc))
         q"""
           def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})
