@@ -68,17 +68,14 @@ object equalsAndHashCodeMacro {
      * Extract the internal fields of members belonging to the class.
      */
     private def getInternalFieldTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(p => p match {
+      getClassMemberValDefs(annotteeClassDefinitions).filter(p => classParamsIsNotLocal(p) && (p match {
         case q"$mods var $tname: $tpt = $expr" =>
-          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) && classParamsIsNotLocal(p)
+          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
+        //`val i = 1` will match `q"$mods val $tname: $tpt = $expr"` and tpt is `<type ?>`, not `q"$mods val $pat = $expr"`
         case q"$mods val $tname: $tpt = $expr" =>
-          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) && classParamsIsNotLocal(p)
-        case q"$mods val $pat = $expr" =>
-          !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) && classParamsIsNotLocal(p)
-        case q"$mods var $pat = $expr" =>
-          !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) && classParamsIsNotLocal(p)
+          !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString)
         case _ => false
-      }).map(f => getFieldTermName(f))
+      })).map(f => getFieldTermName(f))
     }
 
     // equals method

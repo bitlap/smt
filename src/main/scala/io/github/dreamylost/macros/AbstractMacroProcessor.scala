@@ -176,8 +176,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     field match {
       case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
       case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-      case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName] //for equalsAndHashcode, need contains all fields.
-      case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
+      //      case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName]
+      //      case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
     }
   }
 
