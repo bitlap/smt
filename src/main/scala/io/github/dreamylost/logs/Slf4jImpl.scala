@@ -31,7 +31,7 @@ object Slf4jImpl extends BaseLog {
 
   override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
     import c.universe._
-    if (logTransferArgument.isCaseClass) {
+    if (logTransferArgument.isClass) {
       q"""@transient private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}])"""
     } else {
       q"""@transient private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass)"""

@@ -38,5 +38,11 @@ class OthersTest extends AnyFlatSpec with Matchers {
       |    @builder
       |    object A
       |""".stripMargin shouldNot compile
+
+    """
+      |    class Test extends _root_.io.github.dreamylost.logs.extension.ScalaStrictLogging {
+      |      log.info("hello")
+      |    }
+      |""".stripMargin should compile
   }
 }

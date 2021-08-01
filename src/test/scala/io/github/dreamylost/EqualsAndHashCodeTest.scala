@@ -127,6 +127,8 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       val i = 0
 
       def hello: String = ???
+
+      class A {}
     }
     """
       |    @equalsAndHashCode(excludeFields = Nil)
@@ -137,7 +139,7 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
 
     """
-      |    @equalsAndHashCode(excludeFields = Seq("avatar3"))
+      |    @equalsAndHashCode(excludeFields = Seq("avatar3", "sex2", "avatar2"))
       |    class Employee5(name: String, age: Int, var role: String, private [this] val sex1: Int, protected [this] val avatar1: String) extends Person(name, age) {
       |      protected [this] var sex2: Int = _
       |      private [this] val avatar2: String = ""
@@ -182,7 +184,7 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
   }
 
-  "equals6" should "faild when equals method has private[this] or protected[this]" in {
+  "equals6" should "failed when equals method has private[this] or protected[this]" in {
     """
       | class A(private[this] val k: Int = 0, protected[this] val t: Int = 0) {
       |    val i = 0

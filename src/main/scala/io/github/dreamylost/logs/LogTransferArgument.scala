@@ -25,8 +25,8 @@ package io.github.dreamylost.logs
  *
  * @author 梦境迷离
  * @param classNameStr The Class Name.
- * @param isCaseClass  Is it a case class?
+ * @param isClass  Is it a class?
  * @since 2021/7/26
  * @version 1.0
  */
-case class LogTransferArgument(classNameStr: String, isCaseClass: Boolean)
+case class LogTransferArgument(classNameStr: String, isClass: Boolean)
