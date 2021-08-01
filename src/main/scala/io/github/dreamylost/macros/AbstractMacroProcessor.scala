@@ -207,6 +207,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     field match {
       case q"$mods val $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
       case q"$mods var $tname: $tpt = $expr" => modifierNotLocal(mods.asInstanceOf[Modifiers])
+      case _ => true
       //      case q"$mods val $pat = $expr"         => modifierNotLocal(mods.asInstanceOf[Modifiers])
       //      case q"$mods var $pat = $expr"         => modifierNotLocal(mods.asInstanceOf[Modifiers])
     }
