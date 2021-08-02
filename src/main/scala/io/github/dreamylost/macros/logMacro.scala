@@ -63,10 +63,10 @@ object logMacro {
       val logTree = annottees.map(_.tree) match {
         // Match a class, and expand, get class/object name.
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          val argument = LogTransferArgument(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isCaseClass = true)
+          val argument = LogTransferArgument(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          val argument = LogTransferArgument(tpname.asInstanceOf[TermName].decodedName.toString, isCaseClass = false)
+          val argument = LogTransferArgument(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }

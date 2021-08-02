@@ -31,7 +31,7 @@ object JLogImpl extends BaseLog {
 
   override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
     import c.universe._
-    if (logTransferArgument.isCaseClass) {
+    if (logTransferArgument.isClass) {
       q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}].getName)"""
     } else {
       q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass.getName)"""

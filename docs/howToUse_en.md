@@ -5,7 +5,7 @@ The `@toString` used to generate `toString` for Scala classes or a `toString` wi
 - Note
     - `verbose` Whether to enable detailed log.
     - `includeFieldNames` Whether to include the names of the field in the `toString`, default is `true`.
-    - `includeInternalFields` Whether to include the fields defined within a class. Not in a primary constructor, default is `true`.
+    - `includeInternalFields` Whether to include the internal fields defined within a class. Not in a primary constructor, default is `true`.
     - `callSuper`             Whether to include the super's `toString`, default is `false`. Not support if super class is a trait.
     - Support `case class` and `class`.
 
@@ -231,11 +231,12 @@ The `@equalsAndHashCode` annotation is used to generate `equals` and `hashCode` 
 - Note
     - `verbose` Whether to enable detailed log.
     - `excludeFields` specifies whether to exclude fields that are not required for the `equals` and `hashCode` methods. Optional, 
-      default is `Nil` (all non private `var` and `val` fields in the class will be used to generate the two methods). 
+      default is `Nil` (all `var` and `val` fields **exclude `protected [this]` and `private [this]`** in the class will be used to generate the two methods). 
     - Both `equals` and `hashCode` methods are affected by super classes, and `canEqual` uses `isInstanceOf` in `equals` method.
       Some equals implementations use `that.getClass == this.getClass`
     - It uses simple hashcode algorithm, and the hashcode of the parent class are accumulated directly. The algorithm is also used by `case class`.
     - If the class of the annotation has already defined the `canEqual` method with the same signature, `canEqual` will not be generated.
+    - Include the internal fields defined within a class, which named internal fields or member fields here.
   
 - Example
 

@@ -45,18 +45,22 @@ object constructorMacro {
       }
     }
 
+    private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] = {
+      getClassMemberValDefs(annotteeClassDefinitions).filter(v => v.mods.hasFlag(Flag.MUTABLE) &&
+        !extractArgumentsDetail._2.contains(v.name.decodedName.toString))
+    }
+
     /**
      * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
      */
-    private def getClassMemberVarDefOnlyAssignExpr(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
-        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case _ => false
-      }).map {
-        case q"$mods var $pat = $expr" =>
+    private def getMemberVarDefTermNameWithType(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
+      getMutableValDefAndExcludeFields(annotteeClassDefinitions).map { v =>
+        if (v.tpt.isEmpty) { // val i = 1, tpt is `<type ?>`
           // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
-          q"$pat: ${TypeName(toScalaType(evalTree(expr.asInstanceOf[Tree]).getClass.getTypeName))}"
-        case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt"
+          q"${v.name}: ${TypeName(toScalaType(evalTree(v.rhs).getClass.getTypeName))}"
+        } else {
+          q"${v.name}: ${v.tpt}"
+        }
       }
     }
 
@@ -64,38 +68,28 @@ object constructorMacro {
      * We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
     private def getThisMethodWithCurrying(annotteeClassParams: List[List[Tree]], annotteeClassDefinitions: Seq[Tree]): Tree = {
-      val classFieldDefinitionsOnlyAssignExpr = getClassMemberVarDefOnlyAssignExpr(annotteeClassDefinitions)
+      val classInternalFieldsWithType = getMemberVarDefTermNameWithType(annotteeClassDefinitions)
 
-      if (classFieldDefinitionsOnlyAssignExpr.isEmpty) {
+      if (classInternalFieldsWithType.isEmpty) {
         c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} and the internal fields (declare as 'var') should not be Empty.")
       }
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
-      val classFieldDefinitions = getClassMemberValDefs(annotteeClassDefinitions)
-
-      val annotteeClassFieldNames = classFieldDefinitions.filter(_ match {
-        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case _ => false
-      }).map {
-        case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-      }
-
+      val annotteeClassFieldNames = getMutableValDefAndExcludeFields(annotteeClassDefinitions).map(_.name)
+      val allFieldsTermName = getClassConstructorValDefsNotFlatten(annotteeClassParams).map(_.map(_.name.toTermName))
       // Extract the field of the primary constructor.
-      val allFieldsTermName = annotteeClassParams.map(f => f.map(ff => getFieldTermName(ff)))
-
-      // Extract the field of the primary constructor.
-      val classParamsAssignExpr = getFieldAssignExprs(annotteeClassParams.flatten)
+      val classParamsNameWithType = getConstructorParamsNameWithType(annotteeClassParams.flatten)
       val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
         q"""
-          def this(..${classParamsAssignExpr ++ classFieldDefinitionsOnlyAssignExpr}) = {
+          def this(..${classParamsNameWithType ++ classInternalFieldsWithType}) = {
             this(..${allFieldsTermName.flatten})
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }
           """
       } else {
         // NOTE: currying constructor overload must be placed in the first bracket block.
-        val allClassParamsAssignExpr = annotteeClassParams.map(cc => getFieldAssignExprs(cc))
+        val allClassCtorParamsNameWithType = annotteeClassParams.map(cc => getConstructorParamsNameWithType(cc))
         q"""
-          def this(..${allClassParamsAssignExpr.head ++ classFieldDefinitionsOnlyAssignExpr})(...${allClassParamsAssignExpr.tail}) = {
+          def this(..${allClassCtorParamsNameWithType.head ++ classInternalFieldsWithType})(...${allClassCtorParamsNameWithType.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }

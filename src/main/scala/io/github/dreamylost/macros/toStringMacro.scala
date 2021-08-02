@@ -89,19 +89,17 @@ object toStringMacro {
       if (argument.includeFieldNames) {
         lastParam.fold(q"$field") { lp =>
           field match {
-            case q"$mods var $tname: $tpt = $expr" =>
-              if (tname.toString() != lp) q"""${tname.toString()}+${"="}+this.$tname+${", "}""" else q"""${tname.toString()}+${"="}+this.$tname"""
-            case q"$mods val $tname: $tpt = $expr" =>
-              if (tname.toString() != lp) q"""${tname.toString()}+${"="}+this.$tname+${", "}""" else q"""${tname.toString()}+${"="}+this.$tname"""
+            case v: ValDef =>
+              if (v.name.toTermName.decodedName.toString != lp) q"""${v.name.toTermName.decodedName.toString}+${"="}+this.${v.name}+${", "}"""
+              else q"""${v.name.toTermName.decodedName.toString}+${"="}+this.${v.name}"""
             case _ => q"$field"
           }
         }
       } else {
         lastParam.fold(q"$field") { lp =>
           field match {
-            case q"$mods var $tname: $tpt = $expr" => if (tname.toString() != lp) q"""$tname+${", "}""" else q"""$tname"""
-            case q"$mods val $tname: $tpt = $expr" => if (tname.toString() != lp) q"""$tname+${", "}""" else q"""$tname"""
-            case _                                 => if (field.toString() != lp) q"""$field+${", "}""" else q"""$field"""
+            case v: ValDef => if (v.name.toTermName.decodedName.toString != lp) q"""${v.name}+${", "}""" else q"""${v.name}"""
+            case _         => if (field.toString() != lp) q"""$field+${", "}""" else q"""$field"""
           }
         }
       }
@@ -119,18 +117,14 @@ object toStringMacro {
       val annotteeClassFieldDefinitions = annotteeClassDefinitions.filter(p => p match {
         case _: ValDef => true
         case mem: MemberDef =>
-          if (mem.toString().startsWith("override def toString")) { // TODO better way
+          if (mem.name.decodedName.toString.startsWith("toString")) { // TODO better way
             c.abort(mem.pos, "'toString' method has already defined, please remove it or not use'@toString'")
           }
           false
         case _ => false
       })
 
-      // For the parameters of a given constructor, separate the parameter components and extract the constructor parameters containing val and var
-      val ctorParams = annotteeClassParams.flatten.map {
-        case tree @ q"$mods val $tname: $tpt = $expr" => tree
-        case tree @ q"$mods var $tname: $tpt = $expr" => tree
-      }
+      val ctorParams = annotteeClassParams.flatten
       val member = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
       val lastParam = member.lastOption.map {

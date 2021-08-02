@@ -67,20 +67,18 @@ object equalsAndHashCodeMacro {
     /**
      * Extract the internal fields of members belonging to the class.
      */
-    private def getClassMemberAllTermName(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(_ match {
-        case q"$mods var $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case q"$mods val $tname: $tpt = $expr" if !extractArgumentsDetail._2.contains(tname.asInstanceOf[TermName].decodedName.toString) => true
-        case q"$mods val $pat = $expr" if !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
-        case q"$mods var $pat = $expr" if !extractArgumentsDetail._2.contains(pat.asInstanceOf[TermName].decodedName.toString) => true
-        case _ => false
-      }).map(f => getFieldTermName(f))
+    private def getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
+      if (annotteeClassDefinitions.exists(f => isNotLocalClassMember(f))) {
+        c.info(c.enclosingPosition, s"There is a non private class definition inside the class", extractArgumentsDetail._1)
+      }
+      getClassMemberValDefs(annotteeClassDefinitions).filter(p => isNotLocalClassMember(p) &&
+        !extractArgumentsDetail._2.contains(p.name.decodedName.toString)).map(_.name.toTermName)
     }
 
     // equals method
     private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
-      val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions) exists {
-        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
+      val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions).exists {
+        case tree @ q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
           val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
           params.exists(p => p.decodedName.toString == "Any")
         case _ => false
@@ -129,9 +127,8 @@ object equalsAndHashCodeMacro {
           (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
-      val ctorFieldNames = annotteeClassParams.flatten.filter(cf => classParamsIsNotPrivate(cf))
-      val allFieldsTermName = ctorFieldNames.map(f => getFieldTermName(f))
-      val allTernNames = allFieldsTermName ++ getClassMemberAllTermName(annotteeClassDefinitions)
+      val allFieldsTermName = getClassConstructorValDefsFlatten(annotteeClassParams).filter(cf => isNotLocalClassMember(cf)).map(_.name.toTermName)
+      val allTernNames = allFieldsTermName ++ getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions)
       val hash = getHashcodeMethod(allTernNames, superClasses)
       val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)
       c.Expr(
