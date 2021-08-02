@@ -119,8 +119,13 @@ class BuilderTest extends AnyFlatSpec with Matchers {
     println(a)
 
     @builder
-    class TestClass12[T, U](val i: T, var j: U)
+    case class TestClass12[T, U](val i: T, var j: U)
     val b = TestClass12.builder().i(new AnyRef).j(List("helloworld", "generic is ok")).build()
     println(b)
+
+    @builder
+    case class TestClass13[T <: Any, U](val i: T, var j: U)
+    val c = TestClass13.builder().i(1).j(List("helloworld", "generic is ok")).build()
+    println(c)
   }
 }

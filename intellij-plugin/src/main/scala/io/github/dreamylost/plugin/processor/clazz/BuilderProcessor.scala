@@ -25,8 +25,9 @@ class BuilderProcessor extends AbsProcessor {
           case obj: ScObject =>
             obj.fakeCompanionClassOrCompanionClass match {
               case clazz: ScClass =>
-                val genericTypes = clazz.typeParamString
-                Seq(s"""def builder$genericTypes(): ${genBuilderName(clazz.getName, returnType = true)}$genericTypes = ???""")
+                val genericType = getTypeParamString(clazz)
+                val returnGenericType = getTypeParamString(clazz, returnType = true)
+                Seq(s"""def builder$genericType(): ${genBuilderName(clazz.getName, returnType = true)}$returnGenericType = ???""")
               case _ => Nil
             }
           case _ => Nil
@@ -40,14 +41,15 @@ class BuilderProcessor extends AbsProcessor {
             val className = clazz.getName
             // support constructor and second constructor
             val nameAndTypes = getConstructorParameters(clazz.asInstanceOf[ScClass])
-            val genericTypes = clazz.typeParamString
+            val genericType = getTypeParamString(clazz)
+            val returnGenericType = getTypeParamString(clazz, returnType = true)
             val assignMethods = nameAndTypes.map(term =>
               s"def ${term._1}(${term._1}: ${term._2}) = this"
             )
             Seq(
               s"""
-                 |class ${genBuilderName(className)}$genericTypes {
-                 |  def build(): $className$genericTypes = ???
+                 |class ${genBuilderName(className)}$genericType {
+                 |  def build(): $className$returnGenericType = ???
                  |  ${assignMethods.mkString("\n")}
                  |}
                  |""".stripMargin

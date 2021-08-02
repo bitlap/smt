@@ -52,4 +52,20 @@ abstract class AbsProcessor extends Processor {
       )
     }
   }
+
+  /**
+   * get type param string
+   *
+   * @param returnType if it is return type
+   * @return
+   *   if `returnType` is false, just return typeParamString with bound like [T <: Any, U]
+   *   else return typeParamString without bound like [T, U]
+   */
+  protected def getTypeParamString(clazz: ScClass, returnType: Boolean = false): String = {
+    if (!returnType || clazz.typeParamString.isEmpty) {
+      clazz.typeParamString
+    } else {
+      clazz.typeParameters.map(_.name).mkString("[", ", ", "]")
+    }
+  }
 }
