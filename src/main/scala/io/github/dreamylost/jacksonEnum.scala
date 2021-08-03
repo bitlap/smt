@@ -21,10 +21,25 @@
 
 package io.github.dreamylost
 
-import io.github.dreamylost.macros.jsonEnumMacro
+import io.github.dreamylost.macros.jacksonEnumMacro
 
-import scala.annotation.StaticAnnotation
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-final class jsonEnum extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro jsonEnumMacro.JsonEnumProcessor.impl
+/**
+ * annotation to generate equals and hashcode method for classes.
+ *
+ * @author 梦境迷离
+ * @param verbose       Whether to enable detailed log.
+ * @param nonTypeRefers Whether to not generate the subclass of the TypeReference for paramTypes of class.
+ * @since 2021/7/18
+ * @version 1.0
+ */
+@compileTimeOnly("enable macro to expand macro annotations")
+final class jacksonEnum(
+  verbose: Boolean = false,
+  nonTypeRefers: Seq[String] = Nil
+) extends StaticAnnotation {
+
+  def macroTransform(annottees: Any*): Any = macro jacksonEnumMacro.JacksonEnumProcessor.impl
+
 }
