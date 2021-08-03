@@ -21,9 +21,9 @@
 
 package io.github.dreamylost
 
+import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 
 /**
  *
@@ -103,4 +103,14 @@ class JacksonEnumTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
+  "jacksonEnum6" should "failed when input args are invalid" in {
+    """
+      |    @jacksonEnum(verbose=true, nonTypeRefers=Nil)
+      |    class A(enum1: EnumType.EnumType)
+      |""".stripMargin should compile
+    """
+      |     @jacksonEnum(true)
+      |     class B(enum1: EnumType.EnumType)
+      |""".stripMargin shouldNot compile
+  }
 }

@@ -126,7 +126,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return
    */
-  def treeResultWithCompanionObject(resTree: Tree, annottees: Expr[Any]*): Tree = {
+  def treeReturnWithDefaultCompanionObject(resTree: Tree, annottees: Expr[Any]*): Tree = {
     val companionOpt = tryGetCompanionObject(annottees: _*)
     companionOpt.fold(resTree) { t =>
       q"""
@@ -373,7 +373,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       rhs:       Tree
   ) {
 
-    def typeName: TypeName = symbol.name.toTypeName
+    //    def typeName: TypeName = symbol.name.toTypeName // unused
 
     def symbol: c.universe.Symbol = paramType.typeSymbol
   }
@@ -391,5 +391,39 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       }
     }
   }
+
+  /**
+   * Extract the necessary structure information of the class for macro programming.
+   *
+   * @param classDecl
+   */
+  def mapClassDeclInfo(classDecl: ClassDef): ClassDefinition = {
+    val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
+    val (className, classParamss, classTypeParams) = (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
+    ClassDefinition(className, classParamss, classTypeParams, stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
+  }
+
+  /**
+   * Generate the specified syntax tree and assign it to the tree definition itself.
+   * Used only when you modify the definition of the class itself. Such as add method/add field
+   *
+   * @param classDecl
+   * @param classInfoAction
+   * @return
+   */
+  def appendedBody(classDecl: ClassDef, classInfoAction: ClassDefinition => Seq[Tree]): c.universe.ClassDef = {
+    val classInfo = mapClassDeclInfo(classDecl)
+    val ClassDef(mods, name, tparams, impl) = classDecl
+    val Template(parents, self, body) = impl
+    ClassDef(mods, name, tparams, Template(parents, self, body ++ classInfoAction(classInfo)))
+  }
+
+  private[macros] case class ClassDefinition(
+      className:       TypeName,
+      classParamss:    List[List[Tree]],
+      classTypeParams: List[Tree],
+      body:            List[Tree],
+      superClasses:    List[Tree]
+  )
 
 }

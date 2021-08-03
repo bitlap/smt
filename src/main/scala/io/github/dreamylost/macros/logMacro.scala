@@ -21,9 +21,9 @@
 
 package io.github.dreamylost.macros
 
-import io.github.dreamylost.{ PACKAGE, logs }
-import io.github.dreamylost.logs.{ LogTransferArgument, LogType }
 import io.github.dreamylost.logs.LogType._
+import io.github.dreamylost.logs.{ LogTransferArgument, LogType }
+import io.github.dreamylost.{ PACKAGE, logs }
 
 import scala.reflect.macros.whitebox
 
@@ -70,13 +70,13 @@ object logMacro {
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }
-      // add result into class
       val resTree = annottees.map(_.tree) match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
           extractArgumentsDetail._2 match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
               q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
-            case _ => q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+            case _ =>
+              q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
           }
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
           extractArgumentsDetail._2 match {
@@ -89,7 +89,7 @@ object logMacro {
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      val res = treeResultWithCompanionObject(resTree, annottees: _*)
+      val res = treeReturnWithDefaultCompanionObject(resTree, annottees: _*)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr[Any](resTree)
     }

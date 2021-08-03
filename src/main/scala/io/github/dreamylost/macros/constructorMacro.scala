@@ -99,26 +99,19 @@ object constructorMacro {
     }
 
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (annotteeClassParams, annotteeClassDefinitions) = classDecl match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          (paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]])
-        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-      }
-      c.Expr(getThisMethodWithCurrying(annotteeClassParams, annotteeClassDefinitions))
+      val resTree = appendedBody(
+        classDecl,
+        classInfo => Seq(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
+      c.Expr(resTree)
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
       if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
-
       val tmpTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
-      val resTree = annotateeClass match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(tmpTree.tree)} }"
-      }
-      val res = c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
-      printTree(force = extractArgumentsDetail._1, res.tree)
-      res
+      val res = treeReturnWithDefaultCompanionObject(tmpTree.tree, annottees: _*)
+      printTree(force = extractArgumentsDetail._1, res)
+      c.Expr(res)
     }
   }
 

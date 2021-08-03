@@ -147,7 +147,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 ## @log
 
-The `@log` does not use mixed or wrapper, but directly uses macro to generate default log object and operate log.
+The `@log` does not use mixed or wrapper, but directly uses macro to generate default log object and operate log. (Log dependency needs to be introduced)
 
 - Note
     - `verbose` Whether to enable detailed log.
@@ -269,7 +269,7 @@ class Person extends scala.AnyRef {
 
 ## @jacksonEnum
 
-The `jacksonEnum` annotation is used to provide `Jackson` serialization support for all Scala enumeration type parameters in the primary constructor of the class.
+The `jacksonEnum` annotation is used to provide `Jackson` serialization support for all Scala enumeration type parameters in the primary constructor of the class. (jackson and jackson-scala-module dependency needs to be introduced)
 
 - Note
     - `verbose` Whether to enable detailed log. default is `false`.

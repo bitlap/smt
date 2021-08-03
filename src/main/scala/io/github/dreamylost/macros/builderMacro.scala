@@ -40,9 +40,8 @@ object builderMacro {
     }
 
     private def getFieldDefinition(field: Tree): Tree = {
-      field match {
-        case v: ValDef => q"private var ${v.name}: ${v.tpt} = ${v.rhs}"
-      }
+      val ValDef(mods, name, tpt, rhs) = field
+      q"private var $name: $tpt = $rhs"
     }
 
     private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
@@ -56,9 +55,7 @@ object builderMacro {
           }
          """
       }
-      field match {
-        case v: ValDef => valDefMapTo(v)
-      }
+      valDefMapTo(field.asInstanceOf[ValDef])
     }
 
     private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
@@ -82,15 +79,10 @@ object builderMacro {
     }
 
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, annotteeClassParams, classTypeParams) = classDecl match {
-        // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
-        case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
-          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-      }
-
-      val builder = getBuilderClassAndMethod(className, annotteeClassParams, classTypeParams, isCaseClass(classDecl))
-      val compDecl = modifiedCompanion(compDeclOpt, builder, className)
+      val classDefinition = mapClassDeclInfo(classDecl)
+      val builder = getBuilderClassAndMethod(classDefinition.className, classDefinition.classParamss,
+        classDefinition.classTypeParams, isCaseClass(classDecl))
+      val compDecl = modifiedCompanion(compDeclOpt, builder, classDefinition.className)
       // Return both the class and companion object declarations
       c.Expr(
         q"""

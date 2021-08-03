@@ -50,17 +50,9 @@ object jsonMacro {
     }
 
     override def modifiedDeclaration(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
-      val (className, fields) = classDecl match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
-          if (!mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
-            c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
-          } else {
-            (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]])
-          }
-        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-      }
-      val format = jsonFormatter(className, fields.flatten)
-      val compDecl = modifiedCompanion(compDeclOpt, format, className)
+      val classDefinition = mapClassDeclInfo(classDecl)
+      val format = jsonFormatter(classDefinition.className, classDefinition.classParamss.flatten)
+      val compDecl = modifiedCompanion(compDeclOpt, format, classDefinition.className)
       // Return both the class and companion object declarations
       c.Expr(
         q"""

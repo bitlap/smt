@@ -145,7 +145,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 ## @log
 
-`@log`注解不使用混入和包装，而是直接使用宏生成默认的log对象来操作log。
+`@log`注解不使用混入和包装，而是直接使用宏生成默认的log对象来操作log。日志库的依赖需要自己引入。
 
 - 说明
     - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
@@ -263,7 +263,7 @@ class Person extends scala.AnyRef {
 
 ## @jacksonEnum
 
-`@jacksonEnum`注解用于为类的主构造函数中的所有Scala枚举类型的参数提供`Jackson`序列化的支持。
+`@jacksonEnum`注解用于为类的主构造函数中的所有Scala枚举类型的参数提供`Jackson`序列化的支持。（jackson和jackson-scala-module依赖需要自己引入）
 
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。

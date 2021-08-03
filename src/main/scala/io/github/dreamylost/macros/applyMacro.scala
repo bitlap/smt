@@ -44,13 +44,9 @@ object applyMacro {
     }
 
     override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, classParamss, classTypeParams) = classDecl match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
-          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-      }
-      val apply = getApplyMethodWithCurrying(className, classParamss, classTypeParams)
-      val compDecl = modifiedCompanion(compDeclOpt, apply, className)
+      val classDefinition = mapClassDeclInfo(classDecl)
+      val apply = getApplyMethodWithCurrying(classDefinition.className, classDefinition.classParamss, classDefinition.classTypeParams)
+      val compDecl = modifiedCompanion(compDeclOpt, apply, classDefinition.className)
       c.Expr(
         q"""
             $classDecl

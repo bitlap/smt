@@ -82,33 +82,27 @@ object jacksonEnumMacro {
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       // get class
-      val classDef = checkAndGetClassDef(annottees: _*)
+      val classDecl = checkAndGetClassDef(annottees: _*)
       // return all typeReferClasses and new classDef
-      val resTree = classDef match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
-          val valDefs = paramss.asInstanceOf[List[List[Tree]]].flatten.map(_.asInstanceOf[ValDef])
-          val typeReferClasses = getJacksonTypeReferClasses(valDefs).distinct
-          val newClass = modifiedDeclaration(classDef, None).asInstanceOf[Expr[Nothing]]
-          q"""
+      val classDefinition = mapClassDeclInfo(classDecl)
+      val valDefs = classDefinition.classParamss.flatten.map(_.asInstanceOf[ValDef])
+      val typeReferClasses = getJacksonTypeReferClasses(valDefs).distinct
+      val newClass = modifiedDeclaration(classDecl, None).asInstanceOf[Expr[Nothing]]
+      val resTree =
+        q"""
               ..$typeReferClasses
               
                $newClass // get field after replacing annotation for each field in constructor
            """
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
-      }
-      printTree(force = extractArgumentsDetail._1, resTree)
-      c.Expr(resTree)
+      val res = treeReturnWithDefaultCompanionObject(resTree, annottees: _*)
+      printTree(force = extractArgumentsDetail._1, res)
+      c.Expr(res)
     }
 
     override def modifiedDeclaration(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
-      val newClass = classDecl match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
-          val fieldss = paramss.asInstanceOf[List[List[Tree]]]
-          q"""
-             $mods class $tpname[..$tparams] $ctorMods(...${fieldss.map(_.map(replaceAnnotation))}) extends ..$bases { ..$body }
-           """
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
-      }
+      val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" = classDecl
+      val newFieldss = paramss.asInstanceOf[List[List[Tree]]].map(_.map(replaceAnnotation))
+      val newClass = q"$mods class $tpname[..$tparams] $ctorMods(...$newFieldss) extends ..$bases { ..$body }"
       c.Expr(newClass)
     }
   }

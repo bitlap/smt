@@ -30,7 +30,7 @@ import scala.annotation.{ compileTimeOnly, StaticAnnotation }
  *
  * @author 梦境迷离
  * @author choly
- *         
+ *
  * @param verbose       Whether to enable detailed log.
  * @param nonTypeRefers Whether to not generate the subclass of the TypeReference for paramTypes of class.
  * @since 2021/8/3
