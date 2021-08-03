@@ -267,7 +267,7 @@ class Person extends scala.AnyRef {
 
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - `nonTypeRefers` 指定不需要创建`Jackson`的`TypeReference`子类的枚举类型。
+  - `nonTypeRefers` 指定不需要创建`Jackson`的`TypeReference`子类的枚举类型。可选，默认`Nil`。
   - 支持`case class`和`class`。
   - 如果枚举类型存在`TypeReference`的子类，则不会生成新的子类，也不会重复添加`@JsonScalaEnumeration`注解到参数上。这主要用于解决冲突问题。
 

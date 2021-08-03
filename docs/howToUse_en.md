@@ -272,8 +272,8 @@ class Person extends scala.AnyRef {
 The `jacksonEnum` annotation is used to provide `Jackson` serialization support for all Scala enumeration type parameters in the primary constructor of the class.
 
 - Note
-    - `verbose` Whether to enable detailed log.
-    - `nonTypeRefers` Specifies the enumeration type of the `TypeReference` subclass of `Jackson` that does not need to be created.
+    - `verbose` Whether to enable detailed log. default is `false`.
+    - `nonTypeRefers` Specifies the enumeration type of the `TypeReference` subclass of `Jackson` that does not need to be created. default is `Nil`.
     - Support `case class` and `class`.
     - If the enumeration type has subclasses of `TypeReference`, no new subclasses will be generated, 
       and `JsonScalaEnumeration` annotation will not be added to the parameters repeatedly. This is mainly used to solve conflict problems.
