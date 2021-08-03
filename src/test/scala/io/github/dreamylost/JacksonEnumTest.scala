@@ -27,7 +27,7 @@ import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 
 /**
  *
- * @author li.guobin@immomo.com
+ * @author 梦境迷离
  * @version 1.0,2021/8/3
  */
 class JacksonEnumTest extends AnyFlatSpec with Matchers {
