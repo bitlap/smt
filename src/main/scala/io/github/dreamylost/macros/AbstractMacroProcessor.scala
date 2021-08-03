@@ -22,7 +22,7 @@
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
-import io.github.dreamylost.macros.ErrorMessage.UNEXPECTED_PATTERN
+
 /**
  *
  * @author 梦境迷离
@@ -32,6 +32,8 @@ import io.github.dreamylost.macros.ErrorMessage.UNEXPECTED_PATTERN
 abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   import c.universe._
+
+  protected lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
 
   /**
    * Subclasses should override the method and return the final result abstract syntax tree, or an abstract syntax tree close to the final result.
@@ -98,7 +100,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
-      case _ => c.abort(c.enclosingPosition, "Unexpected annottee. Only applicable to class definitions.")
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
   }
 
@@ -113,7 +115,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       case (classDecl: ClassDef) :: Nil => None
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case (compDecl: ModuleDef) :: Nil => Some(compDecl)
-      case _ => c.abort(c.enclosingPosition, UNEXPECTED_PATTERN)
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
   }
 
@@ -126,12 +128,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def treeResultWithCompanionObject(resTree: Tree, annottees: Expr[Any]*): Tree = {
     val companionOpt = tryGetCompanionObject(annottees: _*)
-    if (companionOpt.isEmpty) {
-      resTree
-    } else {
+    companionOpt.fold(resTree) { t =>
       q"""
          $resTree
-         ${companionOpt.get}
+         $t
          """
     }
   }
@@ -153,35 +153,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Expand the class and check whether the class is a case class.
+   * Check whether the class is a case class.
    *
    * @param annotateeClass classDef
    * @return Return true if it is a case class
    */
   def isCaseClass(annotateeClass: ClassDef): Boolean = {
-    annotateeClass match {
-      case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-        if (mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
-          c.info(c.enclosingPosition, "Annotation is used on 'case class'.", force = true)
-          true
-        } else false
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
-    }
-  }
-
-  /**
-   * Expand the constructor and get the field TermName.
-   *
-   * @param field
-   * @return
-   */
-  def getFieldTermName(field: Tree): TermName = {
-    field match {
-      case q"$mods val $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-      case q"$mods var $tname: $tpt = $expr" => tname.asInstanceOf[TermName]
-      case q"$mods val $pat = $expr"         => pat.asInstanceOf[TermName] //for equalsAndHashcode, need contains all fields.
-      case q"$mods var $pat = $expr"         => pat.asInstanceOf[TermName]
-    }
+    annotateeClass.mods.hasFlag(Flag.CASE)
   }
 
   /**
@@ -191,34 +169,38 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def getMethodParamName(field: Tree): Name = {
-    field match {
-      case q"$mods val $tname: $tpt = $expr" => tpt.asInstanceOf[Ident].name.decodedName
-    }
+    val q"$mods val $tname: $tpt = $expr" = field
+    tpt.asInstanceOf[Ident].name.decodedName
   }
 
   /**
-   * Check whether the mods of the fields has a `private[this]`, because it cannot be used in equals method.
+   * Check whether the mods of the fields has a `private[this]` or `protected[this]`, because it cannot be used out of class.
    *
-   * @param field
-   * @return
+   * @param tree Tree is a field or method?
+   * @return false if mods exists private[this] or protected[this]
    */
-  def classParamsIsNotPrivate(field: Tree): Boolean = {
-    field match {
-      case q"$mods val $tname: $tpt = $expr" => if (mods.asInstanceOf[Modifiers].hasFlag(Flag.PRIVATE)) false else true
-      case q"$mods var $tname: $tpt = $expr" => true
+  def isNotLocalClassMember(tree: Tree): Boolean = {
+    lazy val modifierNotLocal = (mods: Modifiers) => {
+      !(
+        mods.hasFlag(Flag.PRIVATE | Flag.LOCAL) | mods.hasFlag(Flag.PROTECTED | Flag.LOCAL)
+      )
+    }
+    tree match {
+      case v: ValDef => modifierNotLocal(v.mods)
+      case d: DefDef => modifierNotLocal(d.mods)
+      case _         => true
     }
   }
 
   /**
-   * Expand the constructor and get the field with assign.
+   * Get the field TermName with type.
    *
    * @param annotteeClassParams
-   * @return
+   * @return {{ i: Int}}
    */
-  def getFieldAssignExprs(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
+  def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
     annotteeClassParams.map {
-      case q"$mods var $tname: $tpt = $expr" => q"$tname: $tpt" //Ignore expr
-      case q"$mods val $tname: $tpt = $expr" => q"$tname: $tpt"
+      case v: ValDef => q"${v.name}: ${v.tpt}"
     }
   }
 
@@ -257,11 +239,31 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param annotteeClassDefinitions
    */
-  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
-    annotteeClassDefinitions.filter(p => p match {
+  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] = {
+    annotteeClassDefinitions.filter(_ match {
       case _: ValDef => true
       case _         => false
-    })
+    }).map(_.asInstanceOf[ValDef])
+  }
+
+  /**
+   * Extract the constructor params ValDef and flatten for currying.
+   *
+   * @param annotteeClassParams
+   * @return {{ Seq(ValDef) }}
+   */
+  def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] = {
+    annotteeClassParams.flatten.map(_.asInstanceOf[ValDef])
+  }
+
+  /**
+   * Extract the constructor params ValDef not flatten.
+   *
+   * @param annotteeClassParams
+   * @return {{ Seq(Seq(ValDef)) }}
+   */
+  def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] = {
+    annotteeClassParams.map(_.map(_.asInstanceOf[ValDef]))
   }
 
   /**
@@ -269,11 +271,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param annotteeClassDefinitions
    */
-  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
-    annotteeClassDefinitions.filter(p => p match {
+  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] = {
+    annotteeClassDefinitions.filter(_ match {
       case _: DefDef => true
       case _         => false
-    })
+    }).map(_.asInstanceOf[DefDef])
   }
 
   /**
@@ -283,10 +285,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param fieldss
    * @param isCase
    * @return A constructor with currying, it not contains tpt, provide for calling method.
-   * @example [[new TestClass12(i)(j)(k)(t)]]
+   * @example {{ new TestClass12(i)(j)(k)(t) }}
    */
   def getConstructorWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
-    val allFieldsTermName = fieldss.map(f => f.map(ff => getFieldTermName(ff)))
+    val fieldssValDefNotFlatten = getClassConstructorValDefsNotFlatten(fieldss)
+    val allFieldsTermName = fieldssValDefNotFlatten.map(_.map(_.name.toTermName))
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
       q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
@@ -296,7 +299,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       if (isCase) q"${typeName.toTermName}(...$first)(...${allFieldsTermName.tail})"
       else q"new $typeName(..$first)(...${allFieldsTermName.tail})"
     }
-    c.info(c.enclosingPosition, s"getConstructorWithCurrying constructor: $constructor, paramss: $fieldss", force = true)
     constructor
   }
 
@@ -306,10 +308,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param typeName
    * @param fieldss
    * @return A apply method with currying.
-   * @example [[def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)]]
+   * @example {{ def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t) }}
    */
   def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
-    val allFieldsTermName = fieldss.map(f => getFieldAssignExprs(f))
+    val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
     val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
     // not currying
     val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
@@ -319,7 +321,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       val first = allFieldsTermName.head
       q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
     }
-    c.info(c.enclosingPosition, s"getApplyWithCurrying constructor: $applyMethod, paramss: $fieldss", force = true)
     applyMethod
   }
 
@@ -352,9 +353,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] = {
-    tpParams.map {
-      case t: TypeDef => t.name
-    }
+    tpParams.map(_.asInstanceOf[TypeDef].name)
+  }
+
+  /**
+   * Is there a parent class? Does not contains sdk class, such as AnyRef Object
+   *
+   * @param superClasses
+   * @return
+   */
+  def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean = {
+    superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
   }
 
   private [macros] case class Accessor(

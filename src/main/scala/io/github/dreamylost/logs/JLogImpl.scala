@@ -29,12 +29,12 @@ object JLogImpl extends BaseLog {
 
   override val typ: LogType = LogType.JLog
 
-  override def getTemplate(c: whitebox.Context)(t: String, isClass: Boolean): c.Tree = {
+  override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
     import c.universe._
-    if (isClass) {
-      q"""private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(t)}].getName)"""
+    if (logTransferArgument.isClass) {
+      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}].getName)"""
     } else {
-      q"""private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(t)}.getClass.getName)"""
+      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass.getName)"""
     }
   }
 

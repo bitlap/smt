@@ -19,30 +19,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost
+package io.github.dreamylost.logs.extension
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 /**
- *
- * @author 梦境迷离
- * @since 2021/7/24
- * @version 1.0
+ * Defines `logger` as a value initialized with an underlying `org.slf4j.Logger`
+ * named according to the class into which this trait is mixed.
  */
-class OthersTest extends AnyFlatSpec with Matchers {
-  "others" should "ok" in {
-    assert(PACKAGE == "io.github.dreamylost")
+trait ScalaStrictLogging {
 
-    """
-      |    @builder
-      |    object A
-      |""".stripMargin shouldNot compile
+  protected val log: Logger = Logger(LoggerFactory.getLogger(getClass.getName))
 
-    """
-      |    class Test extends _root_.io.github.dreamylost.logs.extension.ScalaStrictLogging {
-      |      log.info("hello")
-      |    }
-      |""".stripMargin should compile
-  }
 }

@@ -19,30 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost
-
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+package io.github.dreamylost.logs
 
 /**
  *
  * @author 梦境迷离
- * @since 2021/7/24
+ * @param classNameStr The Class Name.
+ * @param isClass  Is it a class?
+ * @since 2021/7/26
  * @version 1.0
  */
-class OthersTest extends AnyFlatSpec with Matchers {
-  "others" should "ok" in {
-    assert(PACKAGE == "io.github.dreamylost")
-
-    """
-      |    @builder
-      |    object A
-      |""".stripMargin shouldNot compile
-
-    """
-      |    class Test extends _root_.io.github.dreamylost.logs.extension.ScalaStrictLogging {
-      |      log.info("hello")
-      |    }
-      |""".stripMargin should compile
-  }
-}
+case class LogTransferArgument(classNameStr: String, isClass: Boolean)

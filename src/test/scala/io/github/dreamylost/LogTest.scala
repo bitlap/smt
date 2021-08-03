@@ -147,7 +147,8 @@ class LogTest extends AnyFlatSpec with Matchers {
       log.info("hello world")
     }
     @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6_1 {
-      log.info("hello world"); builder()
+      log.info("hello world");
+      builder()
     }
     """
       |    @log(verbose=false, logType = LogType.JLog)
@@ -209,6 +210,96 @@ class LogTest extends AnyFlatSpec with Matchers {
       | @builder class TestClass6(val i: Int = 0, var j: Int) {
       |      log.info("hello world")
       |    }
+      |""".stripMargin shouldNot compile
+  }
+
+  "log13 scala loggging lazy" should "ok when does not exists super class" in {
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingLazy)
+      | class TestClass1(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+
+    import io.github.dreamylost.logs.LogType
+    @log(logType = LogType.ScalaLoggingLazy)
+    class TestClass2(val i: Int = 0, var j: Int) {
+      log.info("hello world")
+    }
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingLazy)
+      | class TestClass3(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingLazy)
+      | object TestClass4 {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingLazy)
+      | case class TestClass5(val i: Int = 0, var j: Int) {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+  }
+
+  "log14 scala loggging strict" should "ok when exists super class" in {
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingStrict)
+      | class TestClass1(val i: Int = 0, var j: Int) extends Serializable {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+
+    import io.github.dreamylost.logs.LogType
+    @log(logType = LogType.ScalaLoggingStrict)
+    class TestClass2(val i: Int = 0, var j: Int) extends Serializable {
+      log.info("hello world")
+    }
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingStrict)
+      | class TestClass3(val i: Int = 0, var j: Int) extends Serializable {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingStrict)
+      | object TestClass4 extends Serializable {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+
+    """
+      | import io.github.dreamylost.logs.LogType
+      | @log(logType = LogType.ScalaLoggingStrict)
+      | case class TestClass5(val i: Int = 0, var j: Int) extends Serializable {
+      |      log.info("hello world")
+      |    }
+      |""".stripMargin should compile
+  }
+
+  // We must define the class outside so that the macro has been compiled before testing.
+  @log(logType = LogType.ScalaLoggingStrict)
+  @json case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
+
+  "log15 add @transient" should "ok" in {
+    """
+      |val str = Json.toJson(TestClass1(1, 1, "hello")).toString()
+      |val obj = Json.fromJson[TestClass1](str)
+      |obj.log
       |""".stripMargin shouldNot compile
   }
 }

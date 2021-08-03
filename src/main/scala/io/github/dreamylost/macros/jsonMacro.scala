@@ -39,7 +39,6 @@ object jsonMacro {
       fields.length match {
         case 0 => c.abort(c.enclosingPosition, "Cannot create json formatter for case class with no fields")
         case _ =>
-          c.info(c.enclosingPosition, s"jsonFormatter className: $className, field length: ${fields.length}", force = true)
           q"implicit val jsonAnnotationFormat = play.api.libs.json.Json.format[$className]"
       }
     }
@@ -54,9 +53,8 @@ object jsonMacro {
       val (className, fields) = classDecl match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
           if (!mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
-            c.abort(c.enclosingPosition, s"Annotation is only supported on case class. classDef: $classDecl, mods: $mods")
+            c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
           } else {
-            c.info(c.enclosingPosition, s"modifiedDeclaration className: $tpname, paramss: $paramss", force = true)
             (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]])
           }
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")

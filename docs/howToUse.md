@@ -149,10 +149,12 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 - 说明
     - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-    - `logType` 指定需要生成的`log`的类型。可选，默认`JLog`
+    - `logType` 指定需要生成的`log`的类型。可选，默认`io.github.dreamylost.logs.LogType.JLog`。
         - `io.github.dreamylost.logs.LogType.JLog` 使用 `java.util.logging.Logger`
         - `io.github.dreamylost.logs.LogType.Log4j2` 使用 `org.apache.logging.log4j.Logger`
         - `io.github.dreamylost.logs.LogType.Slf4j` 使用 `org.slf4j.Logger`
+        - `io.github.dreamylost.logs.LogType.ScalaLoggingLazy` 基于 `scalalogging.LazyLogging` 实现，但字段被重命名为`log`
+        - `io.github.dreamylost.logs.LogType.ScalaLoggingStrict` 基于 `scalalogging.StrictLogging`实现， 但字段被重命名为`log`
     - 支持普通类，样例类，单例对象。
 
 - 示例
@@ -162,7 +164,10 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
   log.info("hello")
 }
 
-@log(verbose=true, logType=io.github.dreamylost.LogType.Slf4j) class TestClass6(val i: Int = 0, var j: Int){ log.info("hello world") }
+@log(verbose=true, logType=io.github.dreamylost.logs.LogType.Slf4j) 
+class TestClass6(val i: Int = 0, var j: Int) { 
+  log.info("hello world") 
+}
 ```
 
 ## @apply
@@ -221,10 +226,11 @@ def <init>(int: Int, j: Int, k: Option[String], t: Option[Long], b: Int) = {
 
 - 说明
   - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
-  - `excludeFields` 指定是否需要排除不需要用于`equals`和`hashCode`方法的字段。可选，默认空（class内部所有非私有的`var、val`字段都将被应用于生成这两个方法）。
+  - `excludeFields` 指定是否需要排除不需要用于`equals`和`hashCode`方法的字段。可选，默认空（class内部所有非`protected [this]`和`private [this]`的`var、val`字段都将被应用于生成这两个方法）。
   - `equals`和`hashCode`方法均会被超类影响，`canEqual`使用`isInstanceOf`，有些人在实现时，使用的是`this.getClass == that.getClass`。
   - 采用简单hashCode算法，父类的hashCode是直接被累加的。该算法也是`case class`所使用的。
   - 如果注解所在类已经定义了相同签名的`canEqual`方法，则不会生成该方法。
+  - 包括在类内部中定义的成员字段，在本库中称为内部字段。
 
 - 示例
 

@@ -21,12 +21,11 @@
 
 package io.github.dreamylost.macros
 
-import io.github.dreamylost.PACKAGE
-import io.github.dreamylost.logs.LogType
+import io.github.dreamylost.{ PACKAGE, logs }
+import io.github.dreamylost.logs.{ LogTransferArgument, LogType }
 import io.github.dreamylost.logs.LogType._
 
 import scala.reflect.macros.whitebox
-import io.github.dreamylost.logs
 
 /**
  *
@@ -64,18 +63,28 @@ object logMacro {
       val logTree = annottees.map(_.tree) match {
         // Match a class, and expand, get class/object name.
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
+          val argument = LogTransferArgument(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(tpname.asInstanceOf[TermName].toTermName.decodedName.toString, isClass = false)
-        case _ => c.abort(c.enclosingPosition, s"Annotation is only supported on class or object.")
+          val argument = LogTransferArgument(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
+        case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }
 
       // add result into class
       val resTree = annottees.map(_.tree) match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+          extractArgumentsDetail._2 match {
+            case ScalaLoggingLazy | ScalaLoggingStrict =>
+              q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
+            case _ => q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+          }
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${List(logTree) ::: stats.toList} }"
+          extractArgumentsDetail._2 match {
+            case ScalaLoggingLazy | ScalaLoggingStrict =>
+              q"$mods object $tpname extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
+            case _ => q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+          }
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
         // see https://docs.scala-lang.org/overviews/macros/annotations.html

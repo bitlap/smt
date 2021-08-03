@@ -19,30 +19,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost
+package io.github.dreamylost.logs.extension
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import io.github.dreamylost.logs.LogType.LogType
+import io.github.dreamylost.logs.{ BaseLog, LogTransferArgument, LogType }
+
+import scala.reflect.macros.whitebox
 
 /**
+ * scalalogging  LazyLogging
  *
  * @author 梦境迷离
- * @since 2021/7/24
+ * @since 2021/7/26
  * @version 1.0
  */
-class OthersTest extends AnyFlatSpec with Matchers {
-  "others" should "ok" in {
-    assert(PACKAGE == "io.github.dreamylost")
+object ScalaLoggingLazyImpl extends BaseLog {
 
-    """
-      |    @builder
-      |    object A
-      |""".stripMargin shouldNot compile
+  override val typ: LogType = LogType.ScalaLoggingLazy
 
-    """
-      |    class Test extends _root_.io.github.dreamylost.logs.extension.ScalaStrictLogging {
-      |      log.info("hello")
-      |    }
-      |""".stripMargin should compile
+  override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
+    import c.universe._
+    tq"_root_.io.github.dreamylost.logs.extension.ScalaLazyLogging"
   }
 }

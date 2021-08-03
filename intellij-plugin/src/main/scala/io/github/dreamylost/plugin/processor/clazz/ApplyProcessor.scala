@@ -24,8 +24,9 @@ class ApplyProcessor extends AbsProcessor {
             val nameAndTypes = getConstructorCurryingParameters(clazz, withSecond = false)
               .map(_.map(o => s"${o._1}: ${o._2}").mkString("(", ", ", ")"))
               .mkString
-            val genericTypes = clazz.typeParamString
-            Seq(s"def apply$genericTypes$nameAndTypes: ${clazz.getName}$genericTypes = ???")
+            val genericType = getTypeParamString(clazz)
+            val returnGenericType = getTypeParamString(clazz, returnType = true)
+            Seq(s"def apply$genericType$nameAndTypes: ${clazz.getName}$returnGenericType = ???")
           case _ => Nil
         }
       case _ => Nil
