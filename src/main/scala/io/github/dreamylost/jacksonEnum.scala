@@ -36,8 +36,8 @@ import scala.annotation.{ compileTimeOnly, StaticAnnotation }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class jacksonEnum(
-  verbose: Boolean = false,
-  nonTypeRefers: Seq[String] = Nil
+    verbose:       Boolean     = false,
+    nonTypeRefers: Seq[String] = Nil
 ) extends StaticAnnotation {
 
   def macroTransform(annottees: Any*): Any = macro jacksonEnumMacro.JacksonEnumProcessor.impl

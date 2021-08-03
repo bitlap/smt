@@ -53,24 +53,23 @@ object logMacro {
 
     private def getLogType(logType: Tree): LogType = {
       if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
-        evalTree(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
+        evalTree(logType)
       } else {
         LogType.getLogType(logType.toString())
       }
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+      val buildArg = (name: Name) => LogTransferArgument(name.toTermName.decodedName.toString, isClass = true)
       val logTree = annottees.map(_.tree) match {
-        // Match a class, and expand, get class/object name.
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          val argument = LogTransferArgument(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
-        case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          val argument = LogTransferArgument(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
+        case (classDef: ClassDef) :: Nil =>
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
+        case (moduleDef: ModuleDef) :: Nil =>
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
+        case (classDef: ClassDef) :: (moduleDef: ModuleDef) :: Nil =>
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }
-
       // add result into class
       val resTree = annottees.map(_.tree) match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>

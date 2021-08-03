@@ -46,6 +46,7 @@
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
+- `@jacksonEnum`
 
 > 涉及到交互操作的注解在IDEA插件中都得到了支持。在插件市场中搜索`Scala-Macro-Tools`可下载。
 

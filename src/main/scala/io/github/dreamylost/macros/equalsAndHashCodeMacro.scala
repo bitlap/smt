@@ -57,7 +57,7 @@ object equalsAndHashCodeMacro {
               ..$originalStatus
               ..$tmpTree
              """
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${append} }"
+          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$append }"
       }
       val res = c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
       printTree(force = extractArgumentsDetail._1, res.tree)
@@ -78,7 +78,7 @@ object equalsAndHashCodeMacro {
     // equals method
     private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
       val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions).exists {
-        case tree @ q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
+        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
           val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
           params.exists(p => p.decodedName.toString == "Any")
         case _ => false
@@ -128,9 +128,9 @@ object equalsAndHashCodeMacro {
         case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
       }
       val allFieldsTermName = getClassConstructorValDefsFlatten(annotteeClassParams).filter(cf => isNotLocalClassMember(cf)).map(_.name.toTermName)
-      val allTernNames = allFieldsTermName ++ getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions)
-      val hash = getHashcodeMethod(allTernNames, superClasses)
-      val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)
+      val allTermNames = allFieldsTermName ++ getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions)
+      val hash = getHashcodeMethod(allTermNames, superClasses)
+      val equals = getEqualsMethod(className, allTermNames, superClasses, annotteeClassDefinitions)
       c.Expr(
         q"""
           ..$equals

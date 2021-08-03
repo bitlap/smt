@@ -31,8 +31,8 @@ object jacksonEnumMacro {
 
     private val extractArgumentsDetail: Tuple2[Boolean, Seq[String]] = {
       extractArgumentsTuple2 {
-        case q"new jacksonEnum(verbose=$verbose, nonTypeRefers=$typeRefer)" => Tuple2(evalTree(verbose.asInstanceOf[Tree]), evalTree(typeRefer.asInstanceOf[Tree]))
-        case q"new jacksonEnum(nonTypeRefers=$typeRefer)" => Tuple2(false, evalTree(typeRefer.asInstanceOf[Tree]))
+        case q"new jacksonEnum(verbose=$verbose, nonTypeRefers=$nonTypeRefers)" => Tuple2(evalTree(verbose.asInstanceOf[Tree]), evalTree(nonTypeRefers.asInstanceOf[Tree]))
+        case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => Tuple2(false, evalTree(nonTypeRefers.asInstanceOf[Tree]))
         case q"new jacksonEnum()" => Tuple2(false, Nil)
         case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
@@ -40,35 +40,35 @@ object jacksonEnumMacro {
 
     private def getJacksonTypeReferClasses(valDefs: List[ValDef]): Seq[Tree] = {
       val safeValDefs = accessors(valDefs)
-      // is Enum ?
+      // Enum ?
       safeValDefs.filter(_.symbol.name.toTermName.toString == "Value").
-        map(buildTypeReferName).
-        map(_.toTermName).
+        map(getTypeTermName).
         filter(v => !extractArgumentsDetail._2.contains(v.decodedName.toString)).
         distinct.
         map(c => q"""class ${TypeName(c.decodedName.toString + "TypeRefer")} extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[$c.type]""")
     }
 
-    private def buildTypeReferName(valDefTree: Tree): c.universe.TypeName = {
+    private def getTypeTermName(valDefTree: Tree): c.universe.TermName = {
       val safeValDef = accessors(Seq(valDefTree.asInstanceOf[ValDef])).head
-      buildTypeReferName(safeValDef)
+      getTypeTermName(safeValDef)
     }
 
-    private def buildTypeReferName(accessor: Accessor): c.universe.TypeName = {
+    private def getTypeTermName(accessor: Accessor): c.universe.TermName = {
       val paramTypeStr = accessor.paramType.toString
-      TypeName(paramTypeStr.split("\\.").last)
+      TermName(paramTypeStr.split("\\.").last)
     }
 
     private def getAnnotation(valDefTree: Tree): Tree = {
-      q"new com.fasterxml.jackson.module.scala.JsonScalaEnumeration(classOf[${TypeName(buildTypeReferName(valDefTree).decodedName.toString + "TypeRefer")}])"
+      q"new com.fasterxml.jackson.module.scala.JsonScalaEnumeration(classOf[${TypeName(getTypeTermName(valDefTree).decodedName.toString + "TypeRefer")}])"
     }
 
-    private def replaceFieldJsonEnumAnnotation(valDefTree: Tree): Tree = {
+    private def replaceAnnotation(valDefTree: Tree): Tree = {
       val safeValDef = accessors(Seq(valDefTree.asInstanceOf[ValDef])).head
       if (safeValDef.symbol.name.toTermName.toString == "Value") {
         // duplication should be removed
         val mods = safeValDef.mods.mapAnnotations(f => {
-          if (!f.toString().contains("JsonScalaEnumeration")) f ++ List(getAnnotation(valDefTree)) else f
+          if (!f.toString().contains("JsonScalaEnumeration") &&
+            !extractArgumentsDetail._2.contains(getTypeTermName(safeValDef).decodedName.toString)) f ++ List(getAnnotation(valDefTree)) else f
         })
         if (safeValDef.mods.hasFlag(Flag.MUTABLE)) {
           q"$mods var ${safeValDef.name}: ${safeValDef.paramType} = ${safeValDef.rhs}"
@@ -83,17 +83,16 @@ object jacksonEnumMacro {
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       // get class
       val classDef = checkAndGetClassDef(annottees: _*)
-      // get field after replacing annotation for each field in constructor
-      val newClass = modifiedDeclaration(classDef, None).asInstanceOf[Expr[Nothing]]
       // return all typeReferClasses and new classDef
       val resTree = classDef match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
           val valDefs = paramss.asInstanceOf[List[List[Tree]]].flatten.map(_.asInstanceOf[ValDef])
           val typeReferClasses = getJacksonTypeReferClasses(valDefs).distinct
+          val newClass = modifiedDeclaration(classDef, None).asInstanceOf[Expr[Nothing]]
           q"""
               ..$typeReferClasses
               
-               $newClass
+               $newClass // get field after replacing annotation for each field in constructor
            """
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
@@ -106,7 +105,7 @@ object jacksonEnumMacro {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" =>
           val fieldss = paramss.asInstanceOf[List[List[Tree]]]
           q"""
-             $mods class $tpname[..$tparams] $ctorMods(...${fieldss.map(_.map(replaceFieldJsonEnumAnnotation))}) extends ..$bases { ..$body }
+             $mods class $tpname[..$tparams] $ctorMods(...${fieldss.map(_.map(replaceAnnotation))}) extends ..$bases { ..$body }
            """
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }

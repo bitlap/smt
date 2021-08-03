@@ -366,37 +366,28 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
   }
 
-  private [macros] case class Accessor(
-    mods: Modifiers,
-    name: TermName,
-    paramType: Type,
-    rhs: Tree
+  private[macros] case class Accessor(
+      mods:      Modifiers,
+      name:      TermName,
+      paramType: Type,
+      rhs:       Tree
   ) {
-    
+
     def typeName: TypeName = symbol.name.toTypeName
 
     def symbol: c.universe.Symbol = paramType.typeSymbol
   }
-  
+
   /**
-   * Retrieves the accessor fields on a case class and returns an iterable of tuples of the form Name -> Type.
-   * For every single field in a case class, a reference to the string name and string type of the field are returned.
+   * Retrieves the accessor fields on a case class and returns a Seq of Accessor.
    *
-   * Example:
-   *
-   * {{{
-   *   case class Test(id: UUID, name: String, age: Int)
-   *
-   *   accessors(Test) = Seq("id" -> "UUID", "name" -> "String", age: "Int")
-   * }}}
-   *
-   * @param params The list of params retrieved from the case class
+   * @param params The list of params retrieved from the class
    * @return An Sequence of tuples where each tuple encodes the string name and string type of a field
    */
   def accessors(params: Seq[ValDef]): Seq[Accessor] = {
     params.map {
       case ValDef(mods, name: TermName, tpt: Tree, rhs) => {
-        Accessor(mods, name, c.typecheck(tq"$tpt", c.TYPEmode).tpe,  rhs)
+        Accessor(mods, name, c.typecheck(tq"$tpt", c.TYPEmode).tpe, rhs)
       }
     }
   }
