@@ -379,7 +379,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Retrieves the accessor fields on a case class and returns a Seq of Accessor.
+   * Retrieves the accessor fields on a class and returns a Seq of Accessor.
    *
    * @param params The list of params retrieved from the class
    * @return An Sequence of tuples where each tuple encodes the string name and string type of a field
