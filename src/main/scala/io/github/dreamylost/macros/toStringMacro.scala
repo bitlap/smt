@@ -102,14 +102,9 @@ object toStringMacro {
 
     private def toStringTemplateImpl(argument: Argument, annotateeClass: ClassDef): Tree = {
       // For a given class definition, separate the components of the class
-      val (className, annotteeClassParams, superClasses, annotteeClassDefinitions) = {
-        annotateeClass match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], parents, stats.asInstanceOf[List[Tree]])
-        }
-      }
+      val classDefinition = mapToClassDeclInfo(annotateeClass)
       // Check the type of the class, whether it already contains its own toString
-      val annotteeClassFieldDefinitions = annotteeClassDefinitions.filter(p => p match {
+      val annotteeClassFieldDefinitions = classDefinition.body.filter(_ match {
         case _: ValDef => true
         case mem: MemberDef =>
           if (mem.name.decodedName.toString.startsWith("toString")) { // TODO better way
@@ -119,7 +114,7 @@ object toStringMacro {
         case _ => false
       })
 
-      val ctorParams = annotteeClassParams.flatten
+      val ctorParams = classDefinition.classParamss.flatten
       val member = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
       val lastParam = member.lastOption.map {
@@ -128,17 +123,17 @@ object toStringMacro {
       }
       val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(argument, lastParam, acc)}")
       //scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
-      val toString = q"""override def toString: String = ${className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
+      val toString = q"""override def toString: String = ${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
 
       // Have super class ?
-      if (argument.callSuper && superClasses.nonEmpty) {
-        val superClassDef = superClasses.head match {
+      if (argument.callSuper && classDefinition.superClasses.nonEmpty) {
+        val superClassDef = classDefinition.superClasses.head match {
           case tree: Tree => Some(tree) // TODO type check better
           case _          => None
         }
         superClassDef.fold(toString)(_ => {
           val superClass = q"${"super="}"
-          q"override def toString: String = StringContext(${className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
+          q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
         )
       } else {

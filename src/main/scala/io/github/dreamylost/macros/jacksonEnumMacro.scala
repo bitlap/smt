@@ -81,29 +81,26 @@ object jacksonEnumMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      // get class
-      val classDecl = checkAndGetClassDef(annottees: _*)
-      // return all typeReferClasses and new classDef
-      val classDefinition = mapClassDeclInfo(classDecl)
-      val valDefs = classDefinition.classParamss.flatten.map(_.asInstanceOf[ValDef])
-      val typeReferClasses = getJacksonTypeReferClasses(valDefs).distinct
-      val newClass = modifiedDeclaration(classDecl, None).asInstanceOf[Expr[Nothing]]
-      val resTree =
-        q"""
-              ..$typeReferClasses
-              
-               $newClass // get field after replacing annotation for each field in constructor
-           """
-      val res = treeReturnWithDefaultCompanionObject(resTree, annottees: _*)
+      val newClassExpr = collectCustomExpr(annottees: _*)(createCustomExpr)
+      val res = treeReturnWithDefaultCompanionObject(newClassExpr.tree, annottees: _*)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr(res)
     }
 
-    override def modifiedDeclaration(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
+    override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
+      // return all typeReferClasses and new classDef
+      val classDefinition = mapToClassDeclInfo(classDecl)
+      val valDefs = classDefinition.classParamss.flatten.map(_.asInstanceOf[ValDef])
+      val typeReferClasses = getJacksonTypeReferClasses(valDefs).distinct
       val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" = classDecl
       val newFieldss = paramss.asInstanceOf[List[List[Tree]]].map(_.map(replaceAnnotation))
       val newClass = q"$mods class $tpname[..$tparams] $ctorMods(...$newFieldss) extends ..$bases { ..$body }"
-      c.Expr(newClass)
+      c.Expr(
+        q"""
+           ..$typeReferClasses
+             
+           $newClass // get field after replacing annotation for each field in constructor
+         """)
     }
   }
 }

@@ -45,7 +45,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return c.Expr[Any], Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
    *
    */
-  def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
+  def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
 
   /**
    * Subclasses must override the method.
@@ -143,7 +143,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param modifyAction The actual processing function
    * @return Return the result of modifyAction
    */
-  def handleWithImplType(annottees: Expr[Any]*)
+  def collectCustomExpr(annottees: Expr[Any]*)
     (modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
     annottees.map(_.tree) match {
       case (classDecl: ClassDef) :: Nil => modifyAction(classDecl, None).asInstanceOf[Expr[Nothing]]
@@ -397,7 +397,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param classDecl
    */
-  def mapClassDeclInfo(classDecl: ClassDef): ClassDefinition = {
+  def mapToClassDeclInfo(classDecl: ClassDef): ClassDefinition = {
     val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
     val (className, classParamss, classTypeParams) = (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
     ClassDefinition(className, classParamss, classTypeParams, stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
@@ -412,7 +412,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def appendedBody(classDecl: ClassDef, classInfoAction: ClassDefinition => Seq[Tree]): c.universe.ClassDef = {
-    val classInfo = mapClassDeclInfo(classDecl)
+    val classInfo = mapToClassDeclInfo(classDecl)
     val ClassDef(mods, name, tparams, impl) = classDecl
     val Template(parents, self, body) = impl
     ClassDef(mods, name, tparams, Template(parents, self, body ++ classInfoAction(classInfo)))

@@ -98,7 +98,7 @@ object constructorMacro {
       applyMethod
     }
 
-    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+    override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val resTree = appendedBody(
         classDecl,
         classInfo => Seq(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
@@ -107,9 +107,8 @@ object constructorMacro {
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
-      val tmpTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
-      val res = treeReturnWithDefaultCompanionObject(tmpTree.tree, annottees: _*)
+      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
+      val res = treeReturnWithDefaultCompanionObject(collectCustomExpr(annottees: _*)(createCustomExpr).tree, annottees: _*)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr(res)
     }

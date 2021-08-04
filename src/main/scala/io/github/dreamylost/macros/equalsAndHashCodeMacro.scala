@@ -45,8 +45,10 @@ object equalsAndHashCodeMacro {
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      if (isCaseClass(annotateeClass)) {
+        c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
+      }
+      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
       val res = treeReturnWithDefaultCompanionObject(resTree.tree, annottees: _*)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr(res)
@@ -109,14 +111,14 @@ object equalsAndHashCodeMacro {
       }
     }
 
-    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
+    override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
       lazy val map = (classDefinition: ClassDefinition) => {
         getClassConstructorValDefsFlatten(classDefinition.classParamss).
           filter(cf => isNotLocalClassMember(cf)).
           map(_.name.toTermName) ++
           getInternalFieldsTermNameExcludeLocal(classDefinition.body)
       }
-      val classDefinition = mapClassDeclInfo(classDecl)
+      val classDefinition = mapToClassDeclInfo(classDecl)
       val res = appendedBody(classDecl, classInfo =>
         getEqualsMethod(classDefinition.className, map(classInfo),
           classDefinition.superClasses, classDefinition.body) ++

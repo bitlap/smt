@@ -43,8 +43,8 @@ object applyMacro {
       }
     }
 
-    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val classDefinition = mapClassDeclInfo(classDecl)
+    override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+      val classDefinition = mapToClassDeclInfo(classDecl)
       val apply = getApplyMethodWithCurrying(classDefinition.className, classDefinition.classParamss, classDefinition.classTypeParams)
       val compDecl = modifiedCompanion(compDeclOpt, apply, classDefinition.className)
       c.Expr(
@@ -57,7 +57,7 @@ object applyMacro {
     override def impl(annottees: Expr[Any]*): Expr[Any] = {
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
       if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
       printTree(force = extractArgumentsDetail._1, resTree.tree)
       resTree
     }

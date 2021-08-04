@@ -78,8 +78,8 @@ object builderMacro {
        """
     }
 
-    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val classDefinition = mapClassDeclInfo(classDecl)
+    override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+      val classDefinition = mapToClassDeclInfo(classDecl)
       val builder = getBuilderClassAndMethod(classDefinition.className, classDefinition.classParamss,
         classDefinition.classTypeParams, isCaseClass(classDecl))
       val compDecl = modifiedCompanion(compDeclOpt, builder, classDefinition.className)
@@ -92,7 +92,7 @@ object builderMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
       printTree(force = true, resTree.tree)
       resTree
     }

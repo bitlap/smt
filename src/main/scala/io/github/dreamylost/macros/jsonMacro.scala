@@ -44,13 +44,17 @@ object jsonMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
+      if (!isCaseClass(annotateeClass)) {
+        c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
+      }
+      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
       printTree(force = true, resTree.tree)
       resTree
     }
 
-    override def modifiedDeclaration(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
-      val classDefinition = mapClassDeclInfo(classDecl)
+    override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
+      val classDefinition = mapToClassDeclInfo(classDecl)
       val format = jsonFormatter(classDefinition.className, classDefinition.classParamss.flatten)
       val compDecl = modifiedCompanion(compDeclOpt, format, classDefinition.className)
       // Return both the class and companion object declarations
