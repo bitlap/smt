@@ -43,18 +43,18 @@ object synchronizedMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val resTree = annottees map (_.tree) match {
-        // Match a method, and expand.
-        case _@ q"$modrs def $tname[..$tparams](...$paramss): $tpt = $expr" :: _ =>
-          if (extractArgumentsDetail._2 != null) {
+      val resTree = annottees.map(_.tree) match {
+        case (defDef: DefDef) :: Nil =>
+          val body = if (extractArgumentsDetail._2 != null) {
             if (extractArgumentsDetail._2 == "this") {
-              q"""def $tname[..$tparams](...$paramss): $tpt = ${This(TypeName(""))}.synchronized { $expr }"""
+              q"${This(TypeName(""))}.synchronized { ${defDef.rhs} }"
             } else {
-              q"""def $tname[..$tparams](...$paramss): $tpt = ${TermName(extractArgumentsDetail._2)}.synchronized { $expr }"""
+              q"${TermName(extractArgumentsDetail._2)}.synchronized { ${defDef.rhs} }"
             }
           } else {
             c.abort(c.enclosingPosition, "Invalid args, lockName cannot be a null!")
           }
+          mapToMethodDef(defDef, body)
         case _ => c.abort(c.enclosingPosition, "Invalid annotation target: not a method")
       }
       printTree(extractArgumentsDetail._1, resTree)

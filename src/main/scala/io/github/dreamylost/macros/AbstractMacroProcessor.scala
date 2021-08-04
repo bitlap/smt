@@ -373,7 +373,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       rhs:       Tree
   ) {
 
-    //    def typeName: TypeName = symbol.name.toTypeName // unused
+    def typeName: TypeName = symbol.name.toTypeName
 
     def symbol: c.universe.Symbol = paramType.typeSymbol
   }
@@ -384,7 +384,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param params The list of params retrieved from the class
    * @return An Sequence of tuples where each tuple encodes the string name and string type of a field
    */
-  def accessors(params: Seq[ValDef]): Seq[Accessor] = {
+  def accessors(params: Seq[Tree]): Seq[Accessor] = {
     params.map {
       case ValDef(mods, name: TermName, tpt: Tree, rhs) => {
         Accessor(mods, name, c.typecheck(tq"$tpt", c.TYPEmode).tpe, rhs)
@@ -405,17 +405,29 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   /**
    * Generate the specified syntax tree and assign it to the tree definition itself.
-   * Used only when you modify the definition of the class itself. Such as add method/add field
+   * Used only when you modify the definition of the class itself. Such as add method/add field.
    *
    * @param classDecl
-   * @param classInfoAction
+   * @param classInfoAction Content body added in class definition
    * @return
    */
-  def appendedBody(classDecl: ClassDef, classInfoAction: ClassDefinition => Seq[Tree]): c.universe.ClassDef = {
+  def appendClassBody(classDecl: ClassDef, classInfoAction: ClassDefinition => Seq[Tree]): c.universe.ClassDef = {
     val classInfo = mapToClassDeclInfo(classDecl)
     val ClassDef(mods, name, tparams, impl) = classDecl
     val Template(parents, self, body) = impl
     ClassDef(mods, name, tparams, Template(parents, self, body ++ classInfoAction(classInfo)))
+  }
+
+  /**
+   * Modify the method body of the method tree.
+   *
+   * @param defDef
+   * @param defBodyAction Method body of final result
+   * @return
+   */
+  def mapToMethodDef(defDef: DefDef, defBodyAction: => Tree): c.universe.DefDef = {
+    val DefDef(mods, name, tparams, vparamss, tpt, rhs) = defDef
+    DefDef(mods, name, tparams, vparamss, tpt, defBodyAction)
   }
 
   private[macros] case class ClassDefinition(

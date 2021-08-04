@@ -49,7 +49,7 @@ object jacksonEnumMacro {
     }
 
     private def getTypeTermName(valDefTree: Tree): c.universe.TermName = {
-      val safeValDef = accessors(Seq(valDefTree.asInstanceOf[ValDef])).head
+      val safeValDef = accessors(Seq(valDefTree)).head
       getTypeTermName(safeValDef)
     }
 
@@ -63,8 +63,8 @@ object jacksonEnumMacro {
     }
 
     private def replaceAnnotation(valDefTree: Tree): Tree = {
-      val safeValDef = accessors(Seq(valDefTree.asInstanceOf[ValDef])).head
-      if (safeValDef.symbol.name.toTermName.toString == "Value") {
+      val safeValDef = accessors(Seq(valDefTree)).head
+      if (safeValDef.typeName.decodedName.toString == "Value") {
         // duplication should be removed
         val mods = safeValDef.mods.mapAnnotations(f => {
           if (!f.toString().contains("JsonScalaEnumeration") &&

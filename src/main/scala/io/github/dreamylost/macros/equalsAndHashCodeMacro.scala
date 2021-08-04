@@ -119,7 +119,7 @@ object equalsAndHashCodeMacro {
           getInternalFieldsTermNameExcludeLocal(classDefinition.body)
       }
       val classDefinition = mapToClassDeclInfo(classDecl)
-      val res = appendedBody(classDecl, classInfo =>
+      val res = appendClassBody(classDecl, classInfo =>
         getEqualsMethod(classDefinition.className, map(classInfo),
           classDefinition.superClasses, classDefinition.body) ++
           List(getHashcodeMethod(map(classInfo), classDefinition.superClasses))

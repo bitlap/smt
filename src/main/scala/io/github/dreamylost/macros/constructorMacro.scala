@@ -99,7 +99,7 @@ object constructorMacro {
     }
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val resTree = appendedBody(
+      val resTree = appendClassBody(
         classDecl,
         classInfo => Seq(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
       c.Expr(resTree)
