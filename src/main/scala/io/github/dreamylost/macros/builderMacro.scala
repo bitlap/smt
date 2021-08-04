@@ -58,31 +58,32 @@ object builderMacro {
       valDefMapTo(field.asInstanceOf[ValDef])
     }
 
-    private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
+    private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): List[Tree] = {
       val fields = fieldss.flatten
       val builderClassName = getBuilderClassName(typeName)
       val builderFieldMethods = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
       val builderFieldDefinitions = fields.map(f => getFieldDefinition(f))
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-      q"""
-      def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()
-
-      class $builderClassName[..$classTypeParams] {
+      val builderMethod = q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
+      val buulderClass =
+        q"""
+        class $builderClassName[..$classTypeParams] {
 
           ..$builderFieldDefinitions
 
           ..$builderFieldMethods
 
           def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase)}
-      }
-       """
+        }
+         """
+      List(builderMethod, buulderClass)
     }
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
       val builder = getBuilderClassAndMethod(classDefinition.className, classDefinition.classParamss,
         classDefinition.classTypeParams, isCaseClass(classDecl))
-      val compDecl = modifiedCompanion(compDeclOpt, builder, classDefinition.className)
+      val compDecl = appendModuleBody(compDeclOpt, builder, classDefinition.className)
       // Return both the class and companion object declarations
       c.Expr(
         q"""

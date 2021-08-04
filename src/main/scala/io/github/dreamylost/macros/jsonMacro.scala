@@ -56,7 +56,7 @@ object jsonMacro {
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
       val format = jsonFormatter(classDefinition.className, classDefinition.classParamss.flatten)
-      val compDecl = modifiedCompanion(compDeclOpt, format, classDefinition.className)
+      val compDecl = appendModuleBody(compDeclOpt, List(format), classDefinition.className)
       // Return both the class and companion object declarations
       c.Expr(
         q"""

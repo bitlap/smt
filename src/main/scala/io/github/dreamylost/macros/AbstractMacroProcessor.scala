@@ -22,6 +22,8 @@
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.whitebox
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  *
@@ -85,7 +87,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def printTree(force: Boolean, resTree: Tree): Unit = {
     c.info(
       c.enclosingPosition,
-      "\n###### Expanded macro ######\n" + resTree.toString() + "\n###### Expanded macro ######\n",
+      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
       force = force
     )
   }
@@ -201,32 +203,23 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Modify companion objects.
+   * Modify companion object or object.
    *
    * @param compDeclOpt
-   * @param codeBlock
+   * @param codeBlocks
    * @param className
    * @return
    */
-  def modifiedCompanion(
+  def appendModuleBody(
     compDeclOpt: Option[ModuleDef],
-    codeBlock:   Tree, className: TypeName): Tree = {
-    compDeclOpt map { compDecl =>
-      val q"$mods object $obj extends ..$bases { ..$body }" = compDecl
-      val o =
-        q"""
-          $mods object $obj extends ..$bases {
-            ..$body
-            ..$codeBlock
-          }
-        """
-      c.info(c.enclosingPosition, s"modifiedCompanion className: $className, exists obj: $o", force = true)
-      o
-    } getOrElse {
-      // Create a companion object with the builder
-      val o = q"object ${className.toTermName} { ..$codeBlock }"
-      c.info(c.enclosingPosition, s"modifiedCompanion className: $className, new obj: $o", force = true)
-      o
+    codeBlocks:  List[Tree], className: TypeName): Tree = {
+    compDeclOpt.fold(q"object ${className.toTermName} { ..$codeBlocks }") {
+      compDecl =>
+        c.info(c.enclosingPosition, s"appendModuleBody className: $className, exists obj: $compDecl", force = true)
+        val ModuleDef(mods, name, impl) = compDecl
+        val Template(parents, self, body) = impl
+        val newImpl = Template(parents, self, body ++ codeBlocks)
+        ModuleDef(mods, name, newImpl)
     }
   }
 

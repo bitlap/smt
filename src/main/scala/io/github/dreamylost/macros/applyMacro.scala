@@ -46,7 +46,7 @@ object applyMacro {
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
       val apply = getApplyMethodWithCurrying(classDefinition.className, classDefinition.classParamss, classDefinition.classTypeParams)
-      val compDecl = modifiedCompanion(compDeclOpt, apply, classDefinition.className)
+      val compDecl = appendModuleBody(compDeclOpt, List(apply), classDefinition.className)
       c.Expr(
         q"""
             $classDecl
