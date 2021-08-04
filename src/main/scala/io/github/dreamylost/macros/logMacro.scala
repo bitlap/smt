@@ -59,27 +59,30 @@ object logMacro {
       }
     }
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+    def logTree(annottees: Seq[c.universe.Expr[Any]]) = {
       val buildArg = (name: Name) => LogTransferArgument(name.toTermName.decodedName.toString, isClass = true)
-      val logTree = annottees.map(_.tree) match {
+      (annottees.map(_.tree) match {
         case (classDef: ClassDef) :: Nil =>
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
         case (moduleDef: ModuleDef) :: Nil =>
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
-        case (classDef: ClassDef) :: (moduleDef: ModuleDef) :: Nil =>
+        case (classDef: ClassDef) :: (_: ModuleDef) :: Nil =>
           LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
-      }
+      }).asInstanceOf[Tree]
+    }
+
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          if(mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)){
-              c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
+          if (mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
+            c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
           }
           val newClass = extractArgumentsDetail._2 match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
-              q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
+              appendClassSuper(checkGetClassDef(annottees), _ => List(logTree(annottees)))
             case _ =>
-              q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+              prependClassBody(checkGetClassDef(annottees), _ => List(logTree(annottees)))
           }
           val moduleDef = getModuleDefOption(annottees)
           q"""
@@ -88,9 +91,8 @@ object logMacro {
            """
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
           extractArgumentsDetail._2 match {
-            case ScalaLoggingLazy | ScalaLoggingStrict =>
-              q"$mods object $tpname extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
-            case _ => q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+            case ScalaLoggingLazy | ScalaLoggingStrict => appendClassSuper(checkGetModuleDef(annottees), _ => List(logTree(annottees)))
+            case _                                     => prependClassBody(checkGetModuleDef(annottees), _ => List(logTree(annottees)))
           }
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).

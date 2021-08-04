@@ -21,9 +21,9 @@
 
 package io.github.dreamylost.macros
 
-import scala.reflect.macros.whitebox
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import scala.reflect.macros.whitebox
 
 /**
  *
@@ -48,6 +48,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    */
   def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
+
   def createCustomExpr(classDeclOpt: Option[ClassDef], compDeclOpt: Option[ModuleDef]): Any = ???
 
   /**
@@ -122,12 +123,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return Return ClassDef or ModuleDef
    */
-  def checkGetClassDefOrModuleDef(annottees: Seq[Expr[Any]]): c.universe.ImplDef = {
+  def checkGetModuleDef(annottees: Seq[Expr[Any]]): c.universe.ModuleDef = {
     annottees.map(_.tree).toList match {
-      case (classDecl: ClassDef) :: Nil => classDecl
       case (moduleDef: ModuleDef) :: Nil => moduleDef
-      case (classDecl: ClassDef) :: (_: ModuleDef) :: Nil => classDecl
-      case (_: ModuleDef) :: (classDecl: ClassDef) :: Nil => classDecl
+      case (_: ClassDef) :: (moduleDef: ModuleDef) :: Nil => moduleDef
+      case (moduleDef: ModuleDef) :: (_: ClassDef) :: Nil => moduleDef
       case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
     }
   }
@@ -382,7 +382,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
   }
 
-  private[macros] case class Accessor(
+  private[macros] case class ValDefAccessor(
       mods:      Modifiers,
       name:      TermName,
       paramType: Type,
@@ -395,16 +395,15 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Retrieves the accessor fields on a class and returns a Seq of Accessor.
+   * Retrieves the accessor fields on a class and returns a Seq of ValDefAccessor.
    *
    * @param params The list of params retrieved from the class
    * @return An Sequence of tuples where each tuple encodes the string name and string type of a field
    */
-  def accessors(params: Seq[Tree]): Seq[Accessor] = {
+  def valDefAccessors(params: Seq[Tree]): Seq[ValDefAccessor] = {
     params.map {
-      case ValDef(mods, name: TermName, tpt: Tree, rhs) => {
-        Accessor(mods, name, c.typecheck(tq"$tpt", c.TYPEmode).tpe, rhs)
-      }
+      case ValDef(mods, name: TermName, tpt: Tree, rhs) =>
+        ValDefAccessor(mods, name, c.typecheck(tq"$tpt", c.TYPEmode).tpe, rhs)
     }
   }
 
@@ -444,29 +443,31 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     ClassDef(mods, name, tparams, Template(parents, self, body ++ classInfoAction(classInfo)))
   }
 
-//  def prependClassBody(classDecl: ClassDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.ClassDef = {
-//    val classInfo = mapToClassDeclInfo(classDecl)
-//    val ClassDef(mods, name, tparams, impl) = classDecl
-//    val Template(parents, self, body) = impl
-//    ClassDef(mods, name, tparams, Template(parents, self, classInfoAction(classInfo) ++ body))
-//  }
-//
-//  def appendClassSuper(classDecl: ClassDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.ClassDef = {
-//    val classInfo = mapToClassDeclInfo(classDecl)
-//    val ClassDef(mods, name, tparams, impl) = classDecl
-//    val Template(parents, self, body) = impl
-//    ClassDef(mods, name, tparams, Template(parents ++ classInfoAction(classInfo), self, body))
-//  }
-//
-//  def appendModuleSuper(moduleDef: ModuleDef, action: => List[Tree]): c.universe.Tree = {
-//    val classDefinition = mapToModuleDeclInfo(moduleDef)
-//    q"${classDefinition.mods} object ${classDefinition.className.toTermName} extends { ..${classDefinition.earlydefns} } with ..${classDefinition.superClasses ++ action} { ${classDefinition.self} => ..${classDefinition.body} }"
-//  }
-//
-//  def prependModuleBody(moduleDef: ModuleDef, action: => List[Tree]): c.universe.Tree = {
-//    val classDefinition = mapToModuleDeclInfo(moduleDef)
-//    q"${classDefinition.mods} object ${classDefinition.className.toTermName} extends { ..${classDefinition.earlydefns} } with ..${classDefinition.superClasses} { ${classDefinition.self} => ..${action ++ classDefinition.body} }"
-//  }
+  def prependClassBody(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
+    implDef match {
+      case classDecl: ClassDef =>
+        val classInfo = mapToClassDeclInfo(classDecl)
+        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
+        q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${classInfoAction(classInfo) ++ stats} }"
+      case moduleDef: ModuleDef =>
+        val classInfo = mapToModuleDeclInfo(moduleDef)
+        val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
+        q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${classInfoAction(classInfo) ++ stats.toList} }"
+    }
+  }
+
+  def appendClassSuper(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
+    implDef match {
+      case classDecl: ClassDef =>
+        val classInfo = mapToClassDeclInfo(classDecl)
+        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
+        q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ classInfoAction(classInfo)} { $self => ..$stats }"
+      case moduleDef: ModuleDef =>
+        val classInfo = mapToModuleDeclInfo(moduleDef)
+        val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
+        q"$mods object $tpname extends { ..$earlydefns } with ..${parents.toList ++ classInfoAction(classInfo)} { $self => ..$stats }"
+    }
+  }
 
   /**
    * Modify the method body of the method tree.

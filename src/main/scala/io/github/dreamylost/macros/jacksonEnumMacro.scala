@@ -39,7 +39,7 @@ object jacksonEnumMacro {
     }
 
     private def getJacksonTypeReferClasses(valDefs: List[ValDef]): Seq[Tree] = {
-      val safeValDefs = accessors(valDefs)
+      val safeValDefs = valDefAccessors(valDefs)
       // Enum ?
       safeValDefs.filter(_.symbol.name.toTermName.toString == "Value").
         map(getTypeTermName).
@@ -49,11 +49,11 @@ object jacksonEnumMacro {
     }
 
     private def getTypeTermName(valDefTree: Tree): c.universe.TermName = {
-      val safeValDef = accessors(Seq(valDefTree)).head
+      val safeValDef = valDefAccessors(Seq(valDefTree)).head
       getTypeTermName(safeValDef)
     }
 
-    private def getTypeTermName(accessor: Accessor): c.universe.TermName = {
+    private def getTypeTermName(accessor: ValDefAccessor): c.universe.TermName = {
       val paramTypeStr = accessor.paramType.toString
       TermName(paramTypeStr.split("\\.").last)
     }
@@ -63,7 +63,7 @@ object jacksonEnumMacro {
     }
 
     private def replaceAnnotation(valDefTree: Tree): Tree = {
-      val safeValDef = accessors(Seq(valDefTree)).head
+      val safeValDef = valDefAccessors(Seq(valDefTree)).head
       if (safeValDef.typeName.decodedName.toString == "Value") {
         // duplication should be removed
         val mods = safeValDef.mods.mapAnnotations(f => {
