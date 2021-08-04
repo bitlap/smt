@@ -44,7 +44,7 @@ object jsonMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkGetClassDef(annottees)
       if (!isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }

@@ -101,7 +101,7 @@ object constructorMacro {
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val resTree = appendClassBody(
         classDecl,
-        classInfo => Seq(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
+        classInfo => List(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
       c.Expr(
         q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
@@ -110,7 +110,7 @@ object constructorMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkGetClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }

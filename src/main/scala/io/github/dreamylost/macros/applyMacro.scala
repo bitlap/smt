@@ -55,7 +55,7 @@ object applyMacro {
     }
 
     override def impl(annottees: Expr[Any]*): Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkGetClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }

@@ -45,18 +45,6 @@ class LogTest extends AnyFlatSpec with Matchers {
     """@log(verbose=true, logType=io.github.dreamylost.logs.LogType.JLog) class TestClass6(val i: Int = 0, var j: Int)""" should compile
   }
 
-  "log2" should "ok on case class" in {
-    """@log(verbose=true) case class TestClass1(val i: Int = 0, var j: Int) {
-                log.info("hello")
-             }""" should compile
-
-    """@log case class TestClass2(val i: Int = 0, var j: Int)""" should compile
-    """@log() case class TestClass3(val i: Int = 0, var j: Int)""" should compile
-    """@log(verbose=true) case class TestClass4(val i: Int = 0, var j: Int)""" should compile
-    """@log(logType=io.github.dreamylost.logs.LogType.JLog) case class TestClass5(val i: Int = 0, var j: Int)""" should compile
-    """@log(verbose=true, logType=io.github.dreamylost.logs.LogType.JLog) case class TestClass6(val i: Int = 0, var j: Int)""" should compile
-  }
-
   "log3" should "ok on object" in {
     """@log(verbose=true) object TestClass1 {
               log.info("hello")
@@ -141,15 +129,7 @@ class LogTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
   }
 
-  "log10 slf4j" should "ok on case class and it object" in {
-    @log(logType = LogType.JLog)
-    @builder case class TestClass6_1(val i: Int = 0, var j: Int) {
-      log.info("hello world")
-    }
-    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6_1 {
-      log.info("hello world");
-      builder()
-    }
+  "log10 slf4j" should "failed on case class" in {
     """
       |    @log(verbose=false, logType = LogType.JLog)
       |    @builder case class TestClass6_2(val i: Int = 0, var j: Int) {
@@ -158,7 +138,7 @@ class LogTest extends AnyFlatSpec with Matchers {
       |    @log(logType = io.github.dreamylost.logs.LogType.Slf4j) object TestClass6_2 {
       |      log.info("hello world"); builder()
       |    }
-      |""".stripMargin should compile
+      |""".stripMargin shouldNot compile
   }
 
   "log11 slf4j" should "ok on class and it object" in {
@@ -242,14 +222,6 @@ class LogTest extends AnyFlatSpec with Matchers {
       |      log.info("hello world")
       |    }
       |""".stripMargin should compile
-
-    """
-      | import io.github.dreamylost.logs.LogType
-      | @log(logType = LogType.ScalaLoggingLazy)
-      | case class TestClass5(val i: Int = 0, var j: Int) {
-      |      log.info("hello world")
-      |    }
-      |""".stripMargin should compile
   }
 
   "log14 scala loggging strict" should "ok when exists super class" in {
@@ -281,19 +253,7 @@ class LogTest extends AnyFlatSpec with Matchers {
       |      log.info("hello world")
       |    }
       |""".stripMargin should compile
-
-    """
-      | import io.github.dreamylost.logs.LogType
-      | @log(logType = LogType.ScalaLoggingStrict)
-      | case class TestClass5(val i: Int = 0, var j: Int) extends Serializable {
-      |      log.info("hello world")
-      |    }
-      |""".stripMargin should compile
   }
-
-  // We must define the class outside so that the macro has been compiled before testing.
-  @log(logType = LogType.ScalaLoggingStrict)
-  @json case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
 
   "log15 add @transient" should "ok" in {
     """

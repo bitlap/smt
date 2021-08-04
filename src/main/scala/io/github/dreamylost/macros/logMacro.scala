@@ -72,12 +72,20 @@ object logMacro {
       }
       val resTree = annottees.map(_.tree) match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          extractArgumentsDetail._2 match {
+          if(mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)){
+              c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
+          }
+          val newClass = extractArgumentsDetail._2 match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
               q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
             case _ =>
               q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
           }
+          val moduleDef = getModuleDefOption(annottees)
+          q"""
+             ${if (moduleDef.isEmpty) EmptyTree else moduleDef.get}
+             $newClass
+           """
         case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
           extractArgumentsDetail._2 match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
@@ -89,8 +97,7 @@ object logMacro {
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      val res = returnWithCompanionObject(resTree, annottees)
-      printTree(force = extractArgumentsDetail._1, res)
+      printTree(force = extractArgumentsDetail._1, resTree)
       c.Expr[Any](resTree)
     }
   }

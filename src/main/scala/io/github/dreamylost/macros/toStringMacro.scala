@@ -72,9 +72,9 @@ object toStringMacro {
       val argument = Argument(extractArgumentsDetail._1, extractArgumentsDetail._2,
         extractArgumentsDetail._3, extractArgumentsDetail._4)
       // Check the type of the class, which can only be defined on the ordinary class
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
-      val resTree = appendClassBody(annotateeClass, _ => Seq(toStringTemplateImpl(argument, annotateeClass)))
-      val compDeclOpt = getCompanionObject(annottees)
+      val annotateeClass: ClassDef = checkGetClassDef(annottees)
+      val resTree = appendClassBody(annotateeClass, _ => List(toStringTemplateImpl(argument, annotateeClass)))
+      val compDeclOpt = getModuleDefOption(annottees)
       val res = c.Expr(
         q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
