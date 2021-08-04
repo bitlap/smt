@@ -157,7 +157,7 @@ The `@log` does not use mixed or wrapper, but directly uses macro to generate de
         - `io.github.dreamylost.logs.LogType.Slf4j` use `org.slf4j.Logger`
         - `io.github.dreamylost.logs.LogType.ScalaLoggingLazy` implement by `scalalogging.LazyLogging` but field was renamed to `log` 
         - `io.github.dreamylost.logs.LogType.ScalaLoggingStrict` implement by `scalalogging.StrictLogging` but field was renamed to `log`
-    - Support `class`, `case class` and `object`.
+    - Support `class` and `object`.
 
 - Example
 
