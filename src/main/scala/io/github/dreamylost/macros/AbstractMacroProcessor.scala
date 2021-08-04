@@ -49,8 +49,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
 
-  def createCustomExpr(classDeclOpt: Option[ClassDef], compDeclOpt: Option[ModuleDef]): Any = ???
-
   /**
    * Subclasses must override the method.
    *
@@ -108,17 +106,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     }
   }
 
-  def uncheckGetClassDef(annottees: Seq[Expr[Any]]): Option[ClassDef] = {
-    annottees.map(_.tree).toList match {
-      case (classDecl: ClassDef) :: Nil => Some(classDecl)
-      case (classDecl: ClassDef) :: (_: ModuleDef) :: Nil => Some(classDecl)
-      case (_: ModuleDef) :: (classDecl: ClassDef) :: Nil => Some(classDecl)
-      case _ => None
-    }
-  }
-
   /**
-   * Get the class or object.
+   * Check the companion object, and return the object definition.
    *
    * @param annottees
    * @return Return ClassDef or ModuleDef
@@ -145,23 +134,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       case (_: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-    }
-  }
-
-  /**
-   * Wrap tree result with companion object.
-   *
-   * @param resTree class
-   * @param annottees
-   * @return
-   */
-  def returnWithModuleDef(resTree: Tree, annottees: Seq[Expr[Any]]): Tree = {
-    val companionOpt = getModuleDefOption(annottees)
-    companionOpt.fold(resTree) { t =>
-      q"""
-         $resTree
-         $t
-         """
     }
   }
 
