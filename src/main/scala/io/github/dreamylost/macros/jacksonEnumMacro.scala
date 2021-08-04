@@ -81,8 +81,8 @@ object jacksonEnumMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val newClassExpr = collectCustomExpr(annottees: _*)(createCustomExpr)
-      val res = treeReturnWithDefaultCompanionObject(newClassExpr.tree, annottees: _*)
+      val newClassExpr = collectCustomExpr(annottees)(createCustomExpr)
+      val res = returnWithCompanionObject(newClassExpr.tree, annottees)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr(res)
     }
@@ -99,7 +99,7 @@ object jacksonEnumMacro {
         q"""
            ..$typeReferClasses
              
-           $newClass // get field after replacing annotation for each field in constructor
+           $newClass 
          """)
     }
   }

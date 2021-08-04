@@ -92,7 +92,7 @@ object builderMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
+      val resTree = collectCustomExpr(annottees)(createCustomExpr)
       printTree(force = true, resTree.tree)
       resTree
     }

@@ -106,9 +106,11 @@ object constructorMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
-      val res = treeReturnWithDefaultCompanionObject(collectCustomExpr(annottees: _*)(createCustomExpr).tree, annottees: _*)
+      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
+      if (isCaseClass(annotateeClass)) {
+        c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
+      }
+      val res = returnWithCompanionObject(collectCustomExpr(annottees)(createCustomExpr).tree, annottees)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr(res)
     }

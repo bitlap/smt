@@ -89,7 +89,7 @@ object logMacro {
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      val res = treeReturnWithDefaultCompanionObject(resTree, annottees: _*)
+      val res = returnWithCompanionObject(resTree, annottees)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr[Any](resTree)
     }

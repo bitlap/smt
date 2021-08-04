@@ -44,12 +44,12 @@ object equalsAndHashCodeMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
+      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
-      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
-      val res = treeReturnWithDefaultCompanionObject(resTree.tree, annottees: _*)
+      val resTree = collectCustomExpr(annottees)(createCustomExpr)
+      val res = returnWithCompanionObject(resTree.tree, annottees)
       printTree(force = extractArgumentsDetail._1, res)
       c.Expr(res)
     }

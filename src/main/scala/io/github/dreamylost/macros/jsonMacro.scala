@@ -44,11 +44,11 @@ object jsonMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
+      val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
       if (!isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }
-      val resTree = collectCustomExpr(annottees: _*)(createCustomExpr)
+      val resTree = collectCustomExpr(annottees)(createCustomExpr)
       printTree(force = true, resTree.tree)
       resTree
     }

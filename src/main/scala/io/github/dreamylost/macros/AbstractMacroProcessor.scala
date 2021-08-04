@@ -96,7 +96,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return Return ClassDef
    */
-  def checkAndGetClassDef(annottees: Expr[Any]*): ClassDef = {
+  def checkAndGetClassDef(annottees: Seq[Expr[Any]]): ClassDef = {
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil => classDecl
       case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => classDecl
@@ -110,10 +110,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return
    */
-  def tryGetCompanionObject(annottees: Expr[Any]*): Option[ModuleDef] = {
+  def getCompanionObject(annottees: Seq[Expr[Any]]): Option[ModuleDef] = {
     annottees.map(_.tree).toList match {
-      case (classDecl: ClassDef) :: Nil => None
-      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
+      case (_: ClassDef) :: Nil => None
+      case (_: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case (compDecl: ModuleDef) :: Nil => Some(compDecl)
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
@@ -126,8 +126,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return
    */
-  def treeReturnWithDefaultCompanionObject(resTree: Tree, annottees: Expr[Any]*): Tree = {
-    val companionOpt = tryGetCompanionObject(annottees: _*)
+  def returnWithCompanionObject(resTree: Tree, annottees: Seq[Expr[Any]]): Tree = {
+    val companionOpt = getCompanionObject(annottees)
     companionOpt.fold(resTree) { t =>
       q"""
          $resTree
@@ -143,13 +143,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param modifyAction The actual processing function
    * @return Return the result of modifyAction
    */
-  def collectCustomExpr(annottees: Expr[Any]*)
+  def collectCustomExpr(annottees: Seq[Expr[Any]])
     (modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
-    annottees.map(_.tree) match {
-      case (classDecl: ClassDef) :: Nil => modifyAction(classDecl, None).asInstanceOf[Expr[Nothing]]
-      case (classDecl: ClassDef) :: (compDecl: ModuleDef) :: Nil => modifyAction(classDecl, Some(compDecl)).asInstanceOf[Expr[Nothing]]
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-    }
+    val classDef = checkAndGetClassDef(annottees)
+    val compDecl = getCompanionObject(annottees)
+    modifyAction(classDef, compDecl).asInstanceOf[Expr[Nothing]]
   }
 
   /**
@@ -199,9 +197,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return {{ i: Int}}
    */
   def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
-    annotteeClassParams.map {
-      case v: ValDef => q"${v.name}: ${v.tpt}"
-    }
+    annotteeClassParams.map(_.asInstanceOf[ValDef]).map(v => q"${v.name}: ${v.tpt}")
   }
 
   /**
