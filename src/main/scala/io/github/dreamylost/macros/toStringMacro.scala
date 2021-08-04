@@ -74,9 +74,14 @@ object toStringMacro {
       // Check the type of the class, which can only be defined on the ordinary class
       val annotateeClass: ClassDef = checkAndGetClassDef(annottees)
       val resTree = appendClassBody(annotateeClass, _ => Seq(toStringTemplateImpl(argument, annotateeClass)))
-      val res = returnWithCompanionObject(resTree, annottees)
-      printTree(argument.verbose, res)
-      c.Expr[Any](res)
+      val compDeclOpt = getCompanionObject(annottees)
+      val res = c.Expr(
+        q"""
+          ${compDeclOpt.fold(EmptyTree)(x => x)}
+          $resTree
+         """)
+      printTree(force = extractArgumentsDetail._1, res.tree)
+      res
     }
 
     private def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree = {

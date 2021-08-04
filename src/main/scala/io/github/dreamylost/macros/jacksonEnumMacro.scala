@@ -81,10 +81,9 @@ object jacksonEnumMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val newClassExpr = collectCustomExpr(annottees)(createCustomExpr)
-      val res = returnWithCompanionObject(newClassExpr.tree, annottees)
-      printTree(force = extractArgumentsDetail._1, res)
-      c.Expr(res)
+      val res = collectCustomExpr(annottees)(createCustomExpr)
+      printTree(force = extractArgumentsDetail._1, res.tree)
+      res
     }
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
@@ -95,11 +94,17 @@ object jacksonEnumMacro {
       val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" = classDecl
       val newFieldss = paramss.asInstanceOf[List[List[Tree]]].map(_.map(replaceAnnotation))
       val newClass = q"$mods class $tpname[..$tparams] $ctorMods(...$newFieldss) extends ..$bases { ..$body }"
-      c.Expr(
+      val res =
         q"""
            ..$typeReferClasses
              
            $newClass 
+         """
+
+      c.Expr(
+        q"""
+          ${compDeclOpt.fold(EmptyTree)(x => x)}
+          $res
          """)
     }
   }

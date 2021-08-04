@@ -102,7 +102,11 @@ object constructorMacro {
       val resTree = appendClassBody(
         classDecl,
         classInfo => Seq(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
-      c.Expr(resTree)
+      c.Expr(
+        q"""
+          ${compDeclOpt.fold(EmptyTree)(x => x)}
+          $resTree
+         """)
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
@@ -110,9 +114,9 @@ object constructorMacro {
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
-      val res = returnWithCompanionObject(collectCustomExpr(annottees)(createCustomExpr).tree, annottees)
-      printTree(force = extractArgumentsDetail._1, res)
-      c.Expr(res)
+      val res = collectCustomExpr(annottees)(createCustomExpr)
+      printTree(force = extractArgumentsDetail._1, res.tree)
+      res
     }
   }
 

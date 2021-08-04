@@ -49,9 +49,8 @@ object equalsAndHashCodeMacro {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
       val resTree = collectCustomExpr(annottees)(createCustomExpr)
-      val res = returnWithCompanionObject(resTree.tree, annottees)
-      printTree(force = extractArgumentsDetail._1, res)
-      c.Expr(res)
+      printTree(force = extractArgumentsDetail._1, resTree.tree)
+      resTree
     }
 
     /**
@@ -120,11 +119,15 @@ object equalsAndHashCodeMacro {
       }
       val classDefinition = mapToClassDeclInfo(classDecl)
       val res = appendClassBody(classDecl, classInfo =>
-        getEqualsMethod(classDefinition.className, map(classInfo),
-          classDefinition.superClasses, classDefinition.body) ++
+        getEqualsMethod(classDefinition.className, map(classInfo), classDefinition.superClasses, classDefinition.body) ++
           List(getHashcodeMethod(map(classInfo), classDefinition.superClasses))
       )
-      c.Expr(res)
+
+      c.Expr(
+        q"""
+          ${compDeclOpt.fold(EmptyTree)(x => x)}
+          $res
+         """)
     }
   }
 
