@@ -145,7 +145,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 ## @log
 
-`@log`注解不使用混入和包装，而是直接使用宏生成默认的log对象来操作log。
+`@log`注解不使用混入和包装，而是直接使用宏生成默认的log对象来操作log。日志库的依赖需要自己引入。
 
 - 说明
     - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
@@ -155,7 +155,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
         - `io.github.dreamylost.logs.LogType.Slf4j` 使用 `org.slf4j.Logger`
         - `io.github.dreamylost.logs.LogType.ScalaLoggingLazy` 基于 `scalalogging.LazyLogging` 实现，但字段被重命名为`log`
         - `io.github.dreamylost.logs.LogType.ScalaLoggingStrict` 基于 `scalalogging.StrictLogging`实现， 但字段被重命名为`log`
-    - 支持普通类，样例类，单例对象。
+    - 支持普通类，单例对象。
 
 - 示例
 
@@ -259,4 +259,45 @@ class Person extends scala.AnyRef {
     state.map(((x$2) => x$2.hashCode())).foldLeft(0)(((a, b) => 31.$times(a).$plus(b)))
   }
 }
+```  
+
+## @jacksonEnum
+
+`@jacksonEnum`注解用于为类的主构造函数中的所有Scala枚举类型的参数提供`Jackson`序列化的支持。（jackson和jackson-scala-module依赖需要自己引入）
+
+- 说明
+  - `verbose` 指定是否开启详细编译日志。可选，默认`false`。
+  - `nonTypeRefers` 指定不需要创建`Jackson`的`TypeReference`子类的枚举类型。可选，默认`Nil`。
+  - 支持`case class`和`class`。
+  - 如果枚举类型存在`TypeReference`的子类，则不会生成新的子类，也不会重复添加`@JsonScalaEnumeration`注解到参数上。这主要用于解决冲突问题。
+
+- 示例
+
+```scala
+@jacksonEnum(nonTypeRefers = Seq("EnumType")) 
+class B(
+        var enum1: EnumType.EnumType,
+        enum2: EnumType2.EnumType2 = EnumType2.A,
+        i: Int)
+```
+
+宏生成的中间代码：
+
+```scala
+ class EnumType2TypeRefer extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[EnumType2.type] {
+    def <init>() = {
+      super.<init>();
+      ()
+    }
+  };
+  class B extends scala.AnyRef {
+    <paramaccessor> var enum1: JacksonEnumTest.this.EnumType.EnumType = _;
+    @new com.fasterxml.jackson.module.scala.JsonScalaEnumeration(classOf[EnumType2TypeRefer]) <paramaccessor> private[this] val enum2: JacksonEnumTest.this.EnumType2.EnumType2 = _;
+    <paramaccessor> private[this] val i: Int = _;
+    def <init>(enum1: JacksonEnumTest.this.EnumType.EnumType, @new com.fasterxml.jackson.module.scala.JsonScalaEnumeration(classOf[EnumType2TypeRefer]) enum2: JacksonEnumTest.this.EnumType2.EnumType2 = EnumType2.A, i: Int) = {
+      super.<init>();
+      ()
+    }
+  };
+  ()
 ```  

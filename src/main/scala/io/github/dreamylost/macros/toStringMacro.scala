@@ -67,21 +67,26 @@ object toStringMacro {
       case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+    override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // extract parameters of annotation, must in order
-      val argument = Argument(extractArgumentsDetail._1, extractArgumentsDetail._2, extractArgumentsDetail._3, extractArgumentsDetail._4)
-      // Check the type of the class, which can only be defined on the ordinary class
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      val isCase: Boolean = isCaseClass(annotateeClass)
-      val resMethod = toStringTemplateImpl(argument, annotateeClass)
-      val resTree = annotateeClass match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${stats.toList.:+(resMethod)} }"
-      }
+      val argument = Argument(
+        extractArgumentsDetail._1,
+        extractArgumentsDetail._2,
+        extractArgumentsDetail._3,
+        extractArgumentsDetail._4
+      )
+      val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(argument, classDecl)))
+      c.Expr(
+        q"""
+          ${compDeclOpt.fold(EmptyTree)(x => x)}
+          $resTree
+         """)
+    }
 
-      val res = treeResultWithCompanionObject(resTree, annottees: _*)
-      printTree(argument.verbose, res)
-      c.Expr[Any](res)
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+      val res = collectCustomExpr(annottees)(createCustomExpr)
+      printTree(force = extractArgumentsDetail._1, res.tree)
+      res
     }
 
     private def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree = {
@@ -105,16 +110,11 @@ object toStringMacro {
       }
     }
 
-    private def toStringTemplateImpl(argument: Argument, annotateeClass: ClassDef): Tree = {
+    private def getToStringTemplate(argument: Argument, classDecl: ClassDef): Tree = {
       // For a given class definition, separate the components of the class
-      val (className, annotteeClassParams, superClasses, annotteeClassDefinitions) = {
-        annotateeClass match {
-          case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-            (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], parents, stats.asInstanceOf[List[Tree]])
-        }
-      }
+      val classDefinition = mapToClassDeclInfo(classDecl)
       // Check the type of the class, whether it already contains its own toString
-      val annotteeClassFieldDefinitions = annotteeClassDefinitions.filter(p => p match {
+      val annotteeClassFieldDefinitions = classDefinition.body.filter(_ match {
         case _: ValDef => true
         case mem: MemberDef =>
           if (mem.name.decodedName.toString.startsWith("toString")) { // TODO better way
@@ -124,7 +124,7 @@ object toStringMacro {
         case _ => false
       })
 
-      val ctorParams = annotteeClassParams.flatten
+      val ctorParams = classDefinition.classParamss.flatten
       val member = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
       val lastParam = member.lastOption.map {
@@ -133,17 +133,17 @@ object toStringMacro {
       }
       val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(argument, lastParam, acc)}")
       //scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
-      val toString = q"""override def toString: String = ${className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
+      val toString = q"""override def toString: String = ${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
 
       // Have super class ?
-      if (argument.callSuper && superClasses.nonEmpty) {
-        val superClassDef = superClasses.head match {
+      if (argument.callSuper && classDefinition.superClasses.nonEmpty) {
+        val superClassDef = classDefinition.superClasses.head match {
           case tree: Tree => Some(tree) // TODO type check better
           case _          => None
         }
         superClassDef.fold(toString)(_ => {
           val superClass = q"${"super="}"
-          q"override def toString: String = StringContext(${className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
+          q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
         )
       } else {

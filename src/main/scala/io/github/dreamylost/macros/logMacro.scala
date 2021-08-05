@@ -21,9 +21,9 @@
 
 package io.github.dreamylost.macros
 
-import io.github.dreamylost.{ PACKAGE, logs }
-import io.github.dreamylost.logs.{ LogTransferArgument, LogType }
 import io.github.dreamylost.logs.LogType._
+import io.github.dreamylost.logs.{ LogTransferArgument, LogType }
+import io.github.dreamylost.{ PACKAGE, logs }
 
 import scala.reflect.macros.whitebox
 
@@ -53,45 +53,53 @@ object logMacro {
 
     private def getLogType(logType: Tree): LogType = {
       if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
-        evalTree(logType.asInstanceOf[Tree]) // TODO remove asInstanceOf
+        evalTree(logType)
       } else {
         LogType.getLogType(logType.toString())
       }
     }
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val logTree = annottees.map(_.tree) match {
-        // Match a class, and expand, get class/object name.
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          val argument = LogTransferArgument(tpname.asInstanceOf[TypeName].toTermName.decodedName.toString, isClass = true)
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
-        case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          val argument = LogTransferArgument(tpname.asInstanceOf[TermName].decodedName.toString, isClass = false)
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(argument)
+    private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {
+      val buildArg = (name: Name) => LogTransferArgument(name.toTermName.decodedName.toString, isClass = true)
+      (annottees.map(_.tree) match {
+        case (classDef: ClassDef) :: Nil =>
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
+        case (moduleDef: ModuleDef) :: Nil =>
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
+        case (classDef: ClassDef) :: (_: ModuleDef) :: Nil =>
+          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
-      }
+      }).asInstanceOf[Tree]
+    }
 
-      // add result into class
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          extractArgumentsDetail._2 match {
-            case ScalaLoggingLazy | ScalaLoggingStrict =>
-              q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
-            case _ => q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+        case (classDef: ClassDef) :: _ =>
+          if (classDef.mods.hasFlag(Flag.CASE)) {
+            c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
           }
-        case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          extractArgumentsDetail._2 match {
+          val newClass = extractArgumentsDetail._2 match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
-              q"$mods object $tpname extends { ..$earlydefns } with ..${parents ++ Seq(logTree)} { $self => ..$stats }"
-            case _ => q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${Seq(logTree) ++ stats} }"
+              appendImplDefSuper(checkGetClassDef(annottees), _ => List(logTree(annottees)))
+            case _ =>
+              prependImplDefBody(checkGetClassDef(annottees), _ => List(logTree(annottees)))
+          }
+          val moduleDef = getModuleDefOption(annottees)
+          q"""
+             ${if (moduleDef.isEmpty) EmptyTree else moduleDef.get}
+             $newClass
+           """
+        case (_: ModuleDef) :: _ =>
+          extractArgumentsDetail._2 match {
+            case ScalaLoggingLazy | ScalaLoggingStrict => appendImplDefSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
+            case _                                     => prependImplDefBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
           }
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      val res = treeResultWithCompanionObject(resTree, annottees: _*)
-      printTree(force = extractArgumentsDetail._1, res)
+      printTree(force = extractArgumentsDetail._1, resTree)
       c.Expr[Any](resTree)
     }
   }

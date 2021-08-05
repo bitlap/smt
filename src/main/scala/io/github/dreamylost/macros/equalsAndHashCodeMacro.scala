@@ -44,24 +44,13 @@ object equalsAndHashCodeMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val annotateeClass: ClassDef = checkAndGetClassDef(annottees: _*)
-      if (isCaseClass(annotateeClass)) c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $annotateeClass")
-
-      val tmpTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
-      // return with object if it exists
-      val resTree = annotateeClass match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          val originalStatus = q"{ ..$stats }"
-          val append =
-            q"""
-              ..$originalStatus
-              ..$tmpTree
-             """
-          q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${append} }"
+      val annotateeClass: ClassDef = checkGetClassDef(annottees)
+      if (isCaseClass(annotateeClass)) {
+        c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
-      val res = c.Expr[Any](treeResultWithCompanionObject(resTree, annottees: _*))
-      printTree(force = extractArgumentsDetail._1, res.tree)
-      res
+      val resTree = collectCustomExpr(annottees)(createCustomExpr)
+      printTree(force = extractArgumentsDetail._1, resTree.tree)
+      resTree
     }
 
     /**
@@ -76,65 +65,57 @@ object equalsAndHashCodeMacro {
     }
 
     // equals method
-    private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): Tree = {
+    private def getEqualsMethod(className: TypeName, termNames: Seq[TermName], superClasses: Seq[Tree], annotteeClassDefinitions: Seq[Tree]): List[Tree] = {
       val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions).exists {
-        case tree @ q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if tname.asInstanceOf[TermName].decodedName.toString == "canEqual" && paramss.nonEmpty =>
-          val params = paramss.asInstanceOf[List[List[Tree]]].flatten.map(pp => getMethodParamName(pp))
-          params.exists(p => p.decodedName.toString == "Any")
+        case defDef: DefDef if defDef.name.decodedName.toString == "canEqual" && defDef.vparamss.nonEmpty =>
+          val safeValDefs = valDefAccessors(defDef.vparamss.flatten)
+          safeValDefs.exists(_.paramType.toString == "Any") && safeValDefs.exists(_.name.decodedName.toString == "that")
         case _ => false
       }
-      lazy val getEqualsExpr = (termName: TermName) => {
-        q"this.$termName.equals(t.$termName)"
-      }
-      val equalsExprs = termNames.map(getEqualsExpr)
+      val equalsExprs = termNames.map(termName => q"this.$termName.equals(t.$termName)")
       // Make a rough judgment on whether override is needed.
       val modifiers = if (existsSuperClassExcludeSdkClass(superClasses)) Modifiers(Flag.OVERRIDE, typeNames.EMPTY, List()) else Modifiers(NoFlags, typeNames.EMPTY, List())
       val canEqual = if (existsCanEqual) q"" else q"$modifiers def canEqual(that: Any) = that.isInstanceOf[$className]"
-      q"""
-        $canEqual
-
+      val equalsMethod =
+        q"""
         override def equals(that: Any): Boolean =
           that match {
             case t: $className => t.canEqual(this) && Seq(..$equalsExprs).forall(f => f) && ${if (existsSuperClassExcludeSdkClass(superClasses)) q"super.equals(that)" else q"true"}
             case _ => false
         }
        """
+      List(canEqual, equalsMethod)
     }
 
     private def getHashcodeMethod(termNames: Seq[TermName], superClasses: Seq[Tree]): Tree = {
       // we append super.hashCode by `+`
       // the algorithm see https://alvinalexander.com/scala/how-to-define-equals-hashcode-methods-in-scala-object-equality/
-      if (!existsSuperClassExcludeSdkClass(superClasses)) {
-        q"""
+      val superTree = q"super.hashCode"
+      q"""
          override def hashCode(): Int = {
             val state = Seq(..$termNames)
-            state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+            state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b) + ${if (existsSuperClassExcludeSdkClass(superClasses)) superTree else q"0"}
           }
-          """
-      } else {
-        q"""
-         override def hashCode(): Int = {
-            val state = Seq(..$termNames)
-            state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b) + super.hashCode
-          }
-          """
-      }
+       """
     }
 
-    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
-      val (className, annotteeClassParams, annotteeClassDefinitions, superClasses) = classDecl match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =>
-          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], stats.asInstanceOf[Seq[Tree]], parents.asInstanceOf[Seq[Tree]])
-        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
+    override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
+      lazy val map = (classDefinition: ClassDefinition) => {
+        getClassConstructorValDefsFlatten(classDefinition.classParamss).
+          filter(cf => isNotLocalClassMember(cf)).
+          map(_.name.toTermName) ++
+          getInternalFieldsTermNameExcludeLocal(classDefinition.body)
       }
-      val allFieldsTermName = getClassConstructorValDefsFlatten(annotteeClassParams).filter(cf => isNotLocalClassMember(cf)).map(_.name.toTermName)
-      val allTernNames = allFieldsTermName ++ getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions)
-      val hash = getHashcodeMethod(allTernNames, superClasses)
-      val equals = getEqualsMethod(className, allTernNames, superClasses, annotteeClassDefinitions)
+      val classDefinition = mapToClassDeclInfo(classDecl)
+      val res = appendClassBody(classDecl, classInfo =>
+        getEqualsMethod(classDefinition.className, map(classInfo), classDefinition.superClasses, classDefinition.body) ++
+          List(getHashcodeMethod(map(classInfo), classDefinition.superClasses))
+      )
+
       c.Expr(
         q"""
-          ..$equals
-          $hash
+          ${compDeclOpt.fold(EmptyTree)(x => x)}
+          $res
          """)
     }
   }

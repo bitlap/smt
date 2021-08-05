@@ -21,20 +21,27 @@
 
 package io.github.dreamylost
 
+import io.github.dreamylost.macros.jacksonEnumMacro
+
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
+
 /**
+ * annotation to generate equals and hashcode method for classes.
  *
  * @author 梦境迷离
- * @since 2021/7/7
+ * @author choly
+ *
+ * @param verbose       Whether to enable detailed log.
+ * @param nonTypeRefers Whether to not generate the subclass of the TypeReference for paramTypes of class.
+ * @since 2021/8/3
  * @version 1.0
  */
-package object macros {
+@compileTimeOnly("enable macro to expand macro annotations")
+final class jacksonEnum(
+    verbose:       Boolean     = false,
+    nonTypeRefers: Seq[String] = Nil
+) extends StaticAnnotation {
 
-  object ErrorMessage {
-    // common error msg
-    final lazy val ONLY_CLASS = "Annotation is only supported on class."
-    final lazy val ONLY_CASE_CLASS = "Annotation is only supported on case class."
-    final lazy val ONLY_OBJECT_CLASS = "Annotation is only supported on class or object."
-    final lazy val UNEXPECTED_PATTERN = "Unexpected annotation pattern!"
-  }
+  def macroTransform(annottees: Any*): Any = macro jacksonEnumMacro.JacksonEnumProcessor.impl
 
 }

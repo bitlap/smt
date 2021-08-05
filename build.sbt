@@ -24,7 +24,8 @@ lazy val root = (project in file("."))
       "org.apache.logging.log4j" % "log4j-core" % "2.14.1" % Test,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.14.1" % Test,
       "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.9" % Test
+      "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.4" %Test
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil

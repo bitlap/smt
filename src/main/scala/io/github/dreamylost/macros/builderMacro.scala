@@ -40,9 +40,8 @@ object builderMacro {
     }
 
     private def getFieldDefinition(field: Tree): Tree = {
-      field match {
-        case v: ValDef => q"private var ${v.name}: ${v.tpt} = ${v.rhs}"
-      }
+      val ValDef(mods, name, tpt, rhs) = field
+      q"private var $name: $tpt = $rhs"
     }
 
     private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
@@ -56,41 +55,35 @@ object builderMacro {
           }
          """
       }
-      field match {
-        case v: ValDef => valDefMapTo(v)
-      }
+      valDefMapTo(field.asInstanceOf[ValDef])
     }
 
-    private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): Tree = {
+    private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): List[Tree] = {
       val fields = fieldss.flatten
       val builderClassName = getBuilderClassName(typeName)
       val builderFieldMethods = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
       val builderFieldDefinitions = fields.map(f => getFieldDefinition(f))
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-      q"""
-      def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()
-
-      class $builderClassName[..$classTypeParams] {
+      val builderMethod = q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
+      val buulderClass =
+        q"""
+        class $builderClassName[..$classTypeParams] {
 
           ..$builderFieldDefinitions
 
           ..$builderFieldMethods
 
           def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase)}
-      }
-       """
+        }
+         """
+      List(builderMethod, buulderClass)
     }
 
-    override def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val (className, annotteeClassParams, classTypeParams) = classDecl match {
-        // @see https://scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html
-        case q"$mods class $tpname[..$tparams](...$paramss) extends ..$bases { ..$body }" =>
-          (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-        case _ => c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} classDef: $classDecl")
-      }
-
-      val builder = getBuilderClassAndMethod(className, annotteeClassParams, classTypeParams, isCaseClass(classDecl))
-      val compDecl = modifiedCompanion(compDeclOpt, builder, className)
+    override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
+      val classDefinition = mapToClassDeclInfo(classDecl)
+      val builder = getBuilderClassAndMethod(classDefinition.className, classDefinition.classParamss,
+        classDefinition.classTypeParams, isCaseClass(classDecl))
+      val compDecl = appendModuleBody(compDeclOpt, builder, classDefinition.className)
       // Return both the class and companion object declarations
       c.Expr(
         q"""
@@ -100,7 +93,7 @@ object builderMacro {
     }
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val resTree = handleWithImplType(annottees: _*)(modifiedDeclaration)
+      val resTree = collectCustomExpr(annottees)(createCustomExpr)
       printTree(force = true, resTree.tree)
       resTree
     }
