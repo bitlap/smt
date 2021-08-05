@@ -67,19 +67,24 @@ object toStringMacro {
       case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+    override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // extract parameters of annotation, must in order
-      val argument = Argument(extractArgumentsDetail._1, extractArgumentsDetail._2,
-        extractArgumentsDetail._3, extractArgumentsDetail._4)
-      // Check the type of the class, which can only be defined on the ordinary class
-      val annotateeClass: ClassDef = checkGetClassDef(annottees)
-      val resTree = appendClassBody(annotateeClass, _ => List(toStringTemplateImpl(argument, annotateeClass)))
-      val compDeclOpt = getModuleDefOption(annottees)
-      val res = c.Expr(
+      val argument = Argument(
+        extractArgumentsDetail._1,
+        extractArgumentsDetail._2,
+        extractArgumentsDetail._3,
+        extractArgumentsDetail._4
+      )
+      val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(argument, classDecl)))
+      c.Expr(
         q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
           $resTree
          """)
+    }
+
+    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+      val res = collectCustomExpr(annottees)(createCustomExpr)
       printTree(force = extractArgumentsDetail._1, res.tree)
       res
     }
@@ -105,9 +110,9 @@ object toStringMacro {
       }
     }
 
-    private def toStringTemplateImpl(argument: Argument, annotateeClass: ClassDef): Tree = {
+    private def getToStringTemplate(argument: Argument, classDecl: ClassDef): Tree = {
       // For a given class definition, separate the components of the class
-      val classDefinition = mapToClassDeclInfo(annotateeClass)
+      val classDefinition = mapToClassDeclInfo(classDecl)
       // Check the type of the class, whether it already contains its own toString
       val annotteeClassFieldDefinitions = classDefinition.body.filter(_ match {
         case _: ValDef => true

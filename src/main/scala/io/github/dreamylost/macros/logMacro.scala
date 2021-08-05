@@ -59,7 +59,7 @@ object logMacro {
       }
     }
 
-    def logTree(annottees: Seq[c.universe.Expr[Any]]) = {
+    private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {
       val buildArg = (name: Name) => LogTransferArgument(name.toTermName.decodedName.toString, isClass = true)
       (annottees.map(_.tree) match {
         case (classDef: ClassDef) :: Nil =>
@@ -74,8 +74,8 @@ object logMacro {
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {
-        case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
-          if (mods.asInstanceOf[Modifiers].hasFlag(Flag.CASE)) {
+        case (classDef: ClassDef) :: _ =>
+          if (classDef.mods.hasFlag(Flag.CASE)) {
             c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
           }
           val newClass = extractArgumentsDetail._2 match {
@@ -89,10 +89,10 @@ object logMacro {
              ${if (moduleDef.isEmpty) EmptyTree else moduleDef.get}
              $newClass
            """
-        case q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" :: _ =>
+        case (_: ModuleDef) :: _ =>
           extractArgumentsDetail._2 match {
-            case ScalaLoggingLazy | ScalaLoggingStrict => appendClassSuper(checkGetModuleDef(annottees), _ => List(logTree(annottees)))
-            case _                                     => prependClassBody(checkGetModuleDef(annottees), _ => List(logTree(annottees)))
+            case ScalaLoggingLazy | ScalaLoggingStrict => appendClassSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
+            case _                                     => prependClassBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
           }
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).

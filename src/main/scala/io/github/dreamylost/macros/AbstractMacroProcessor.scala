@@ -107,21 +107,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Check the companion object, and return the object definition.
-   *
-   * @param annottees
-   * @return Return ClassDef or ModuleDef
-   */
-  def checkGetModuleDef(annottees: Seq[Expr[Any]]): c.universe.ModuleDef = {
-    annottees.map(_.tree).toList match {
-      case (moduleDef: ModuleDef) :: Nil => moduleDef
-      case (_: ClassDef) :: (moduleDef: ModuleDef) :: Nil => moduleDef
-      case (moduleDef: ModuleDef) :: (_: ClassDef) :: Nil => moduleDef
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
-    }
-  }
-
-  /**
    * Get object if it exists.
    *
    * @param annottees
@@ -129,11 +114,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def getModuleDefOption(annottees: Seq[Expr[Any]]): Option[ModuleDef] = {
     annottees.map(_.tree).toList match {
+      case (moduleDef: ModuleDef) :: Nil => Some(moduleDef)
       case (_: ClassDef) :: Nil => None
-      case (compDecl: ModuleDef) :: (_: ClassDef) :: Nil => Some(compDecl)
       case (_: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
-      case (compDecl: ModuleDef) :: Nil => Some(compDecl)
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      case (moduleDef: ModuleDef) :: (_: ClassDef) :: Nil => Some(moduleDef)
+      case _ => None
     }
   }
 
@@ -159,17 +144,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def isCaseClass(annotateeClass: ClassDef): Boolean = {
     annotateeClass.mods.hasFlag(Flag.CASE)
-  }
-
-  /**
-   * Expand the method params and get the param Name.
-   *
-   * @param field
-   * @return
-   */
-  def getMethodParamName(field: Tree): Name = {
-    val q"$mods val $tname: $tpt = $expr" = field
-    tpt.asInstanceOf[Ident].name.decodedName
   }
 
   /**
