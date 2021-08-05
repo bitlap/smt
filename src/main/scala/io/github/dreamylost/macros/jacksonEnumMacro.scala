@@ -70,11 +70,7 @@ object jacksonEnumMacro {
           if (!f.toString().contains("JsonScalaEnumeration") &&
             !extractArgumentsDetail._2.contains(getTypeTermName(safeValDef).decodedName.toString)) f ++ List(getAnnotation(valDefTree)) else f
         })
-        if (safeValDef.mods.hasFlag(Flag.MUTABLE)) {
-          q"$mods var ${safeValDef.name}: ${safeValDef.paramType} = ${safeValDef.rhs}"
-        } else {
-          q"$mods val ${safeValDef.name}: ${safeValDef.paramType} = ${safeValDef.rhs}"
-        }
+        ValDef(mods, safeValDef.name, safeValDef.tpt, safeValDef.rhs)
       } else {
         valDefTree
       }

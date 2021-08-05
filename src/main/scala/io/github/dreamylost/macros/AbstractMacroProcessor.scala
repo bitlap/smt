@@ -329,15 +329,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   private[macros] case class ValDefAccessor(
-      mods:      Modifiers,
-      name:      TermName,
-      paramType: Type,
-      rhs:       Tree
+      mods: Modifiers,
+      name: TermName,
+      tpt:  Tree,
+      rhs:  Tree
   ) {
 
     def typeName: TypeName = symbol.name.toTypeName
 
     def symbol: c.universe.Symbol = paramType.typeSymbol
+
+    def paramType = c.typecheck(tq"$tpt", c.TYPEmode).tpe
   }
 
   /**
@@ -349,7 +351,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def valDefAccessors(params: Seq[Tree]): Seq[ValDefAccessor] = {
     params.map {
       case ValDef(mods, name: TermName, tpt: Tree, rhs) =>
-        ValDefAccessor(mods, name, c.typecheck(tq"$tpt", c.TYPEmode).tpe, rhs)
+        ValDefAccessor(mods, name, tpt, rhs)
     }
   }
 
@@ -389,7 +391,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     ClassDef(mods, name, tparams, Template(parents, self, body ++ classInfoAction(classInfo)))
   }
 
-  def prependClassBody(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
+  // TODO fix, why cannot use ClassDef apply
+  def prependImplDefBody(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
     implDef match {
       case classDecl: ClassDef =>
         val classInfo = mapToClassDeclInfo(classDecl)
@@ -402,7 +405,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     }
   }
 
-  def appendClassSuper(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
+  def appendImplDefSuper(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
     implDef match {
       case classDecl: ClassDef =>
         val classInfo = mapToClassDeclInfo(classDecl)
