@@ -37,11 +37,11 @@ object LogType extends Enumeration {
     ScalaLoggingLazy -> ScalaLoggingLazyImpl
   )
 
-  def getLogImpl(logType: LogType): BaseLog = {
+  private[dreamylost] def getLogImpl(logType: LogType): BaseLog = {
     types.getOrElse(logType, default = throw new Exception(s"Not support log type: $logType"))
   }
 
-  def getLogType(shortType: String): LogType = {
+  private[dreamylost] def getLogType(shortType: String): LogType = {
     val tpe1 = s"$PACKAGE.logs.$shortType" //LogType.JLog
     val tpe2 = s"$PACKAGE.logs.LogType.$shortType" // JLog
     val v = LogType.values.find(p => {

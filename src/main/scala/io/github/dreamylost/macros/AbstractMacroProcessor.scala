@@ -23,6 +23,7 @@ package io.github.dreamylost.macros
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import scala.annotation.tailrec
 import scala.reflect.macros.whitebox
 
 /**
@@ -440,5 +441,23 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       superClasses:    List[Tree],
       earlydefns:      List[Tree]       = Nil
   )
+
+  def findNameOnEnclosingClass(t: Name): Option[TermName] = {
+    @tailrec
+    def doFind(trees: List[Tree]): Option[TermName] = trees match {
+      case Nil => None
+      case tree :: tail => tree match {
+        case ValDef(_, name, tpt, _) =>
+          if (c.typecheck(tq"$tpt", c.TYPEmode).tpe.toString == t.decodedName.toString) //TODO better
+            Some(name.toTermName) else None
+        case _ => doFind(tail)
+      }
+    }
+
+    c.enclosingClass match {
+      case ClassDef(_, _, _, Template(_, _, body)) => doFind(body)
+      case ModuleDef(_, _, Template(_, _, body))   => doFind(body)
+    }
+  }
 
 }
