@@ -169,4 +169,32 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |    }
       |""".stripMargin shouldNot compile
   }
+
+  "elapsed7" should "ok at object but has runTime Error" in { //Why?
+    """
+      |    object A {
+      |      private final val log1: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(A.getClass)
+      |
+      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      |      def helloScala1: Future[String] = {
+      |        Thread.sleep(1000)
+      |        Future.successful("hello world")
+      |      }
+      |
+      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.DEBUG)
+      |      def helloScala2: Future[String] = {
+      |        Thread.sleep(2000)
+      |        Future {
+      |          "hello world"
+      |        }(scala.concurrent.ExecutionContext.Implicits.global)
+      |      }
+      |
+      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.WARN)
+      |      def helloScala3: Future[String] = Future {
+      |        "hello world"
+      |      }(scala.concurrent.ExecutionContext.Implicits.global)
+      |    }
+      |""".stripMargin should compile
+  }
+
 }

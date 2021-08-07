@@ -62,7 +62,9 @@ object elapsedMacro {
     }
 
     private def getLog(methodName: TermName, logBy: Tree): c.universe.Tree = {
-      implicit val durationApply: c.universe.Liftable[Duration] = (value: Duration) => q"${value._1}"
+      implicit val durationApply: c.universe.Liftable[Duration] = new Liftable[Duration] {
+        override def apply(value: Duration): c.universe.Tree = q"${value._1}"
+      }
       q"""
           val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
           if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked: [", "] elapsed [", "]").s(${methodName.toString}, $valDef.toMillis))
