@@ -29,7 +29,7 @@ import scala.reflect.macros.whitebox
 
 /**
  * 1.The last expression is used as the return value, so time-consuming operations should not be called directly on the last return.
- * 2.
+ * 2.Not support when method body only has one expr
  *
  * @author 梦境迷离
  * @since 2021/8/7
