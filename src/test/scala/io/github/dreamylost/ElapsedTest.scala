@@ -197,4 +197,38 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
   }
 
+  "elapsed8" should "ok at input args" in {
+    @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = LogLevel.WARN)
+    def helloScala1: String = {
+      println("")
+      println("")
+      "hello"
+    }
+    import io.github.dreamylost.LogLevel.WARN
+    @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = WARN)
+    def helloScala2: String = {
+      println("")
+      println("")
+      "hello"
+    }
+
+    @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.WARN)
+    def helloScala3: String = {
+      println("")
+      println("")
+      "hello"
+    }
+  }
+
+  "elapsed9" should "failed at input args" in {
+    """
+      |@elapsed(logLevel = io.github.dreamylost.LogLevel.WARN, limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS))
+      |    def helloScala1: String = {
+      |      println("")
+      |      println("")
+      |      "hello"
+      |    }
+      |""".stripMargin shouldNot compile //args not in order
+  }
+
 }

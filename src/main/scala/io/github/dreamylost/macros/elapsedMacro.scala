@@ -90,11 +90,11 @@ object elapsedMacro {
       } else {
         Nil
       }
-      if (rhsMembers.nonEmpty) {
-        mapToMethodDef(defDef, defDefMap.apply(defDef))
-      } else {
-        defDef
+
+      if (rhsMembers.isEmpty || rhsMembers.size < 2) {
+        c.abort(c.enclosingPosition, "The method returned directly by an expression is not supported.")
       }
+      mapToMethodDef(defDef, defDefMap.apply(defDef))
     }
 
     private def getNewMethodWithFuture(defDef: DefDef): DefDef = {
@@ -152,9 +152,6 @@ object elapsedMacro {
           if (tp <:< typeOf[scala.concurrent.Future[_]]) {
             getNewMethodWithFuture(defDef)
           } else {
-            if (defDef.rhs.nonEmpty && defDef.rhs.children.size < 2) {
-              c.abort(c.enclosingPosition, "The method returned directly by an expression is not supported.")
-            }
             getNewMethod(defDef)
           }
       }
