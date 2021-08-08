@@ -1,6 +1,6 @@
 ## @toString
 
-The `@toString` is used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
+The `@toString` annotation is used to generate `toString` for Scala classes or a `toString` with parameter names for the case classes.
 
 - Note
     - `verbose` Whether to enable detailed log.
@@ -28,7 +28,7 @@ println(new TestClass(1, 2));
 
 ## @json
 
-The `@json` scala macro annotation is the quickest way to add a JSON format to your Play project's case classes.
+The `@json` annotation is the quickest way to add a JSON format to your Play project's case classes.
 
 - Note
     - This annotation is drawn from [json-annotation](https://github.com/kifi/json-annotation) and have some
@@ -54,7 +54,7 @@ Json.fromJson[Person](json)
 
 ## @builder
 
-The `@builder` is used to generate builder pattern for Scala classes.
+The `@builder` annotation is used to generate builder pattern for Scala classes.
 
 - Note
     - Support `case class` / `class`.
@@ -112,7 +112,7 @@ object TestClass1 extends scala.AnyRef {
 
 ## @synchronized
 
-The `@synchronized` is a more convenient and flexible synchronous annotation.
+The `@synchronized` annotation is a more convenient and flexible synchronous annotation.
 
 - Note
     - `lockedName` The name of the custom lock obj, default is `this`.
@@ -147,7 +147,7 @@ def getStr(k: Int): String = this.synchronized(k.$plus(""))
 
 ## @log
 
-The `@log` does not use mixed or wrapper, but directly uses macro to generate default log object and operate log. (Log dependency needs to be introduced)
+The `@log` annotation does not use mixed or wrapper, but directly uses macro to generate default log object and operate log. (Log dependency needs to be introduced)
 
 - Note
     - `verbose` Whether to enable detailed log.
@@ -174,7 +174,7 @@ class TestClass6(val i: Int = 0, var j: Int) {
 
 ## @apply
 
-The `@apply` is used to generate `apply` method for primary construction of ordinary classes.
+The `@apply` annotation is used to generate `apply` method for primary construction of ordinary classes.
 
 - Note
     - `verbose` Whether to enable detailed log.
@@ -190,7 +190,7 @@ println(B2(1, 2))
 
 ## @constructor
 
-The `@constructor` is used to generate secondary constructor method for classes, only when it has internal fields.
+The `@constructor` annotation is used to generate secondary constructor method for classes, only when it has internal fields.
 
 - Note
     - `verbose` Whether to enable detailed log.
