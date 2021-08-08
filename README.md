@@ -34,7 +34,7 @@ Learn Scala macro and abstract syntax tree.
 - `@jacksonEnum`
 - `@elapsed`
 
-> Annotations involving interaction are supported in the idea plug-in (named `Scala-Macro-Tools` in Marketplace).
+> The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
 **[Description of each annotation](./docs/howToUse_en.md)**
 
