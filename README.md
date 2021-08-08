@@ -32,6 +32,7 @@ Learn Scala macro and abstract syntax tree.
 - `@constructor`
 - `@equalsAndHashCode`
 - `@jacksonEnum`
+- `@elapsed`
 
 > Annotations involving interaction are supported in the idea plug-in (named `Scala-Macro-Tools` in Marketplace).
 

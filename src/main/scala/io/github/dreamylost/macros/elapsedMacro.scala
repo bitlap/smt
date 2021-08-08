@@ -28,8 +28,9 @@ import scala.concurrent.duration._
 import scala.reflect.macros.whitebox
 
 /**
- * 1.The last expression is used as the return value, so time-consuming operations should not be called directly on the last return.
- * 2.Not support when method body only has one expr
+ * 1.Annotation is only supported use on non-abstract method.
+ * 2.For methods that are not future, `try finally` is used to implement the timing of the method.
+ * 3.For methods that are Futures, `Future map` is used to implement the timing of the method.
  *
  * @author 梦境迷离
  * @since 2021/8/7
