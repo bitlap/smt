@@ -85,13 +85,11 @@ object elapsedMacro {
     }
 
     private def mapToNewMethod(defDef: DefDef, defDefMap: DefDef => Tree): c.universe.DefDef = {
-      val rhsMembers = if (!defDef.rhs.isEmpty) {
-        defDef.rhs.children
-      } else {
-        Nil
+      if (defDef.rhs.isEmpty) {
+        c.abort(c.enclosingPosition, "Annotation is only supported use on non-abstract method.")
       }
 
-      if (rhsMembers.isEmpty || rhsMembers.size < 2) {
+      if (defDef.rhs.children.size < 2) {
         c.abort(c.enclosingPosition, "The method returned directly by an expression is not supported.")
       }
       mapToMethodDef(defDef, defDefMap.apply(defDef))
@@ -109,55 +107,51 @@ object elapsedMacro {
 
     // There may be a half-way exit, rather than the one whose last expression is exit.
     // Unreliable function!!!
-    private def returnEarly(defDef: DefDef, trees: Tree*): List[Tree] = {
-      val ifElseMatch = (f: If) => {
-        if (f.elsep.nonEmpty) {
-          if (f.elsep.children.nonEmpty && f.elsep.children.size > 1) {
-            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep.children: _*)}")
-          } else {
-            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep)}")
-          }
-        } else {
-          f
-        }
-      }
-      if (trees.isEmpty) return Nil
-      trees.map {
-        case r: Return =>
-          q"""
-             ..${getPrintlnLog(defDef.name)}
-             $r
-            """
-        case f: If => //support if return
-          c.info(c.enclosingPosition, s"returnEarly: thenp: ${f.thenp}, children: ${f.thenp.children}, cond: ${f.cond}", force = true)
-          c.info(c.enclosingPosition, s"returnEarly: elsep: ${f.elsep}, children: ${f.elsep.children}, cond: ${f.cond}", force = true)
-          if (f.thenp.nonEmpty) {
-            if (f.thenp.children.nonEmpty && f.thenp.children.size > 1) {
-              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp.children: _*)}", f.elsep)
-              ifElseMatch(ifTree)
-            } else {
-              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp)}", f.elsep)
-              ifElseMatch(ifTree)
-            }
-          } else {
-            ifElseMatch(f)
-          }
-        case t =>
-          // TODO support for/while/switch
-          c.info(c.enclosingPosition, s"returnEarly: not support expr: $t", force = true)
-          t
-      }.toList
-    }
+    //    private def returnEarly(defDef: DefDef, trees: Tree*): List[Tree] = {
+    //      val ifElseMatch = (f: If) => {
+    //        if (f.elsep.nonEmpty) {
+    //          if (f.elsep.children.nonEmpty && f.elsep.children.size > 1) {
+    //            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep.children: _*)}")
+    //          } else {
+    //            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep)}")
+    //          }
+    //        } else {
+    //          f //no test
+    //        }
+    //      }
+    //      if (trees.isEmpty) return Nil
+    //      trees.map {
+    //        case r: Return =>
+    //          q"""
+    //             ..${getPrintlnLog(defDef.name)}
+    //             $r
+    //            """
+    //        case f: If => //support if return
+    //          c.info(c.enclosingPosition, s"returnEarly: thenp: ${f.thenp}, children: ${f.thenp.children}, cond: ${f.cond}", force = true)
+    //          c.info(c.enclosingPosition, s"returnEarly: elsep: ${f.elsep}, children: ${f.elsep.children}, cond: ${f.cond}", force = true)
+    //          if (f.thenp.nonEmpty) {
+    //            if (f.thenp.children.nonEmpty && f.thenp.children.size > 1) {
+    //              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp.children: _*)}", f.elsep)
+    //              ifElseMatch(ifTree)
+    //            } else {
+    //              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp)}", f.elsep)
+    //              ifElseMatch(ifTree)
+    //            }
+    //          } else {
+    //            ifElseMatch(f) //no test
+    //          }
+    //        case t =>
+    //          // TODO support for/while/switch
+    //          c.info(c.enclosingPosition, s"returnEarly: not support expr: $t", force = true)
+    //          t
+    //      }.toList
+    //    }
 
     private def getNewMethod(defDef: DefDef): DefDef = {
       mapToNewMethod(defDef, defDef => {
-        val heads = defDef.rhs.children.init
-        val last = defDef.rhs.children.last
         q"""
           $getStartExpr
-          ..${returnEarly(defDef, heads: _*)}
-          ..${getPrintlnLog(defDef.name)}
-          $last
+          ${Try.apply(defDef.rhs, Nil, getPrintlnLog(defDef.name))}
         """
       })
     }
