@@ -311,7 +311,7 @@ class B(
       - 方法的所有者作用域内有`slf4j`的`org.slf4j.Logger`对象，则使用该对象，否则使用`println`。
   - `logLevel` 指定打印的日志级别。  
   - 支持方法的返回类型为`Future[_]`。
-      - 使用`map`使用。
+      - 使用`map`实现。
   - 支持方法的返回类型的不是`Future`。
       - 使用`try finally`实现。
   - 仅能在非抽象方法上使用该注解。  
