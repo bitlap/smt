@@ -42,7 +42,7 @@ object elapsedMacro {
     import c.universe._
 
     private lazy val start: c.universe.TermName = TermName("$elapsedBegin")
-    private lazy val valDef = TermName("$elapsed")
+    private lazy val valDef: c.universe.TermName = TermName("$elapsed")
 
     private def getLogLevel(logLevel: Tree): LogLevel = {
       if (logLevel.children.exists(t => t.toString().contains(PACKAGE))) {
@@ -108,7 +108,19 @@ object elapsedMacro {
     }
 
     // There may be a half-way exit, rather than the one whose last expression is exit.
-    private def returnEarly(defDef: DefDef, trees: List[Tree]): List[Tree] = {
+    // Unreliable function!!!
+    private def returnEarly(defDef: DefDef, trees: Tree*): List[Tree] = {
+      val ifElseMatch = (f: If) => {
+        if (f.elsep.nonEmpty) {
+          if (f.elsep.children.nonEmpty && f.elsep.children.size > 1) {
+            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep.children: _*)}")
+          } else {
+            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep)}")
+          }
+        } else {
+          f
+        }
+      }
       if (trees.isEmpty) return Nil
       trees.map {
         case r: Return =>
@@ -117,16 +129,24 @@ object elapsedMacro {
              $r
             """
         case f: If => //support if return
-          if (!f.thenp.isEmpty) {
-            If(f.cond, q"..${returnEarly(defDef, List(f.thenp))}", f.elsep)
-          } else if (!f.elsep.isEmpty) {
-            If(f.cond, f.thenp, q"..${returnEarly(defDef, List(f.elsep))}")
+          c.info(c.enclosingPosition, s"returnEarly: thenp: ${f.thenp}, children: ${f.thenp.children}, cond: ${f.cond}", force = true)
+          c.info(c.enclosingPosition, s"returnEarly: elsep: ${f.elsep}, children: ${f.elsep.children}, cond: ${f.cond}", force = true)
+          if (f.thenp.nonEmpty) {
+            if (f.thenp.children.nonEmpty && f.thenp.children.size > 1) {
+              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp.children: _*)}", f.elsep)
+              ifElseMatch(ifTree)
+            } else {
+              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp)}", f.elsep)
+              ifElseMatch(ifTree)
+            }
           } else {
-            f
+            ifElseMatch(f)
           }
-        case t => t
-        // TODO support for/while/switch
-      }
+        case t =>
+          // TODO support for/while/switch
+          c.info(c.enclosingPosition, s"returnEarly: not support expr: $t", force = true)
+          t
+      }.toList
     }
 
     private def getNewMethod(defDef: DefDef): DefDef = {
@@ -135,7 +155,7 @@ object elapsedMacro {
         val last = defDef.rhs.children.last
         q"""
           $getStartExpr
-          ..${returnEarly(defDef, heads)}
+          ..${returnEarly(defDef, heads: _*)}
           ..${getPrintlnLog(defDef.name)}
           $last
         """

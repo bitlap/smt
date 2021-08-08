@@ -34,7 +34,7 @@ import scala.concurrent.Future
  */
 class ElapsedTest extends AnyFlatSpec with Matchers {
 
-  "elapsed1" should "not calculate anything, the return type is not specified" in {
+  "elapsed1" should "failed, not calculate anything, the return type is not specified" in {
     //Duration and TimeUnit must Full class name
     """
       |    class A {
@@ -53,10 +53,92 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |    }
       |
       |    class D {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.ERROR)
-      |      def j = ???
-      |    }|
+      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      |      def i:String = ???
+      |   }
       |""".stripMargin shouldNot compile
+
+    class A {
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      def j: Int = {
+        var i = 1
+        if (i == 1) {
+          val h = 0
+          var l = 0
+          if (j == 0) {
+            val h = 0
+            var l = 0
+            return 1
+          } else {
+            val j = 0
+            return 0
+          }
+        } else {
+          i
+        }
+        i
+      }
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      def k: Unit = {
+        var i = 1
+        if (i == 1) {
+          val i = 0
+          val k = 0
+          if (i == 0) {
+            1
+          } else { 2 }
+        } else {
+          val u = 0
+          0
+        }
+
+        var k = 1
+        if (k == 1) {
+          val i = 0
+          val k = 0
+          if (i == 0) {
+            return ()
+          } else { return () }
+        } else {
+          val u = 0
+          return u
+        }
+        1
+      }
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      def l: Int = {
+        val i = 0
+        for (i <- Seq(1)) {
+          if (i == 1) {
+            return 1 //not support
+          }
+        }
+        0
+      }
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      def m: Int = {
+        var i = 1
+        if (i == 1) {
+        } else {
+          val u = 0
+          return 0
+        }
+
+        if (i == 1) {
+          return 1
+        } else {
+          val u = 0
+          return 0
+        }
+
+        1
+      }
+
+    }
   }
 
   "elapsed2" should "ok, get the returnType of the method " in {
@@ -124,8 +206,19 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |
       |    val a = new A
       |    a.helloScala1
+      |
+      |     class B {
+      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      |      def helloScala11: String = {
+      |        val s = "hello"
+      |        if (s == "hello") {
+      |          return "world" + "wooo"
+      |        }
+      |        val x = "world"
+      |        return s
+      |      }
+      |    }
       |""".stripMargin should compile
-
   }
 
   "elapsed5" should "ok, return Future" in {
