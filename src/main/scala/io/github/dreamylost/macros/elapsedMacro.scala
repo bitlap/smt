@@ -101,7 +101,7 @@ object elapsedMacro {
         q"""
           $getStartExpr
           val resFuture = ${defDef.rhs}
-          resFuture. map { res => ..${getPrintlnLog(defDef.name)} ; res }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
+          resFuture.map { res => ..${getPrintlnLog(defDef.name)} ; res }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
         """
       })
     }
