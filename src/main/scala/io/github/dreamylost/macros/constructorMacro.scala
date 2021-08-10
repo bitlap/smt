@@ -84,7 +84,7 @@ object constructorMacro {
             this(..${allFieldsTermName.flatten})
             ..${annotteeClassFieldNames.map(f => q"this.$f = $f")}
           }
-          """
+         """
       } else {
         // NOTE: currying constructor overload must be placed in the first bracket block.
         val allClassCtorParamsNameWithType = annotteeClassParams.map(cc => getConstructorParamsNameWithType(cc))

@@ -54,7 +54,7 @@ object elapsedMacro {
     }
 
     private val extractArgumentsDetail: (Duration, LogLevel) = extractArgumentsTuple2 {
-      case q"new elapsed(limit=$limit, logLevel=$logLevel)" => (evalTree[Duration](limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
+      case q"new elapsed(limit=$limit, logLevel=$logLevel)" => (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
@@ -63,12 +63,13 @@ object elapsedMacro {
     }
 
     private def getLog(methodName: TermName, logBy: Tree): c.universe.Tree = {
+      // CI will fail when use lambda.
       implicit val durationApply: c.universe.Liftable[Duration] = new Liftable[Duration] {
         override def apply(value: Duration): c.universe.Tree = q"${value._1}"
       }
       q"""
-          val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
-          if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked: [", "] elapsed [", "]").s(${methodName.toString}, $valDef.toMillis))
+        val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
+        if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked: [", "] elapsed [", "]").s(${methodName.toString}, $valDef.toMillis))
       """
     }
 
@@ -152,7 +153,7 @@ object elapsedMacro {
       mapToNewMethod(defDef, defDef => {
         q"""
           $getStartExpr
-          ${Try.apply(defDef.rhs, Nil, getPrintlnLog(defDef.name))}
+          ${Try(defDef.rhs, Nil, getPrintlnLog(defDef.name))}
         """
       })
     }

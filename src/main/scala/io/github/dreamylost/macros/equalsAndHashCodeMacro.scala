@@ -78,12 +78,12 @@ object equalsAndHashCodeMacro {
       val canEqual = if (existsCanEqual) q"" else q"$modifiers def canEqual(that: Any) = that.isInstanceOf[$className]"
       val equalsMethod =
         q"""
-        override def equals(that: Any): Boolean =
-          that match {
-            case t: $className => t.canEqual(this) && Seq(..$equalsExprs).forall(f => f) && ${if (existsSuperClassExcludeSdkClass(superClasses)) q"super.equals(that)" else q"true"}
-            case _ => false
-        }
-       """
+          override def equals(that: Any): Boolean =
+            that match {
+              case t: $className => t.canEqual(this) && Seq(..$equalsExprs).forall(f => f) && ${if (existsSuperClassExcludeSdkClass(superClasses)) q"super.equals(that)" else q"true"}
+              case _ => false
+          }
+         """
       List(canEqual, equalsMethod)
     }
 

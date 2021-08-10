@@ -31,10 +31,10 @@ package object macros {
 
   object ErrorMessage {
     // common error msg
-    final lazy val ONLY_CLASS = "Annotation is only supported on class."
-    final lazy val ONLY_CASE_CLASS = "Annotation is only supported on case class."
-    final lazy val ONLY_OBJECT_CLASS = "Annotation is only supported on class or object."
-    final lazy val UNEXPECTED_PATTERN = "Unexpected annotation pattern!"
+    final lazy val ONLY_CLASS: String = "Annotation is only supported on class."
+    final lazy val ONLY_CASE_CLASS: String = "Annotation is only supported on case class."
+    final lazy val ONLY_OBJECT_CLASS: String = "Annotation is only supported on class or object."
+    final lazy val UNEXPECTED_PATTERN: String = "Unexpected annotation pattern!"
   }
 
 }

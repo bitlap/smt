@@ -67,15 +67,15 @@ object builderMacro {
       val builderMethod = q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
       val buulderClass =
         q"""
-        class $builderClassName[..$classTypeParams] {
+          class $builderClassName[..$classTypeParams] {
 
-          ..$builderFieldDefinitions
+            ..$builderFieldDefinitions
 
-          ..$builderFieldMethods
+            ..$builderFieldMethods
 
-          def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase)}
-        }
-         """
+            def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase)}
+          }
+        """
       List(builderMethod, buulderClass)
     }
 
