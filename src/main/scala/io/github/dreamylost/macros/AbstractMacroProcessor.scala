@@ -36,12 +36,12 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   import c.universe._
 
-  protected lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
+  protected final lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
+
+  protected val verbose: Boolean = false
 
   /**
    * Subclasses should override the method and return the final result abstract syntax tree, or an abstract syntax tree close to the final result.
-   * When the macro implementation is very simple, we don't need to use this method, so we don't need to implement it.
-   * When there are many macro input parameters, we will not use this method temporarily because we need to pass parameters.
    *
    * @param classDecl
    * @param compDeclOpt
@@ -51,15 +51,27 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
 
   /**
-   * Subclasses must override the method.
+   * Subclasses should override this method if it cannot use `createCustomExpr` method.
    *
    * @param annottees
    * @return Macro expanded final syntax tree.
    */
-  def impl(annottees: Expr[Any]*): Expr[Any]
+  def impl(annottees: Expr[Any]*): Expr[Any] = {
+    checkAnnottees(annottees)
+    val resTree = collectCustomExpr(annottees)(createCustomExpr)
+    printTree(force = verbose, resTree.tree)
+    resTree
+  }
 
   /**
-   * Eval tree.
+   * Check the input tree of the annotation.
+   *
+   * @param annottees
+   */
+  def checkAnnottees(annottees: Seq[Expr[Any]]): Unit = {}
+
+  /**
+   * Eval the input tree.
    *
    * @param tree
    * @tparam T

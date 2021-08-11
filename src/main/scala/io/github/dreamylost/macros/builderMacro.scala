@@ -40,7 +40,7 @@ object builderMacro {
     }
 
     private def getFieldDefinition(field: Tree): Tree = {
-      val ValDef(mods, name, tpt, rhs) = field
+      val ValDef(_, name, tpt, rhs) = field
       q"private var $name: $tpt = $rhs"
     }
 
@@ -90,12 +90,6 @@ object builderMacro {
         $classDecl
         $compDecl
       """)
-    }
-
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val resTree = collectCustomExpr(annottees)(createCustomExpr)
-      printTree(force = true, resTree.tree)
-      resTree
     }
   }
 

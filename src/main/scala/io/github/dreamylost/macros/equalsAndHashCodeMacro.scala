@@ -43,15 +43,15 @@ object equalsAndHashCodeMacro {
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
+    override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
+      super.checkAnnottees(annottees)
       val annotateeClass: ClassDef = checkGetClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
-      val resTree = collectCustomExpr(annottees)(createCustomExpr)
-      printTree(force = extractArgumentsDetail._1, resTree.tree)
-      resTree
     }
+
+    override val verbose: Boolean = extractArgumentsDetail._1
 
     /**
      * Extract the internal fields of members belonging to the class.
