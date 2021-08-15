@@ -56,6 +56,10 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
       |      def i:String = ???
       |   }
+      |    val a = new A()
+      |    val b = new B()
+      |    val c = new C()
+      |    val d = new D()
       |""".stripMargin shouldNot compile
   }
 
@@ -75,14 +79,14 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |        println("hello world")
       |        "hello"
       |      }
-      |    }
+      |}
       |    val a = new A
       |    a.helloWorld
       |    a.helloScala
       |""".stripMargin should compile
   }
 
-  "elapsed3" should "ok, when empty method or return" in {
+  "elapsed3" should "ok" in {
     //Duration and TimeUnit must Full class name
     """
       |    class A {
@@ -104,6 +108,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |        return s
       |      }
       |    }
+      |    val a = new A()
       |""".stripMargin should compile
   }
 
@@ -136,6 +141,8 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |        return s
       |      }
       |    }
+      |
+      |    val b = new B()
       |""".stripMargin should compile
   }
 
@@ -166,19 +173,25 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
   }
 
   "elapsed6" should "failed, not support when only has one expr" in {
-    """
-      |    class B {
-      |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.WARN)
-      |      def helloScala1(t: String): Future[String] = {
-      |        Future(t)(scala.concurrent.ExecutionContext.Implicits.global)
-      |      }
-      |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
-      |      def helloScala2: String = Await.result(helloScala1("world"), Duration.Inf)
-      |
-      |    }
-      |""".stripMargin shouldNot compile
+    class B {
+
+      import scala.concurrent.Await
+      import scala.concurrent.duration.Duration
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.WARN)
+      def helloScala(t: String): Future[String] = {
+        Future(t)(scala.concurrent.ExecutionContext.Implicits.global)
+      }
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.WARN)
+      def helloScala11(t: String): Future[String] = Future(t)(scala.concurrent.ExecutionContext.Implicits.global)
+
+      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = io.github.dreamylost.LogLevel.INFO)
+      def helloScala2: String = {
+        val s = Future("")(scala.concurrent.ExecutionContext.Implicits.global)
+        Await.result(helloScala("world"), Duration.Inf)
+      }
+    }
   }
 
   "elapsed7" should "ok at object but has runTime Error" in { //Why?
