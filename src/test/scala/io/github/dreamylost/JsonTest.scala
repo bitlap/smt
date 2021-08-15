@@ -66,4 +66,12 @@ class JsonTest extends AnyFlatSpec with Matchers {
     println(ret)
     assert(ret == "{\n  \"i\" : 1,\n  \"j\" : 2,\n  \"x\" : \"\",\n  \"o\" : \"\"\n}")
   }
+
+  "json4" should "failed on normal class" in {
+    """
+      |  @json
+      |  @SerialVersionUID(1L)
+      |  class TestClass3(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
+      |""".stripMargin shouldNot compile
+  }
 }

@@ -54,15 +54,15 @@ object applyMacro {
           """)
     }
 
-    override def impl(annottees: Expr[Any]*): Expr[Any] = {
+    override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
+      super.checkAnnottees(annottees)
       val annotateeClass: ClassDef = checkGetClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }
-      val resTree = collectCustomExpr(annottees)(createCustomExpr)
-      printTree(force = extractArgumentsDetail._1, resTree.tree)
-      resTree
     }
+
+    override protected val verbose: Boolean = extractArgumentsDetail._1
   }
 
 }

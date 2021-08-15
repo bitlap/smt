@@ -22,19 +22,24 @@
 package io.github.dreamylost
 
 /**
+ * Log Level for elapsed
  *
  * @author 梦境迷离
- * @since 2021/7/7
+ * @since 2021/8/7
  * @version 1.0
  */
-package object macros {
+object LogLevel extends Enumeration {
 
-  object ErrorMessage {
-    // common error msg
-    final lazy val ONLY_CLASS: String = "Annotation is only supported on class."
-    final lazy val ONLY_CASE_CLASS: String = "Annotation is only supported on case class."
-    final lazy val ONLY_OBJECT_CLASS: String = "Annotation is only supported on class or object."
-    final lazy val UNEXPECTED_PATTERN: String = "Unexpected annotation pattern!"
+  type LogLevel = Value
+  val INFO, WARN, DEBUG = Value
+
+  private[dreamylost] def getLogLevel(shortType: String): LogLevel = {
+    val tpe1 = s"$PACKAGE.elapsed.$shortType" //LogLevel.INFO
+    val tpe2 = s"$PACKAGE.elapsed.LogLevel.$shortType" // INFO
+    val v = LogLevel.values.find(p => {
+      s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe1 ||
+        s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe2 || s"$PACKAGE.elapsed.LogLevel.${p.toString}" == shortType
+    }).get.toString
+    LogLevel.withName(v)
   }
-
 }

@@ -21,20 +21,24 @@
 
 package io.github.dreamylost
 
+import LogLevel.LogLevel
+import io.github.dreamylost.macros.elapsedMacro
+
+import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.concurrent.duration.Duration
+
 /**
+ * annotation to record method cost time.
  *
  * @author 梦境迷离
- * @since 2021/7/7
+ * @param limit    Time consuming condition to trigger log
+ * @param logLevel Log Level
+ * @since 2021/8/7
  * @version 1.0
  */
-package object macros {
+@compileTimeOnly("enable macro to expand macro annotations")
+final class elapsed(limit: Duration, logLevel: LogLevel) extends StaticAnnotation {
 
-  object ErrorMessage {
-    // common error msg
-    final lazy val ONLY_CLASS: String = "Annotation is only supported on class."
-    final lazy val ONLY_CASE_CLASS: String = "Annotation is only supported on case class."
-    final lazy val ONLY_OBJECT_CLASS: String = "Annotation is only supported on class or object."
-    final lazy val UNEXPECTED_PATTERN: String = "Unexpected annotation pattern!"
-  }
+  def macroTransform(annottees: Any*): Any = macro elapsedMacro.ElapsedProcessor.impl
 
 }

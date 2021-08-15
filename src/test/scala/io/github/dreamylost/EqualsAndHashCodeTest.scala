@@ -215,4 +215,13 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
+  "equals7" should "failed on case class" in {
+    """
+      |    @equalsAndHashCode(excludeFields = Nil)
+      |    case class Employee4(name: String, age: Int, var role: String) extends Person(name, age) {
+      |      val i = 0
+      |      def hello: String = ???
+      |    }
+      |""".stripMargin shouldNot compile
+  }
 }

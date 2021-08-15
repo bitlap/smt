@@ -76,11 +76,7 @@ object jacksonEnumMacro {
       }
     }
 
-    override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
-      val res = collectCustomExpr(annottees)(createCustomExpr)
-      printTree(force = extractArgumentsDetail._1, res.tree)
-      res
-    }
+    override val verbose: Boolean = extractArgumentsDetail._1
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // return all typeReferClasses and new classDef
