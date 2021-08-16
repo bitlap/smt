@@ -51,7 +51,7 @@
 
 > Intellij插件 `Scala-Macro-Tools`。
 
-[各个注解的说明](./docs/howToUse.md)
+[各个注解的说明](./docs/中文简体)
 
 # 如何使用
 
