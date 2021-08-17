@@ -69,7 +69,7 @@ object elapsedMacro {
       }
       q"""
         val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
-        if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked: [", "] elapsed [", "]").s(${methodName.toString}, $valDef.toMillis))
+        if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s(${methodName.toString}, $valDef.toMillis))
       """
     }
 
