@@ -462,7 +462,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   )
 
   /**
-   * Finds the specified Name in the enclosingClass definition.
+   * Find the specified Name in the enclosingClass definition.
    *
    * @param t
    * @return Return a {{ Option[TermName] }}
