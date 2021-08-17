@@ -45,16 +45,15 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param classDecl
    * @param compDeclOpt
-   * @return c.Expr[Any], Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
-   *
+   * @return `c.Expr[Any]`, Why use Any? The dependent type need aux-pattern in scala2. Now let's get around this.
    */
   def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = ???
 
   /**
-   * Subclasses should override this method if it cannot use `createCustomExpr` method.
+   * Subclasses should override this method if it cannot use [[createCustomExpr]] method.
    *
    * @param annottees
-   * @return Macro expanded final syntax tree.
+   * @return Return a macro expanded final syntax tree.
    */
   def impl(annottees: Expr[Any]*): Expr[Any] = {
     checkAnnottees(annottees)
@@ -87,7 +86,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     partialFunction.apply(c.prefix.tree)
   }
 
-  def extractArgumentsTuple4[T1: WeakTypeTag, T2: WeakTypeTag, T3: WeakTypeTag, T4: WeakTypeTag](partialFunction: PartialFunction[Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
+  def extractArgumentsTuple4[T1: WeakTypeTag, T2: WeakTypeTag, T3: WeakTypeTag, T4: WeakTypeTag]
+    (partialFunction: PartialFunction[Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
     partialFunction.apply(c.prefix.tree)
   }
 
@@ -100,7 +100,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def printTree(force: Boolean, resTree: Tree): Unit = {
     c.info(
       c.enclosingPosition,
-      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
+      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
+        s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
       force = force
     )
   }
@@ -109,7 +110,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Check the class and its companion object, and return the class definition.
    *
    * @param annottees
-   * @return Return ClassDef
+   * @return Return a [[ClassDef]]
    */
   def checkGetClassDef(annottees: Seq[Expr[Any]]): ClassDef = {
     annottees.map(_.tree).toList match {
@@ -123,7 +124,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Get object if it exists.
    *
    * @param annottees
-   * @return
+   * @return Return a optional [[ModuleDef]]
    */
   def getModuleDefOption(annottees: Seq[Expr[Any]]): Option[ModuleDef] = {
     annottees.map(_.tree).toList match {
@@ -140,7 +141,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param annottees
    * @param modifyAction The actual processing function
-   * @return Return the result of modifyAction
+   * @return Return the result of modifyAction function
    */
   def collectCustomExpr(annottees: Seq[Expr[Any]])
     (modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
@@ -163,7 +164,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Check whether the mods of the fields has a `private[this]` or `protected[this]`, because it cannot be used out of class.
    *
    * @param tree Tree is a field or method?
-   * @return false if mods exists private[this] or protected[this]
+   * @return Return false if mods exists `private[this]` or `protected[this]`
    */
   def isNotLocalClassMember(tree: Tree): Boolean = {
     lazy val modifierNotLocal = (mods: Modifiers) => {
@@ -182,7 +183,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Get the field TermName with type.
    *
    * @param annotteeClassParams
-   * @return {{ i: Int}}
+   * @return Return a sequence of [[Tree]], each one is `tname: tpt`
    */
   def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
     annotteeClassParams.map(_.asInstanceOf[ValDef]).map(v => q"${v.name}: ${v.tpt}")
@@ -194,14 +195,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param compDeclOpt
    * @param codeBlocks
    * @param className
-   * @return
+   * @return Return a [[ModuleDef]] which was appended codeblocks, ModuleDef may already exist or may be newly created
    */
   def appendModuleBody(
     compDeclOpt: Option[ModuleDef],
     codeBlocks:  List[Tree], className: TypeName): Tree = {
     compDeclOpt.fold(q"object ${className.toTermName} { ..$codeBlocks }") {
       compDecl =>
-        c.info(c.enclosingPosition, s"appendModuleBody className: $className, exists obj: $compDecl", force = true)
         val ModuleDef(mods, name, impl) = compDecl
         val Template(parents, self, body) = impl
         val newImpl = Template(parents, self, body ++ codeBlocks)
@@ -210,9 +210,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Extract the internal fields of members belonging to the class， but not in primary constructor.
+   * Extract the internal fields of members belonging to the class, but not in primary constructor.
    *
    * @param annotteeClassDefinitions
+   * @return Return a sequence of [[ValDef]]
    */
   def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] = {
     annotteeClassDefinitions.filter(_ match {
@@ -225,26 +226,27 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the constructor params ValDef and flatten for currying.
    *
    * @param annotteeClassParams
-   * @return {{ Seq(ValDef) }}
+   * @return Return a sequence of [[ValDef]]
    */
   def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] = {
     annotteeClassParams.flatten.map(_.asInstanceOf[ValDef])
   }
 
   /**
-   * Extract the constructor params ValDef not flatten.
+   * Extract the constructor params [[ValDef]] not flatten.
    *
    * @param annotteeClassParams
-   * @return {{ Seq(Seq(ValDef)) }}
+   * @return Return a double sequence of [[ValDef]]
    */
   def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] = {
     annotteeClassParams.map(_.map(_.asInstanceOf[ValDef]))
   }
 
   /**
-   * Extract the methods belonging to the class， contains Secondary Constructor.
+   * Extract the methods belonging to the class, contains Secondary Constructor.
    *
    * @param annotteeClassDefinitions
+   * @return Return a sequence of [[DefDef]]
    */
   def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] = {
     annotteeClassDefinitions.filter(_ match {
@@ -260,7 +262,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param fieldss
    * @param isCase
    * @return A constructor with currying, it not contains tpt, provide for calling method.
-   * @example {{ new TestClass12(i)(j)(k)(t) }}
+   * @example Return a tree, such as `new TestClass12(i)(j)(k)(t)`
    */
   def getConstructorWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
     val fieldssValDefNotFlatten = getClassConstructorValDefsNotFlatten(fieldss)
@@ -283,7 +285,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param typeName
    * @param fieldss
    * @return A apply method with currying.
-   * @example {{ def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t) }}
+   * @example Return a tree, such as `def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)`
    */
   def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
     val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
@@ -325,17 +327,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * This is because the generic parameters of a class cannot be used directly in the return type, and need to be converted.
    *
    * @param tpParams
-   * @return
+   * @return Return a sequence of [[TypeName]]
    */
   def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] = {
     tpParams.map(_.asInstanceOf[TypeDef].name)
   }
 
   /**
-   * Is there a parent class? Does not contains sdk class, such as AnyRef Object
+   * Is there a parent class? Does not contains sdk class, such as AnyRef and Object.
    *
    * @param superClasses
-   * @return
+   * @return Return true if there is a non-SDK super class
    */
   def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean = {
     superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
@@ -356,10 +358,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Retrieves the accessor fields on a class and returns a Seq of ValDefAccessor.
+   * Retrieves the accessor fields on a class and returns a Seq of [[ValDefAccessor]].
    *
    * @param params The list of params retrieved from the class
-   * @return An Sequence of tuples where each tuple encodes the string name and string type of a field
+   * @return Return a sequence of [[ValDefAccessor]]
    */
   def valDefAccessors(params: Seq[Tree]): Seq[ValDefAccessor] = {
     params.map {
@@ -372,21 +374,26 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the necessary structure information of the class for macro programming.
    *
    * @param classDecl
+   * @return Return the expansion of the class definition as [[ClassDefinition]]
    */
   def mapToClassDeclInfo(classDecl: ClassDef): ClassDefinition = {
     val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
     val (className, classParamss, classTypeParams) = (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-    ClassDefinition(self.asInstanceOf[ValDef], mods.asInstanceOf[Modifiers], className, classParamss, classTypeParams, stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
+    ClassDefinition(self.asInstanceOf[ValDef], mods.asInstanceOf[Modifiers], className,
+      classParamss, classTypeParams, stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
   }
 
   /**
    * Extract the necessary structure information of the moduleDef for macro programming.
    *
    * @param moduleDef
+   * @return Return the expansion of the class definition as [[ClassDefinition]]
    */
   def mapToModuleDeclInfo(moduleDef: ModuleDef): ClassDefinition = {
     val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
-    ClassDefinition(self.asInstanceOf[ValDef], mods.asInstanceOf[Modifiers], tpname.asInstanceOf[TermName].toTypeName, Nil, Nil, stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
+    ClassDefinition(self.asInstanceOf[ValDef], mods.asInstanceOf[Modifiers],
+      tpname.asInstanceOf[TermName].toTypeName, Nil, Nil,
+      stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
   }
 
   /**
@@ -395,7 +402,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param classDecl
    * @param classInfoAction Content body added in class definition
-   * @return
+   * @return Return a new [[ClassDef]]
    */
   def appendClassBody(classDecl: ClassDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.ClassDef = {
     val classInfo = mapToClassDeclInfo(classDecl)
@@ -436,7 +443,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param defDef
    * @param defBodyAction Method body of final result
-   * @return
+   * @return Return a new [[DefDef]] which changed by defBodyAction function
    */
   def mapToMethodDef(defDef: DefDef, defBodyAction: => Tree): c.universe.DefDef = {
     val DefDef(mods, name, tparams, vparamss, tpt, rhs) = defDef
@@ -454,6 +461,12 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       earlydefns:      List[Tree]       = Nil
   )
 
+  /**
+   * Find the specified Name in the enclosingClass definition.
+   *
+   * @param t
+   * @return Return a optional [[TermName]]
+   */
   def findNameOnEnclosingClass(t: Name): Option[TermName] = {
     @tailrec
     def doFind(trees: List[Tree]): Option[TermName] = trees match {
