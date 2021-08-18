@@ -16,21 +16,6 @@
 
 **[中文说明](./README_CN.md) | [English](./README.md)**
 
-# 我能学到什么
-
-- Scala2 宏编程
-    - 了解Scala反射
-    - 熟悉插值语法的应用，了解Scala Spec
-    - 了解Scala AST相关的基本使用
-    - 知道如何编写宏注解（宏拓展）
-    - 知道如何使用宏生成对象，类，方法，字段
-- 其他
-    - 知道劝退人的SBT如何优雅配置，诸如发布到云仓库，多版本构建，多模块项目
-    - 了解如何利用Intellij-Scala插件编写自己的Scala插件
-    - 了解Intellij是怎样支持语法提示的，插件工作流程
-    - 知道如何写好scalatest单元测试
-    - 类似的其他思考
-
 # 环境
 
 - 使用 Java 8, 11 编译通过
@@ -51,7 +36,9 @@
 
 > Intellij插件 `Scala-Macro-Tools`。
 
-[各个注解的说明](./docs/中文简体)
+# 文档
+
+[https://bitlap.org/zh-CN/lab/smt](https://bitlap.org/zh-CN/lab/smt)
 
 # 如何使用
 

@@ -36,7 +36,9 @@ Learn Scala macro and abstract syntax tree.
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
-**[Description of each annotation](./docs/English)**
+# Document
+
+[https://bitlap.org/lab/smt](https://bitlap.org/lab/smt)
 
 # How to use
 
