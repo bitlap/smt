@@ -3,7 +3,7 @@ import org.jetbrains.sbtidea.Keys._
 name := "scala-macro-tools-intellij-plugin"
 organization := "io.github.jxnu-liguobin"
 
-lazy val scala213 = "2.13.6"
+lazy val scala213 = "2.13.7"
 
 scalaVersion := scala213
 

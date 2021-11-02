@@ -6,7 +6,7 @@ organization := "io.github.jxnu-liguobin"
 
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
-lazy val scala213 = "2.13.6"
+lazy val scala213 = "2.13.7"
 lazy val lastVersionForExamples = "0.3.0"
 
 scalaVersion := scala213
