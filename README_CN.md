@@ -33,6 +33,7 @@
 - `@equalsAndHashCode`
 - `@jacksonEnum`
 - `@elapsed`
+- `@JavaCompatible`
 
 > Intellij插件 `Scala-Macro-Tools`。
 
