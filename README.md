@@ -33,6 +33,7 @@ Learn Scala macro and abstract syntax tree.
 - `@equalsAndHashCode`
 - `@jacksonEnum`
 - `@elapsed`
+- `@JavaCompatible`
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
