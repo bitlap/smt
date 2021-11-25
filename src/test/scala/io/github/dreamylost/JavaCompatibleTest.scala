@@ -57,6 +57,13 @@ class JavaCompatibleTest extends AnyFlatSpec with Matchers {
       |    val t = new A()
       |    assert(t.a == 0 && t.g == '?')
       |""".stripMargin shouldNot compile
+
+    """
+      |    @JavaCompatible
+      |    class A(val a: Int, val b: Short)
+      |    val t = new A()
+      |    assert(t.a == 0)
+      |""".stripMargin shouldNot compile
   }
 
   "JavaCompatible4" should "ok" in {
@@ -81,5 +88,25 @@ class JavaCompatibleTest extends AnyFlatSpec with Matchers {
     val t = new A()
     assert(t.getA == 0)
     assert(t.getB == 0)
+  }
+
+  "JavaCompatible7" should "ok when exists super" in {
+    import scala.beans.BeanProperty
+    class B(@BeanProperty val name: String, @BeanProperty val id: Int)
+    @JavaCompatible
+    case class A(a: Int, b: Short, override val name: String, override val id: Int) extends B(name, id)
+    val t = new A()
+    assert(t.getA == 0)
+    assert(t.getB == 0)
+  }
+
+  // Why this code compile failed but test in """ """.stripMargin will pass?
+  "JavaCompatible8" should "fail when exists super but not use @BeanProperty" in {
+    """
+      |    class B(val name: String, val id: Int)
+      |    @JavaCompatible
+      |    case class A(a: Int, b: Short, override val name: String, override val id: Int) extends B(name, id)
+      |    val t = new A()
+      |""".stripMargin should compile
   }
 }

@@ -18,8 +18,8 @@ Learn Scala macro and abstract syntax tree.
 
 # Environment
 
-- It is compiled in Java 8, 11
-- It is compiled in Scala 2.11.x ~ 2.13.x
+- Compile passed in Java 8、11
+- Compile passed in Scala 2.11.12、2.12.14、2.13.6
 
 # Features
 
