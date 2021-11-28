@@ -21,7 +21,6 @@
 
 package io.github.dreamylost.logs.extension
 
-import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -30,6 +29,6 @@ import org.slf4j.LoggerFactory
  */
 trait ScalaStrictLogging {
 
-  protected val log: Logger = Logger(LoggerFactory.getLogger(getClass.getName))
+  protected val log: com.typesafe.scalalogging.Logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(getClass.getName))
 
 }
