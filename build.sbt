@@ -19,6 +19,8 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "com.alipay.sofa" % "jraft-core" % "1.3.8",
+      "io.grpc" % "grpc-protobuf" % "1.42.1",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
       "org.apache.logging.log4j" % "log4j-api" % "2.14.1" % Test,
       "org.apache.logging.log4j" % "log4j-core" % "2.14.1" % Test,
