@@ -37,8 +37,8 @@ object Processable {
 
   def apply[Resp <: Message, P <: CustomRpcProcessor[Resp], S]
     (
-    processRequest:   (Resp, RpcRequestClosure, S) ⇒ Message,
-    processException: (RpcContext, Exception, S) ⇒ Message,
+    processRequest:   (Resp, RpcRequestClosure, S) ⇒ Resp,
+    processException: (RpcContext, Exception, S) ⇒ Resp,
     service:          S,
     defaultResp:      Resp
   ): P = macro processorImpl[Resp, P, S]
