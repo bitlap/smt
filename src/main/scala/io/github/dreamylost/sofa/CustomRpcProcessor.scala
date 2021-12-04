@@ -21,18 +21,24 @@
 
 package io.github.dreamylost.sofa
 
-import com.alipay.sofa.jraft.rpc.RpcRequestProcessor
+import com.alipay.sofa.jraft.rpc.{ RpcContext, RpcRequestClosure, RpcRequestProcessor }
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.LazyLogging
 
 import java.util.concurrent.Executor
-import com.alipay.sofa.jraft.rpc.RpcRequestClosure
-import com.alipay.sofa.jraft.rpc.RpcContext
+import scala.reflect.ClassTag
 
-abstract class CustomRpcProcessor[T <: Message](executor: Executor, override val defaultResp: Message)
-  extends RpcRequestProcessor[T](executor, defaultResp) with LazyLogging {
+/**
+ * @param executor    The executor used to execute the specified sofa RPC request
+ * @param defaultResp Default message instance for sofa
+ * @tparam Req The Request proto message for sofa
+ * @author 梦境迷离
+ * @version 1.0,2021/12/3
+ */
+abstract class CustomRpcProcessor[Req <: Message](executor: Executor, override val defaultResp: Message)(implicit reqClassTag: ClassTag[Req])
+  extends RpcRequestProcessor[Req](executor, defaultResp) with LazyLogging {
 
-  override def handleRequest(rpcCtx: RpcContext, request: T) {
+  override def handleRequest(rpcCtx: RpcContext, request: Req) {
     try {
       val msg = processRequest(request, new RpcRequestClosure(rpcCtx, this.defaultResp))
       if (msg != null) {
@@ -46,4 +52,8 @@ abstract class CustomRpcProcessor[T <: Message](executor: Executor, override val
   }
 
   def processError(rpcCtx: RpcContext, exception: Exception): Message
+
+  override def interest(): String = {
+    reqClassTag.runtimeClass.getName
+  }
 }

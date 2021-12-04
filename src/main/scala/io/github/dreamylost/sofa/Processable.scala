@@ -23,64 +23,23 @@ package io.github.dreamylost.sofa
 
 import com.alipay.sofa.jraft.rpc.{ RpcContext, RpcRequestClosure }
 import com.google.protobuf.Message
-import java.time.format.DateTimeFormatter
-import java.time.ZonedDateTime
-import java.util.UUID
-import scala.reflect.macros.blackbox
 
 /**
+ * The Processable util to generate processor  for alipay sofa jraft rpc.
  *
  * @author 梦境迷离
  * @version 1.0,2021/12/3
  */
 object Processable {
 
-  def apply[Resp <: Message, P <: CustomRpcProcessor[Resp], S]
+  def apply[Req <: Message, Service, Executor <: java.util.concurrent.Executor]
     (
-    processRequest:   (Resp, RpcRequestClosure, S) ⇒ Resp,
-    processException: (RpcContext, Exception, S) ⇒ Resp,
-    service:          S,
-    defaultResp:      Resp
-  ): P = macro processorImpl[Resp, P, S]
-
-  def processorImpl[Resp: c.WeakTypeTag, P: c.WeakTypeTag, S: c.WeakTypeTag](c: blackbox.Context)(
-    processRequest:   c.Expr[(Resp, RpcRequestClosure, S) ⇒ Resp],
-    processException: c.Expr[(RpcContext, Exception, S) ⇒ Resp],
-    service:          c.Expr[S],
-    defaultResp:      c.Expr[Resp]
-  ): c.Expr[P] = {
-    import c.universe._
-    val className = TypeName(UUID.randomUUID().toString.replace("-", ""))
-    val serviceType = weakTypeOf[S]
-    val requestProtoType = weakTypeOf[Resp]
-    val processor =
-      q"""
-       class $className(private val service: $serviceType, executor: java.util.concurrent.Executor = null)
-         extends io.github.dreamylost.sofa.CustomRpcProcessor[$requestProtoType](executor, $defaultResp) {
-
-         override def processRequest(request: $requestProtoType, done: com.alipay.sofa.jraft.rpc.RpcRequestClosure): Message = {
-            $processRequest(request, done, service)
-         }
-
-         override def processError(rpcCtx: com.alipay.sofa.jraft.rpc.RpcContext, exception: Exception): com.google.protobuf.Message 
-            = $processException(rpcCtx, exception, $service)
-
-         override def interest(): String = classOf[$requestProtoType].getName
-
-       }
-       new $className($service)
-     """
-    val ret = c.Expr[P](processor)
-    c.info(
-      c.enclosingPosition,
-      s"\n###### Time: ${
-        ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
-      } " +
-        s"Expanded macro start ######\n" + ret.toString() + "\n###### Expanded macro end ######\n",
-      force = true
-    )
-    ret
-  }
+    processRequest:   (Service, RpcRequestClosure, Req) ⇒ Message,
+    processException: (Service, RpcContext, Exception) ⇒ Message,
+    service:          Service,
+    defaultResp:      Message,
+    executor:         Executor
+  ): CustomRpcProcessor[Req] = macro ProcessableMacro.processorImpl[Req, Service, Executor]
 
 }
 

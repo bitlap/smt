@@ -55,6 +55,8 @@ lazy val root = (project in file("."))
       pushChanges
     )
   ).settings(Publishing.publishSettings).settings(paradise()).enablePlugins(AutomateHeaderPlugin)
+//  enablePlugins(ProtocPlugin)
+
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
