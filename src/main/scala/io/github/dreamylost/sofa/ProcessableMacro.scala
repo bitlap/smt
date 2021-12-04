@@ -55,11 +55,12 @@ object ProcessableMacro {
          extends io.github.dreamylost.sofa.CustomRpcProcessor[$requestProtoType](executor, $defaultResp) {
 
          override def processRequest(request: $requestProtoType, done: com.alipay.sofa.jraft.rpc.RpcRequestClosure): com.google.protobuf.Message = {
-            $processRequest($service, done, request)
+            $processRequest(service, done, request)
          }
 
-         override def processError(rpcCtx: com.alipay.sofa.jraft.rpc.RpcContext, exception: Exception): com.google.protobuf.Message
-            = $processException($service, rpcCtx, exception)
+         override def processError(rpcCtx: com.alipay.sofa.jraft.rpc.RpcContext, exception: Exception): com.google.protobuf.Message = {
+            $processException(service, rpcCtx, exception)
+         }
        }
        new $className($service, $executor)
      """
@@ -74,5 +75,4 @@ object ProcessableMacro {
     )
     ret
   }
-
 }

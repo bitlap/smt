@@ -11,5 +11,4 @@ class NetService {
   def openSession(username: String, password: String, configuration: Map[String, String] = Map.empty): String = {
     username + password
   }
-
 }

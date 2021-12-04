@@ -28,9 +28,10 @@ import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent.Executor
 import scala.reflect.ClassTag
 
-/** Common processor
+/**
+ * Common processor
  *
- * @param executor    The executor used to execute the specified sofa RPC request
+ * @param executor  The executor used to execute the specified sofa RPC request
  * @param defaultResp Default message instance for sofa
  * @tparam Req The Request proto message for sofa
  * @author 梦境迷离
