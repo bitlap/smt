@@ -23,12 +23,12 @@ package io.github.dreamylost.sofa
 
 import com.alipay.sofa.jraft.rpc.{ RpcContext, RpcRequestClosure }
 import com.google.protobuf.Message
+import io.github.dreamylost.macros.MacroCache
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 import scala.reflect.macros.blackbox
-import io.github.dreamylost.macros.MacroCache
+
 /**
  * Processable macro
  *
@@ -38,7 +38,7 @@ import io.github.dreamylost.macros.MacroCache
  */
 object ProcessableMacro {
 
-  private val classNamePrefix: String = "AnonProcessor$_"
+  private val classNamePrefix: String = "AnonProcessor$"
 
   def processorWithDefaultRespServiceImpl[Req <: Message: c.WeakTypeTag, Resp <: Message: c.WeakTypeTag, Service: c.WeakTypeTag]
     (c: blackbox.Context)
