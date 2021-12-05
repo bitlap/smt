@@ -29,6 +29,7 @@ import org.scalatest.matchers.should.Matchers
 import java.util.concurrent.Executor
 import io.github.dreamylost.sofa.Processable
 import scala.jdk.CollectionConverters.MapHasAsScala
+import io.github.dreamylost.sofa.CustomRpcProcessor
 
 /**
  *
@@ -39,7 +40,7 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
 
   // origin
   "Processable1" should "compile ok" in {
-    val openSession = Processable[BOpenSessionReq, NetService, Executor](
+    val openSession: CustomRpcProcessor[BOpenSessionReq] = Processable[BOpenSessionReq, NetService, Executor](
       new NetService, BOpenSessionResp.getDefaultInstance, (command: Runnable) => ???
     )(
         (service, rpcRequestClosure, req) => {
@@ -64,7 +65,7 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
 
   //  // simple v1
   "Processable2" should "compile ok" in {
-    val openSession = Processable[NetService, BOpenSessionReq, BOpenSessionResp](new NetService)(
+    val openSession: CustomRpcProcessor[BOpenSessionReq] = Processable[NetService, BOpenSessionReq, BOpenSessionResp](new NetService)(
       (service, _, req) => {
         val username = req.getUsername
         val password = req.getPassword
@@ -87,7 +88,7 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
   // simple v2
   "Processable3" should "compile ok" in {
     // NetService must be a class and with an no parameter construction
-    val openSession = Processable[BOpenSessionReq, BOpenSessionResp, NetService](
+    val openSession: CustomRpcProcessor[BOpenSessionReq] = Processable[BOpenSessionReq, BOpenSessionResp, NetService](
       (service: NetService, rpc: RpcRequestClosure, req: BOpenSessionReq) => {
         import scala.jdk.CollectionConverters.MapHasAsScala
         val username = req.getUsername
@@ -111,7 +112,7 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
   // simple v2
   "Processable4" should "compile ok" in {
     // NetService must be a class and with an no parameter construction
-    val openSession = Processable[BOpenSessionReq, BOpenSessionResp, NetService](
+    val openSession: CustomRpcProcessor[BOpenSessionReq] = Processable[BOpenSessionReq, BOpenSessionResp, NetService](
       (service, rpc, req) => {
         val username = req.getUsername
         val password = req.getPassword
