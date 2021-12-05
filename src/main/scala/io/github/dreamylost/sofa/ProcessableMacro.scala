@@ -38,15 +38,87 @@ import scala.reflect.macros.blackbox
  */
 object ProcessableMacro {
 
-  def processorImpl[Req <: Message: c.WeakTypeTag, Service: c.WeakTypeTag, Executor <: java.util.concurrent.Executor](c: blackbox.Context)(
+  private val classNamePrefix: String = "anonymous_"
+
+  def processorWithDefaultRespServiceImpl[Req <: Message: c.WeakTypeTag, Resp <: Message: c.WeakTypeTag, Service: c.WeakTypeTag]
+    (c: blackbox.Context)
+    (
     processRequest:   c.Expr[(Service, RpcRequestClosure, Req) ⇒ Req],
-    processException: c.Expr[(Service, RpcContext, Exception) ⇒ Req],
-    service:          c.Expr[Service],
-    defaultResp:      c.Expr[Req],
-    executor:         c.Expr[Executor]
+    processException: c.Expr[(Service, RpcContext, Exception) ⇒ Req]
   ): c.Expr[CustomRpcProcessor[Req]] = {
     import c.universe._
-    val className = TypeName(UUID.randomUUID().toString.replace("-", ""))
+    val serviceType = weakTypeOf[Service]
+    if (serviceType.typeSymbol.isAbstract || !serviceType.typeSymbol.isClass) {
+      c.abort(c.enclosingPosition, "Not support for abstract classes")
+    }
+    if (serviceType.typeSymbol.isModuleClass) {
+      c.abort(c.enclosingPosition, "Not support for module classes")
+    }
+    val className = TypeName(classNamePrefix + UUID.randomUUID().toString.replace("-", ""))
+    val reqProtoType = weakTypeOf[Req]
+    val respProtoType = weakTypeOf[Resp].companion //getDefaultInstance is static method, it's in companion
+    val processor =
+      q"""
+       class $className(private val service: $serviceType, executor: java.util.concurrent.Executor = null)
+         extends io.github.dreamylost.sofa.CustomRpcProcessor[$reqProtoType](executor, $respProtoType.getDefaultInstance) {
+
+         override def processRequest(request: $reqProtoType, done: com.alipay.sofa.jraft.rpc.RpcRequestClosure): com.google.protobuf.Message = {
+            $processRequest(service, done, request)
+         }
+
+         override def processError(rpcCtx: com.alipay.sofa.jraft.rpc.RpcContext, exception: Exception): com.google.protobuf.Message = {
+            $processException(service, rpcCtx, exception)
+         }
+       }
+       val service = new io.github.dreamylost.macros.Creator[$serviceType].createInstance(null)(0)
+       new $className(service, null)
+     """
+    printTree[Req](c)(processor)
+  }
+
+  def processorWithDefaultRespImpl[Service: c.WeakTypeTag, Req <: Message: c.WeakTypeTag, Resp <: Message: c.WeakTypeTag]
+    (c: blackbox.Context)
+    (service: c.Expr[Service])
+    (
+    processRequest:   c.Expr[(Service, RpcRequestClosure, Req) ⇒ Req],
+    processException: c.Expr[(Service, RpcContext, Exception) ⇒ Req]
+  ): c.Expr[CustomRpcProcessor[Req]] = {
+    import c.universe._
+    val className = TypeName(classNamePrefix + UUID.randomUUID().toString.replace("-", ""))
+    val serviceType = weakTypeOf[Service]
+    val reqProtoType = weakTypeOf[Req]
+    val respProtoType = weakTypeOf[Resp].companion //getDefaultInstance is static method, it's in companion
+    val processor =
+      q"""
+       class $className(private val service: $serviceType, executor: java.util.concurrent.Executor = null)
+         extends io.github.dreamylost.sofa.CustomRpcProcessor[$reqProtoType](executor, $respProtoType.getDefaultInstance) {
+
+         override def processRequest(request: $reqProtoType, done: com.alipay.sofa.jraft.rpc.RpcRequestClosure): com.google.protobuf.Message = {
+            $processRequest(service, done, request)
+         }
+
+         override def processError(rpcCtx: com.alipay.sofa.jraft.rpc.RpcContext, exception: Exception): com.google.protobuf.Message = {
+            $processException(service, rpcCtx, exception)
+         }
+       }
+       new $className($service, null)
+     """
+    printTree[Req](c)(processor)
+  }
+
+  def processorImpl[Req <: Message: c.WeakTypeTag, Service: c.WeakTypeTag, Executor: c.WeakTypeTag]
+    (c: blackbox.Context)
+    (
+    service:     c.Expr[Service],
+    defaultResp: c.Expr[Req],
+    executor:    c.Expr[Executor]
+  )
+    (
+    processRequest:   c.Expr[(Service, RpcRequestClosure, Req) ⇒ Req],
+    processException: c.Expr[(Service, RpcContext, Exception) ⇒ Req]
+  ): c.Expr[CustomRpcProcessor[Req]] = {
+    import c.universe._
+    val className = TypeName(classNamePrefix + UUID.randomUUID().toString.replace("-", ""))
     val serviceType = weakTypeOf[Service]
     val requestProtoType = weakTypeOf[Req]
     val processor =
@@ -64,6 +136,10 @@ object ProcessableMacro {
        }
        new $className($service, $executor)
      """
+    printTree[Req](c)(processor)
+  }
+
+  private def printTree[Req <: Message](c: blackbox.Context)(processor: c.Tree): c.Expr[CustomRpcProcessor[Req]] = {
     val ret = c.Expr[CustomRpcProcessor[Req]](processor)
     c.info(
       c.enclosingPosition,

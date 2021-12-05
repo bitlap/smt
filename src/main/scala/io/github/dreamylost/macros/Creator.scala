@@ -19,17 +19,27 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost.sofa
+package io.github.dreamylost.macros
+
+import scala.reflect.runtime.currentMirror
+import scala.reflect.runtime.universe.typeTag
+import scala.reflect.runtime.universe._
 
 /**
+ * Runtime reflection
  *
  * @author 梦境迷离
- * @since 2021/12/4
+ * @since 2021/12/5
  * @version 1.0
  */
-class NetService {
+class Creator[T: WeakTypeTag] {
 
-  def openSession(username: String, password: String, configuration: Map[String, String] = Map.empty): String = {
-    username + password
+  def createInstance(args: AnyRef*)(ctor: Int = 0): T = {
+    val tt = weakTypeTag[T]
+    currentMirror.reflectClass(tt.tpe.typeSymbol.asClass).reflectConstructor(
+      tt.tpe.members.filter(m =>
+        m.isMethod && m.asMethod.isConstructor
+      ).iterator.toSeq(ctor).asMethod
+    )(args: _*).asInstanceOf[T]
   }
 }

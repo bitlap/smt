@@ -33,13 +33,20 @@ import com.google.protobuf.Message
 object Processable {
 
   def apply[Req <: Message, Service, Executor <: java.util.concurrent.Executor]
+    (service: Service, defaultResp: Message, executor: Executor)
     (
     processRequest:   (Service, RpcRequestClosure, Req) ⇒ Message,
-    processException: (Service, RpcContext, Exception) ⇒ Message,
-    service:          Service,
-    defaultResp:      Message,
-    executor:         Executor
-  ): CustomRpcProcessor[Req] = macro ProcessableMacro.processorImpl[Req, Service, Executor]
+    processException: (Service, RpcContext, Exception) ⇒ Message): CustomRpcProcessor[Req] = macro ProcessableMacro.processorImpl[Req, Service, Executor]
+
+  def apply[Service, Req <: Message, Resp <: Message](service: Service)
+    (
+    processRequest:   (Service, RpcRequestClosure, Req) ⇒ Message,
+    processException: (Service, RpcContext, Exception) ⇒ Message): CustomRpcProcessor[Req] = macro ProcessableMacro.processorWithDefaultRespImpl[Service, Req, Resp]
+
+  def apply[Req <: Message, Resp <: Message, Service]
+    (
+    processRequest:   (Service, RpcRequestClosure, Req) ⇒ Message,
+    processException: (Service, RpcContext, Exception) ⇒ Message): CustomRpcProcessor[Req] = macro ProcessableMacro.processorWithDefaultRespServiceImpl[Req, Resp, Service]
 
 }
 

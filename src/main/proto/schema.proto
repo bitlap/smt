@@ -1,7 +1,7 @@
 //Test for Processable
 syntax = "proto3";
 
-option java_package = "org.bitlap.network.proto.driver";
+option java_package = "io.github.dreamylost.test.proto";
 option java_multiple_files = true;
 option java_outer_classname = "DriverService";
 
