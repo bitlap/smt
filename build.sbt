@@ -20,7 +20,6 @@ lazy val root = (project in file("."))
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       "com.alipay.sofa" % "jraft-core" % "1.3.8",
-      "io.grpc" % "grpc-protobuf" % "1.42.1",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
       "org.apache.logging.log4j" % "log4j-api" % "2.14.1" % Test,
       "org.apache.logging.log4j" % "log4j-core" % "2.14.1" % Test,
@@ -56,7 +55,13 @@ lazy val root = (project in file("."))
       setNextVersion,
       commitNextVersion,
       pushChanges
-    )
+    ),
+    ProtocConfig / sourceDirectory  := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n < 13 => new File("src/test/resources") // test only for 2.13
+        case _ => new File("src/test/proto")
+      }
+    }
   ).settings(Publishing.publishSettings).settings(paradise()).enablePlugins(AutomateHeaderPlugin)
   .enablePlugins(ProtocPlugin)
 
