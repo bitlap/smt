@@ -28,7 +28,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import scala.reflect.macros.blackbox
-
+import io.github.dreamylost.macros.MacroCache
 /**
  * Processable macro
  *
@@ -38,7 +38,7 @@ import scala.reflect.macros.blackbox
  */
 object ProcessableMacro {
 
-  private val classNamePrefix: String = "anonymous_"
+  private val classNamePrefix: String = "AnonProcessor$_"
 
   def processorWithDefaultRespServiceImpl[Req <: Message: c.WeakTypeTag, Resp <: Message: c.WeakTypeTag, Service: c.WeakTypeTag]
     (c: blackbox.Context)
@@ -54,7 +54,7 @@ object ProcessableMacro {
     if (serviceType.typeSymbol.isModuleClass) {
       c.abort(c.enclosingPosition, "Not support for module classes")
     }
-    val className = TypeName(classNamePrefix + UUID.randomUUID().toString.replace("-", ""))
+    val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
     val reqProtoType = weakTypeOf[Req]
     val respProtoType = weakTypeOf[Resp].companion //getDefaultInstance is static method, it's in companion
     val processor =
@@ -84,7 +84,7 @@ object ProcessableMacro {
     processException: c.Expr[(Service, RpcContext, Exception) ⇒ Req]
   ): c.Expr[CustomRpcProcessor[Req]] = {
     import c.universe._
-    val className = TypeName(classNamePrefix + UUID.randomUUID().toString.replace("-", ""))
+    val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
     val serviceType = weakTypeOf[Service]
     val reqProtoType = weakTypeOf[Req]
     val respProtoType = weakTypeOf[Resp].companion //getDefaultInstance is static method, it's in companion
@@ -118,7 +118,7 @@ object ProcessableMacro {
     processException: c.Expr[(Service, RpcContext, Exception) ⇒ Req]
   ): c.Expr[CustomRpcProcessor[Req]] = {
     import c.universe._
-    val className = TypeName(classNamePrefix + UUID.randomUUID().toString.replace("-", ""))
+    val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
     val serviceType = weakTypeOf[Service]
     val requestProtoType = weakTypeOf[Req]
     val processor =
