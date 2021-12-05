@@ -110,7 +110,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Check the class and its companion object, and return the class definition.
    *
    * @param annottees
-   * @return Return a [[ClassDef]]
+   * @return Return a [[scala.reflect.api.Trees#ClassDef]]
    */
   def checkGetClassDef(annottees: Seq[Expr[Any]]): ClassDef = {
     annottees.map(_.tree).toList match {
@@ -124,7 +124,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Get object if it exists.
    *
    * @param annottees
-   * @return Return a optional [[ModuleDef]]
+   * @return Return a optional [[scala.reflect.api.Trees#ModuleDef]]
    */
   def getModuleDefOption(annottees: Seq[Expr[Any]]): Option[ModuleDef] = {
     annottees.map(_.tree).toList match {
@@ -183,7 +183,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Get the field TermName with type.
    *
    * @param annotteeClassParams
-   * @return Return a sequence of [[Tree]], each one is `tname: tpt`
+   * @return Return a sequence of [[scala.reflect.api.Trees#Tree]], each one is `tname: tpt`
    */
   def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
     annotteeClassParams.map(_.asInstanceOf[ValDef]).map(v => q"${v.name}: ${v.tpt}")
@@ -195,7 +195,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param compDeclOpt
    * @param codeBlocks
    * @param className
-   * @return Return a [[ModuleDef]] which was appended codeblocks, ModuleDef may already exist or may be newly created
+   * @return Return a [[scala.reflect.api.Trees#ModuleDef]] which was appended codeblocks, ModuleDef may already exist or may be newly created
    */
   def appendModuleBody(
     compDeclOpt: Option[ModuleDef],
@@ -213,7 +213,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the internal fields of members belonging to the class, but not in primary constructor.
    *
    * @param annotteeClassDefinitions
-   * @return Return a sequence of [[ValDef]]
+   * @return Return a sequence of [[scala.reflect.api.Trees#ValDef]]
    */
   def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] = {
     annotteeClassDefinitions.filter(_ match {
@@ -226,17 +226,17 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the constructor params ValDef and flatten for currying.
    *
    * @param annotteeClassParams
-   * @return Return a sequence of [[ValDef]]
+   * @return Return a sequence of [[scala.reflect.api.Trees#ValDef]]
    */
   def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] = {
     annotteeClassParams.flatten.map(_.asInstanceOf[ValDef])
   }
 
   /**
-   * Extract the constructor params [[ValDef]] not flatten.
+   * Extract the constructor params [[scala.reflect.api.Trees#ValDef]] not flatten.
    *
    * @param annotteeClassParams
-   * @return Return a double sequence of [[ValDef]]
+   * @return Return a double sequence of [[scala.reflect.api.Trees#ValDef]]
    */
   def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] = {
     annotteeClassParams.map(_.map(_.asInstanceOf[ValDef]))
@@ -246,7 +246,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the methods belonging to the class, contains Secondary Constructor.
    *
    * @param annotteeClassDefinitions
-   * @return Return a sequence of [[DefDef]]
+   * @return Return a sequence of [[scala.reflect.api.Trees#DefDef]]
    */
   def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] = {
     annotteeClassDefinitions.filter(_ match {
@@ -327,7 +327,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * This is because the generic parameters of a class cannot be used directly in the return type, and need to be converted.
    *
    * @param tpParams
-   * @return Return a sequence of [[TypeName]]
+   * @return Return a sequence of [[scala.reflect.api.Names#TypeName]]
    */
   def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] = {
     tpParams.map(_.asInstanceOf[TypeDef].name)
@@ -358,10 +358,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * Retrieves the accessor fields on a class and returns a Seq of [[ValDefAccessor]].
+   * Retrieves the accessor fields on a class and returns a Seq of [[io.github.dreamylost.macros.AbstractMacroProcessor#ValDefAccessor]].
    *
    * @param params The list of params retrieved from the class
-   * @return Return a sequence of [[ValDefAccessor]]
+   * @return Return a sequence of [[io.github.dreamylost.macros.AbstractMacroProcessor#ValDefAccessor]]
    */
   def valDefAccessors(params: Seq[Tree]): Seq[ValDefAccessor] = {
     params.map {
@@ -374,7 +374,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the necessary structure information of the class for macro programming.
    *
    * @param classDecl
-   * @return Return the expansion of the class definition as [[ClassDefinition]]
+   * @return Return the expansion of the class definition as [[io.github.dreamylost.macros.AbstractMacroProcessor#ClassDefinition]]
    */
   def mapToClassDeclInfo(classDecl: ClassDef): ClassDefinition = {
     val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
@@ -387,7 +387,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Extract the necessary structure information of the moduleDef for macro programming.
    *
    * @param moduleDef
-   * @return Return the expansion of the class definition as [[ClassDefinition]]
+   * @return Return the expansion of the class definition as [[io.github.dreamylost.macros.AbstractMacroProcessor#ClassDefinition]]
    */
   def mapToModuleDeclInfo(moduleDef: ModuleDef): ClassDefinition = {
     val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
@@ -402,7 +402,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param classDecl
    * @param classInfoAction Content body added in class definition
-   * @return Return a new [[ClassDef]]
+   * @return Return a new [[scala.reflect.api.Trees#ClassDef]]
    */
   def appendClassBody(classDecl: ClassDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.ClassDef = {
     val classInfo = mapToClassDeclInfo(classDecl)
@@ -443,7 +443,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @param defDef
    * @param defBodyAction Method body of final result
-   * @return Return a new [[DefDef]] which changed by defBodyAction function
+   * @return Return a new [[scala.reflect.api.Trees#DefDef]] which changed by defBodyAction function
    */
   def mapToMethodDef(defDef: DefDef, defBodyAction: => Tree): c.universe.DefDef = {
     val DefDef(mods, name, tparams, vparamss, tpt, rhs) = defDef
@@ -465,7 +465,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * Find the specified Name in the enclosingClass definition.
    *
    * @param t
-   * @return Return a optional [[TermName]]
+   * @return Return a optional [[scala.reflect.api.Names#TermName]]
    */
   def findNameOnEnclosingClass(t: Name): Option[TermName] = {
     @tailrec
