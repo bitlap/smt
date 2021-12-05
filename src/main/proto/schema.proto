@@ -1,0 +1,19 @@
+//Test for Processable
+syntax = "proto3";
+
+option java_package = "io.github.dreamylost.test.proto";
+option java_multiple_files = true;
+option java_outer_classname = "DriverService";
+
+message BOpenSession {
+    message BOpenSessionReq {
+        string username = 1;
+        string password = 2;
+        map<string, string> configuration = 3;
+    }
+    message BOpenSessionResp {
+        string status = 1;
+        map<string, string>  configuration = 2;
+        string session_handle = 3;
+    }
+}

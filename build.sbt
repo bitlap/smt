@@ -1,4 +1,4 @@
-import sbt.Def
+import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
@@ -19,13 +19,15 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "com.alipay.sofa" % "jraft-core" % "1.3.8",
+      "io.grpc" % "grpc-protobuf" % "1.42.1",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
       "org.apache.logging.log4j" % "log4j-api" % "2.14.1" % Test,
       "org.apache.logging.log4j" % "log4j-core" % "2.14.1" % Test,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.14.1" % Test,
       "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0" %Test
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0" % Test
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
@@ -36,6 +38,9 @@ lazy val root = (project in file("."))
     startYear := Some(2021),
     licenses += ("MIT", new URL("https://github.com/jxnu-liguobin/scala-macro-tools/blob/master/LICENSE")),
     Test / testOptions += Tests.Argument("-oDF"),
+    Test / fork := true,
+//    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
+//    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
     releaseProcess := Seq[ReleaseStep](
@@ -53,6 +58,8 @@ lazy val root = (project in file("."))
       pushChanges
     )
   ).settings(Publishing.publishSettings).settings(paradise()).enablePlugins(AutomateHeaderPlugin)
+  .enablePlugins(ProtocPlugin)
+
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
