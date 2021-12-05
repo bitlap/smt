@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost.sofa
+package io.github.dreamylost
 
 import com.alipay.sofa.jraft.rpc.{ RpcContext, RpcRequestClosure }
 import io.github.dreamylost.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionResp }
@@ -27,6 +27,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.util.concurrent.Executor
+import io.github.dreamylost.sofa.Processable
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 /**
  *
@@ -64,7 +66,6 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
   "Processable2" should "compile ok" in {
     val openSession = Processable[NetService, BOpenSessionReq, BOpenSessionResp](new NetService)(
       (service, _, req) => {
-        import scala.jdk.CollectionConverters.MapHasAsScala
         val username = req.getUsername
         val password = req.getPassword
         val configurationMap = req.getConfigurationMap
@@ -112,7 +113,6 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
     // NetService must be a class and with an no parameter construction
     val openSession = Processable[BOpenSessionReq, BOpenSessionResp, NetService](
       (service, rpc, req) => {
-        import scala.jdk.CollectionConverters.MapHasAsScala
         val username = req.getUsername
         val password = req.getPassword
         val configurationMap = req.getConfigurationMap

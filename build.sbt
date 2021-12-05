@@ -13,9 +13,6 @@ scalaVersion := scala213
 
 lazy val supportedScalaVersions = List(scala213, scala212, scala211)
 
-root / Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary
-root / Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
-
 lazy val root = (project in file("."))
   .settings(
     crossScalaVersions := supportedScalaVersions,

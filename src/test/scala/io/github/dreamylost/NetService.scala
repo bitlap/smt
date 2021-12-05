@@ -19,20 +19,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost.sofa
-
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+package io.github.dreamylost
 
 /**
  *
  * @author 梦境迷离
- * @since 2021/12/5
+ * @since 2021/12/4
  * @version 1.0
  */
-class CreatorTest extends AnyFlatSpec with Matchers {
-  "Creator" should "ok" in {
-    val service = new io.github.dreamylost.macros.Creator[io.github.dreamylost.sofa.NetService]().createInstance(null)(0)
-    println(service.openSession("1", "2"))
+class NetService {
+
+  def openSession(username: String, password: String, configuration: Map[String, String] = Map.empty): String = {
+    username + password
   }
 }
