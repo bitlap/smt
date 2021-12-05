@@ -1,4 +1,4 @@
-import sbt.Def
+import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
@@ -12,8 +12,6 @@ lazy val lastVersionForExamples = "0.3.0"
 scalaVersion := scala213
 
 lazy val supportedScalaVersions = List(scala213, scala212, scala211)
-
-Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary
 
 lazy val root = (project in file("."))
   .settings(
@@ -29,7 +27,7 @@ lazy val root = (project in file("."))
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.14.1" % Test,
       "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0" %Test
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.0" % Test
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
@@ -40,6 +38,9 @@ lazy val root = (project in file("."))
     startYear := Some(2021),
     licenses += ("MIT", new URL("https://github.com/jxnu-liguobin/scala-macro-tools/blob/master/LICENSE")),
     Test / testOptions += Tests.Argument("-oDF"),
+    Test / fork := true,
+//    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
+//    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
     releaseProcess := Seq[ReleaseStep](
