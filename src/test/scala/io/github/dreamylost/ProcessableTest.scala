@@ -63,7 +63,7 @@ class ProcessableTest extends AnyFlatSpec with Matchers {
     println(openSession.interest())
   }
 
-  //  // simple v1
+  // simple v1
   "Processable2" should "compile ok" in {
     val openSession: CustomRpcProcessor[BOpenSessionReq] = Processable[NetService, BOpenSessionReq, BOpenSessionResp](new NetService)(
       (service, _, req) => {
