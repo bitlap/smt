@@ -27,5 +27,7 @@ object MacroCache {
   private var identityCount = 0
 
   def getIdentityId: Int = identityCount.synchronized { identityCount += 1; identityCount }
+  
+  val customRpcProcessorCache:mutable.Map[String, Any] = mutable.HashMap.empty
 
 }
