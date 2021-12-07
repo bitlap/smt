@@ -1,5 +1,7 @@
 package org.bitlap
 
+import io.github.dreamylost.toString
+
 /**
  *
  * @author 梦境迷离
