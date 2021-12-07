@@ -1,6 +1,6 @@
 import org.jetbrains.sbtidea.Keys._
 
-name := "Macro-intellij-plugin"
+name := "scala-macro-tools-intellij-plugin"
 organization := "org.bitlap"
 
 lazy val scala213 = "2.13.6"
