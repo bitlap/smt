@@ -38,7 +38,6 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
   // please exec `sbt compile` to generate java class fof the protobuf
   // origin
   "ProcessorCreator1" should "compile ok" in {
-    import org.bitlap.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionResp }
     implicit val service = new NetService
     implicit val executor: Executor = new Executor {
       override def execute(command: Runnable): Unit = ()
@@ -67,7 +66,6 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
 
   // simple v1
   "ProcessorCreator2" should "compile ok" in {
-    import org.bitlap.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionResp }
     implicit val service = new NetService
     val openSession = ProcessorCreator[RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp, NetService](
       (service, _, req) => {
@@ -92,7 +90,6 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
 
   // simple v2
   "ProcessorCreator3" should "compile ok" in {
-    import org.bitlap.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionResp }
     // NetService must be a class and with an no parameter construction
     val openSession = ProcessorCreator[NetService, RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp](
       (service, rpc, req) => {
