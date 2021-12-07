@@ -1,10 +1,11 @@
-<img align="right" width="30%" height="30%" src="img.png" alt="https://dreamylost.cn"/> 
+<img align="right" width="30%" height="30%" src="img.png" alt="https://org.bitlap"/>
 
 # scala-macro-tools
 
-[![Build](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/jxnu-liguobin/scala-macro-tools/actions/workflows/ScalaCI.yml)
-[![codecov](https://codecov.io/gh/jxnu-liguobin/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT)](https://codecov.io/gh/jxnu-liguobin/scala-macro-tools)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.jxnu-liguobin%22%20AND%20a:%22scala-macro-tools_2.13%22)
+[![Build](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml)
+[![codecov](https://codecov.io/gh/bitlap/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT)](https://codecov.io/gh/bitlap/scala-macro-tools)
+[![Maven Central deprecated](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13.svg?label=Maven%20Central%20deprecated)](https://search.maven.org/search?q=g:%22io.github.jxnu-liguobin%22%20AND%20a:%22scala-macro-tools_2.13%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.bitlap/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.bitlap%22%20AND%20a:%22scala-macro-tools_2.13%22)
 [![Version](https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools)](https://plugins.jetbrains.com/plugin/17202-scala-macro-tools)
 
 Motivation
@@ -34,6 +35,7 @@ Learn Scala macro and abstract syntax tree.
 - `@jacksonEnum`
 - `@elapsed`
 - `@JavaCompatible`
+- `ProcessorCreator`
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
@@ -46,7 +48,7 @@ Learn Scala macro and abstract syntax tree.
 Add library dependency
 
 ```scala
-"io.github.jxnu-liguobin" %% "scala-macro-tools" % "<VERSION>"
+"org.bitlap" %% "scala-macro-tools" % "<VERSION>"
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.

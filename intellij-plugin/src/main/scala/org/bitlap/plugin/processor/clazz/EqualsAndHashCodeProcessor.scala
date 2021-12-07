@@ -1,0 +1,29 @@
+package org.bitlap.plugin.processor.clazz
+
+import org.bitlap.plugin.processor.ProcessType.ProcessType
+import org.bitlap.plugin.processor.{ AbsProcessor, ProcessType }
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ ScClass, ScTypeDefinition }
+
+/**
+ * Desc: Processor for annotation equalsAndHashCode
+ *
+ * Mail: chk19940609@gmail.com
+ * Created by IceMimosa
+ * Date: 2021/7/22
+ */
+class EqualsAndHashCodeProcessor extends AbsProcessor {
+
+  override def needCompanion: Boolean = true
+
+  override def process(source: ScTypeDefinition, typ: ProcessType): Seq[String] = {
+    typ match {
+      case ProcessType.Method =>
+        source match {
+          case _: ScClass =>
+            Seq(s"def canEqual(that: Any): Boolean = ???")
+          case _ => Nil
+        }
+      case _ => Nil
+    }
+  }
+}

@@ -2,7 +2,7 @@ import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
-organization := "io.github.jxnu-liguobin"
+organization := "org.bitlap"
 
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
@@ -33,9 +33,9 @@ lazy val root = (project in file("."))
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     } ++ Seq("-language:experimental.macros"),
-    organizationName := "jxnu-liguobin && contributors",
+    organizationName := "org.bitlap",
     startYear := Some(2021),
-    licenses += ("MIT", new URL("https://github.com/jxnu-liguobin/scala-macro-tools/blob/master/LICENSE")),
+    licenses += ("MIT", new URL("https://github.com/bitlap/scala-macro-tools/blob/master/LICENSE")),
     Test / testOptions += Tests.Argument("-oDF"),
     Test / fork := true,
 //    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,
@@ -68,7 +68,7 @@ lazy val root = (project in file("."))
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % lastVersionForExamples,
+    "org.bitlap" %% "scala-macro-tools" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
   Compile / scalacOptions += "-Ymacro-annotations"
@@ -76,7 +76,7 @@ lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVer
 
 lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVersion := scala212)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % lastVersionForExamples,
+    "org.bitlap" %% "scala-macro-tools" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
   paradise()
@@ -84,7 +84,7 @@ lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVer
 
 lazy val `scala2-11` = (project in file("examples/scala2-11")).settings(scalaVersion := scala211)
   .settings(libraryDependencies ++= Seq(
-    "io.github.jxnu-liguobin" %% "scala-macro-tools" % lastVersionForExamples,
+    "org.bitlap" %% "scala-macro-tools" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
   paradise()
