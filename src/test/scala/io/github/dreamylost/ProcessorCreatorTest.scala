@@ -4,7 +4,6 @@ import com.alipay.sofa.jraft.rpc.{ RpcContext, RpcRequestClosure, RpcRequestProc
 import io.github.dreamylost.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionResp }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.github.dreamylost.sofa.ProcessorCreator
 
 import java.util.concurrent.Executor
 
@@ -15,23 +14,27 @@ import java.util.concurrent.Executor
  */
 class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
 
+  // please exec `sbt compile` to generate java class fof the protobuf
   // origin
   "ProcessorCreator1" should "compile ok" in {
+    implicit val service = new NetService
+    implicit val executor: Executor = new Executor {
+      override def execute(command: Runnable): Unit = ()
+    }
     val openSession = ProcessorCreator[RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp, NetService, Executor](
-      new NetService, BOpenSessionResp.getDefaultInstance, (command: Runnable) => ???
-    )(
-        (service, rpcRequestClosure, req) => {
-          import scala.jdk.CollectionConverters.MapHasAsScala
-          val username = req.getUsername
-          val password = req.getPassword
-          val configurationMap = req.getConfigurationMap
-          val ret = service.openSession(username, password, configurationMap.asScala.toMap)
-          BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
-        },
-        (service, rpcContext, exception) => {
-          BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
-        }
-      )
+      BOpenSessionResp.getDefaultInstance,
+      (service, rpcRequestClosure, req) => {
+        import scala.jdk.CollectionConverters.MapHasAsScala
+        val username = req.getUsername
+        val password = req.getPassword
+        val configurationMap = req.getConfigurationMap
+        val ret = service.openSession(username, password, configurationMap.asScala.toMap)
+        BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
+      },
+      (service, rpcContext, exception) => {
+        BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
+      }
+    )
 
     println(openSession.defaultResp)
 
@@ -42,7 +45,8 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
 
   // simple v1
   "ProcessorCreator2" should "compile ok" in {
-    val openSession = ProcessorCreator[RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp, NetService](new NetService)(
+    implicit val service = new NetService
+    val openSession = ProcessorCreator[RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp, NetService](
       (service, _, req) => {
         import scala.jdk.CollectionConverters.MapHasAsScala
         val username = req.getUsername
@@ -66,8 +70,8 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
   // simple v2
   "ProcessorCreator3" should "compile ok" in {
     // NetService must be a class and with an no parameter construction
-    val openSession = ProcessorCreator[RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp, NetService](
-      (service: NetService, rpc: RpcRequestClosure, req: BOpenSessionReq) => {
+    val openSession = ProcessorCreator[NetService, RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp](
+      (service, rpc, req) => {
         import scala.jdk.CollectionConverters.MapHasAsScala
         val username = req.getUsername
         val password = req.getPassword
@@ -75,7 +79,7 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
         val ret = service.openSession(username, password, configurationMap.asScala.toMap)
         BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
       },
-      (service: NetService, rpc: RpcContext, exception: Exception) => {
+      (service, rpc, exception) => {
         BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
       }
     )

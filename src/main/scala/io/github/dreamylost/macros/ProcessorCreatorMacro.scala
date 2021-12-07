@@ -19,9 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.dreamylost.sofa
-
-import io.github.dreamylost.macros.MacroCache
+package io.github.dreamylost.macros
 
 import scala.reflect.macros.blackbox
 
@@ -35,11 +33,12 @@ object ProcessorCreatorMacro {
   private val classNamePrefix: String = "AnonProcessor$"
 
   def SimpleImpl[RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Req: c.WeakTypeTag, Resp: c.WeakTypeTag, Service: c.WeakTypeTag, E: c.WeakTypeTag]
-    (c: blackbox.Context)(service: c.Expr[Service], defaultResp: c.Expr[Req], executor: c.Expr[E])
+    (c: blackbox.Context)
     (
+    defaultResp:      c.Expr[Req],
     processRequest:   c.Expr[(Service, RRC, Req) ⇒ Req],
     processException: c.Expr[(Service, RC, Exception) ⇒ Req]
-  ): c.Expr[RRP] = {
+  )(service: c.Expr[Service], executor: c.Expr[E]): c.Expr[RRP] = { // parameters in order, parameter names differ will compile error
     import c.universe._
     val serviceType = weakTypeOf[Service]
     val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
@@ -79,10 +78,10 @@ object ProcessorCreatorMacro {
   }
 
   def WithoutExecutorAndDefaultResp[RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Req: c.WeakTypeTag, Resp: c.WeakTypeTag, Service: c.WeakTypeTag]
-    (c: blackbox.Context)(service: c.Expr[Service])(
+    (c: blackbox.Context)(
     processRequest:   c.Expr[(Service, RRC, Req) ⇒ Req],
     processException: c.Expr[(Service, RC, Exception) ⇒ Req]
-  ): c.Expr[RRP] = {
+  )(service: c.Expr[Service]): c.Expr[RRP] = {
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)
     val serviceType = weakTypeOf[Service]
@@ -124,7 +123,7 @@ object ProcessorCreatorMacro {
     printTree[RRP](c)(processor)
   }
 
-  def OnlyWithFunctionalParams[RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Req: c.WeakTypeTag, Resp: c.WeakTypeTag, Service: c.WeakTypeTag]
+  def OnlyWithFunctionalParameters[Service: c.WeakTypeTag, RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Req: c.WeakTypeTag, Resp: c.WeakTypeTag]
     (c: blackbox.Context)(
     processRequest:   c.Expr[(Service, RRC, Req) ⇒ Req],
     processException: c.Expr[(Service, RC, Exception) ⇒ Req]
@@ -197,11 +196,11 @@ object ProcessorCreatorMacro {
     }
     val rpcRequestClosureType = weakTypeOf[RRC]
     if (!rpcRequestClosureType.resultType.toString.equals("com.alipay.sofa.jraft.rpc.RpcRequestClosure")) {
-      c.abort(c.enclosingPosition, s"`RRC` only support for `com.alipay.sofa.jraft.rpc.RpcRequestClosure`, not ${rpcRequestClosureType.resultType.toString}")
+      c.abort(c.enclosingPosition, s"`RRC` only support for `com.alipay.sofa.jraft.rpc.RpcRequestClosure`, not `${rpcRequestClosureType.resultType.toString}`")
     }
     val rpcContextType = weakTypeOf[RC]
     if (!rpcContextType.resultType.toString.equals("com.alipay.sofa.jraft.rpc.RpcContext")) {
-      c.abort(c.enclosingPosition, s"`RRC` only support for `com.alipay.sofa.jraft.rpc.RpcContext`, not ${rpcContextType.resultType.toString}")
+      c.abort(c.enclosingPosition, s"`RRC` only support for `com.alipay.sofa.jraft.rpc.RpcContext`, not `${rpcContextType.resultType.toString}`")
     }
   }
 }
