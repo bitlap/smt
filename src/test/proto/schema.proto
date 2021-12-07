@@ -1,4 +1,4 @@
-//Test for Processable
+//Test for Processable and ProcessorCreator
 syntax = "proto3";
 
 option java_package = "io.github.dreamylost.test.proto";

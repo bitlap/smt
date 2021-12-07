@@ -20,7 +20,6 @@
  */
 
 package io.github.dreamylost.macros
-import scala.collection.mutable
 
 object MacroCache {
 

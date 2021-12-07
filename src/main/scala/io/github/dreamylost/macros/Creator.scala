@@ -22,7 +22,6 @@
 package io.github.dreamylost.macros
 
 import scala.reflect.runtime.currentMirror
-import scala.reflect.runtime.universe.typeTag
 import scala.reflect.runtime.universe._
 
 /**
