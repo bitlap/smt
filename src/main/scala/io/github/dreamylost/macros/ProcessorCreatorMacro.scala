@@ -22,7 +22,8 @@
 package io.github.dreamylost.macros
 
 import scala.reflect.macros.blackbox
-
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 /**
  *
  * @author 梦境迷离
@@ -175,8 +176,6 @@ object ProcessorCreatorMacro {
     c.info(
       c.enclosingPosition,
       s"\n###### Time: ${
-        import java.time.ZonedDateTime
-        import java.time.format.DateTimeFormatter
         ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
       } " +
         s"Expanded macro start ######\n" + ret.toString() + "\n###### Expanded macro end ######\n",
