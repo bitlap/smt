@@ -50,7 +50,7 @@
 > 在gradle，maven中，通常`scala-macro-tools`被替换为`scala-macro-tools_2.12`这种。其中，`2.12`表示Scala版本号。
 
 ```scala
-"org.bitlap" %% "scala-macro-tools" % "<VERSION>"
+"org.bitlap.tools" %% "scala-macro-tools" % "<VERSION>"
 ```
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。
