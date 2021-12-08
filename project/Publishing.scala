@@ -34,11 +34,11 @@ object Publishing {
       )),
     sonatypeProfileName := organization.value,
     isSnapshot := version.value endsWith "SNAPSHOT",
-    homepage := Some(url("https://github.com/jxnu-liguobin")),
+    homepage := Some(url("https://bitlap.org")),
     scmInfo := Some(
       ScmInfo(
-        url("https://github.com/jxnu-liguobin/scala-macro-tools"),
-        "scm:git@github.com:jxnu-liguobin/scala-macro-tools.git"
+        url("https://github.com/bitlap/scala-macro-tools"),
+        "scm:git@github.com:bitlap/scala-macro-tools.git"
       ))
   )
 }

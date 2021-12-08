@@ -2,7 +2,7 @@ import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
 name := "scala-macro-tools"
-organization := "io.github.jxnu-liguobin"
+organization := "org.bitlap"
 
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
@@ -33,9 +33,9 @@ lazy val root = (project in file("."))
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     } ++ Seq("-language:experimental.macros"),
-    organizationName := "jxnu-liguobin && contributors",
+    organizationName := "org.bitlap",
     startYear := Some(2021),
-    licenses += ("MIT", new URL("https://github.com/jxnu-liguobin/scala-macro-tools/blob/master/LICENSE")),
+    licenses += ("MIT", new URL("https://github.com/bitlap/scala-macro-tools/blob/master/LICENSE")),
     Test / testOptions += Tests.Argument("-oDF"),
     Test / fork := true,
 //    Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.ScalaLibrary,

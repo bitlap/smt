@@ -18,13 +18,13 @@
     <resource-bundle>messages.PluginBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="io.github.dreamylost.plugin.ScalaMacroProcessorProvider" />
-        <!-- <lang.psiAugmentProvider implementation="io.github.dreamylost.plugin.ScalaMacroAugmentProvider"/> -->
+        <applicationService serviceImplementation="org.bitlap.tools.plugin.ScalaMacroProcessorProvider" />
+        <!-- <lang.psiAugmentProvider implementation="org.bitlap.tools.plugin.ScalaMacroAugmentProvider"/> -->
         <notificationGroup displayType="BALLOON" id="Scala-Macro-Tools Plugin" />
     </extensions>
 
     <extensions defaultExtensionNs="org.intellij.scala">
-        <syntheticMemberInjector implementation="io.github.dreamylost.plugin.ScalaMacroInjector"/>
+        <syntheticMemberInjector implementation="org.bitlap.tools.plugin.ScalaMacroInjector"/>
     </extensions>
 
 </idea-plugin>

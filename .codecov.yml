@@ -16,5 +16,5 @@ comment:
   behavior: default
 
 ignore:
-  - "src/main/scala/io/github/dreamylost/package.scala"
-  - "src/main/scala/io/github/dreamylost/macros/macros.scala"
+  - "src/main/scala/org/bitlap/tools/package.scala"
+  - "src/main/scala/org/bitlap/tools/macros/macros.scala"
