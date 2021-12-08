@@ -34,7 +34,7 @@ object Publishing {
       )),
     sonatypeProfileName := organization.value,
     isSnapshot := version.value endsWith "SNAPSHOT",
-    homepage := Some(url("https://org.bitlap")),
+    homepage := Some(url("https://bitlap.org")),
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/bitlap/scala-macro-tools"),
