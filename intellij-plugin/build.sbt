@@ -13,7 +13,7 @@ lazy val `intellij-plugin` = (project in file("."))
     version := (ThisBuild / version).value,
     scalaVersion := scala213,
     ThisBuild / intellijPluginName := "Scala-Macro-Tools",
-    ThisBuild / intellijBuild := "211.7628.21", // @see https://confluence.jetbrains.com/display/IDEADEV/IDEA+2021.1+latest+builds
+    ThisBuild / intellijBuild := "213.5744.223", // https://confluence.jetbrains.com/display/IDEADEV/IDEA+2021.3+latest+builds
     ThisBuild / intellijPlatform := IntelliJPlatform.IdeaCommunity,
     Global / intellijAttachSources := true,
     Compile / javacOptions ++= "--release" :: "11" :: Nil,
@@ -23,7 +23,8 @@ lazy val `intellij-plugin` = (project in file("."))
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "resources",
     Test / unmanagedResourceDirectories += baseDirectory.value / "src" / "test" / "resources",
     patchPluginXml := pluginXmlOptions { xml =>
-      xml.version = (ThisBuild / version).value
+//      xml.version = (ThisBuild / version).value
+      xml.version = "0.3.4"
       xml.pluginDescription = IO.read(baseDirectory.value / "src" / "main" / "resources" / "patch" / "description.html")
       xml.changeNotes = IO.read(baseDirectory.value / "src" / "main" / "resources" / "patch" / "change.html")
     },

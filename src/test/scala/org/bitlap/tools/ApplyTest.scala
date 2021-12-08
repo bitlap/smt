@@ -81,7 +81,18 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     @apply class B5[T <: Any, U](int: T, val j: U)
     println(B5("helloworld", 2))
   }
+
   "apply5" should "failed when input not invalid" in {
     """@apply(true) class C2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L))(o: Int = 1)""" shouldNot compile
+  }
+
+  "apply6" should "ok with Enumeration" in {
+    object TestEnum extends Enumeration {
+      type TestEnum = Value
+      val E1 = Value(1, "E1")
+      val E2 = Value(2, "E2")
+    }
+    @apply class TestEnumA1(e: TestEnum.TestEnum)
+    println(TestEnumA1(TestEnum.E1))
   }
 }

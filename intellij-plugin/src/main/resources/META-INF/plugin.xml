@@ -4,7 +4,7 @@
     <name>Scala-Macro-Tools</name>
     <version>XXX</version>
     <vendor>Scala Macro Tools</vendor>
-    <idea-version since-build="203.0"/>
+    <idea-version since-build="213.0"/>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.lang</depends>
