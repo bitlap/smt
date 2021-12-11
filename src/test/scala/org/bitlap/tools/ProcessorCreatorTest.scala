@@ -175,7 +175,7 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
-  // not support interface for reflect NetService instance
+  // not support interface, because it use runtime reflect to create `NetService` instance.
   "ProcessorCreator7" should "compile ok" in {
     """
       |    trait NetService {
