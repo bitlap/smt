@@ -99,11 +99,11 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
         val configurationMap = req.getConfigurationMap
         val ret = service.openSession(username, password, configurationMap.asScala.toMap)
         BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
-      },
-      (service, rpc, exception) => {
-        BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
-      }
-    )
+      })(
+        (service, rpc, exception) => {
+          BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
+        }
+      )
 
     println(openSession.defaultResp)
 
@@ -119,7 +119,7 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
       | val openSession = ProcessorCreator[Service, RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp](
       |      (service, rpc, req) => {
       |        BOpenSessionResp.newBuilder().setSessionHandle(null).build()
-      |      },
+      |      })(
       |      (service, rpc, exception) => {
       |        BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
       |      }
@@ -140,7 +140,7 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
       | val openSession = ProcessorCreator[Service, RpcRequestProcessor, RpcRequestClosure, RpcContext, BOpenSessionReq, BOpenSessionResp](
       |      (service, rpc, req) => {
       |        BOpenSessionResp.newBuilder().setSessionHandle(null).build()
-      |      },
+      |      })(
       |      (service, rpc, exception) => {
       |        BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
       |      }
@@ -158,10 +158,10 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
   "ProcessorCreator6" should "compile error" in {
     object Service
     """
-      | val openSession = ProcessorCreator[Service, RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp](
+      | val openSession = ProcessorCreator[Service.type, RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp](
       |      (service, rpc, req) => {
       |        BOpenSessionResp.newBuilder().setSessionHandle(null).build()
-      |      },
+      |      })(
       |      (service, rpc, exception) => {
       |        BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
       |      }
@@ -172,6 +172,34 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
       |    println(openSession.getClass.getClass.getName)
       |
       |    println(openSession.interest())
+      |""".stripMargin shouldNot compile
+  }
+
+  // not support interface, because it use runtime reflect to create `NetService` instance.
+  "ProcessorCreator7" should "compile ok" in {
+    """
+      |    trait NetService {
+      |      def openSession(username: String, password: String, configuration: Map[String, String] = Map.empty): String
+      |    }
+      |    class NetServiceImpl extends NetService {
+      |      override def openSession(username: String, password: String, configuration: Map[String, String] = Map.empty): String = {
+      |        username + password
+      |      }
+      |    }
+      |    implicit val service: NetService = null
+      |    val openSession = ProcessorCreator[NetService, RpcRequestClosure, RpcRequestProcessor, RpcContext, BOpenSessionReq, BOpenSessionResp](
+      |      (service, _, req) => {
+      |        import scala.jdk.CollectionConverters.MapHasAsScala
+      |        val username = req.getUsername
+      |        val password = req.getPassword
+      |        val configurationMap = req.getConfigurationMap
+      |        val ret = service.openSession(username, password, configurationMap.asScala.toMap)
+      |        BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
+      |      })(
+      |      (_, _, exception) => {
+      |        BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
+      |      }
+      |    )
       |""".stripMargin shouldNot compile
   }
 }
