@@ -41,6 +41,7 @@ object ProcessorCreatorMacro {
     processException: c.Expr[(Service, RC, Exception) ⇒ Req]
   )(service: c.Expr[Service], executor: c.Expr[E]): c.Expr[RRP] = { // parameters in order, parameter names differ will compile error
     import c.universe._
+    checkTree[RRC, RRP, RC, Service](c)(needCheckService = false)
     val serviceType = weakTypeOf[Service]
     val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
     val reqProtoType = weakTypeOf[Req]
@@ -84,7 +85,7 @@ object ProcessorCreatorMacro {
     processException: c.Expr[(Service, RC, Exception) ⇒ Req]
   )(service: c.Expr[Service]): c.Expr[RRP] = {
     import c.universe._
-    checkTree[RRC, RRP, RC, Service](c)
+    checkTree[RRC, RRP, RC, Service](c)(needCheckService = false)
     val serviceType = weakTypeOf[Service]
     val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
     val reqProtoType = weakTypeOf[Req]
@@ -126,11 +127,12 @@ object ProcessorCreatorMacro {
 
   def OnlyWithFunctionalParameters[Service: c.WeakTypeTag, RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Req: c.WeakTypeTag, Resp: c.WeakTypeTag]
     (c: blackbox.Context)(
-    processRequest:   c.Expr[(Service, RRC, Req) ⇒ Req],
+    processRequest: c.Expr[(Service, RRC, Req) ⇒ Req])
+    (
     processException: c.Expr[(Service, RC, Exception) ⇒ Req]
   ): c.Expr[RRP] = {
     import c.universe._
-    checkTree[RRC, RRP, RC, Service](c)
+    checkTree[RRC, RRP, RC, Service](c)(needCheckService = true)
     val serviceType = weakTypeOf[Service]
     val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
     val reqProtoType = weakTypeOf[Req]
@@ -184,10 +186,11 @@ object ProcessorCreatorMacro {
     ret
   }
 
-  private def checkTree[RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Service: c.WeakTypeTag](c: blackbox.Context): Unit = {
+  private def checkTree[RRC: c.WeakTypeTag, RRP: c.WeakTypeTag, RC: c.WeakTypeTag, Service: c.WeakTypeTag](c: blackbox.Context)
+    (needCheckService: Boolean = true): Unit = {
     import c.universe._
     val serviceType = weakTypeOf[Service]
-    if (serviceType.typeSymbol.isAbstract || !serviceType.typeSymbol.isClass) {
+    if (needCheckService && (serviceType.typeSymbol.isAbstract || !serviceType.typeSymbol.isClass)) {
       c.abort(c.enclosingPosition, "Not support for abstract classes")
     }
     if (serviceType.typeSymbol.isModuleClass) {

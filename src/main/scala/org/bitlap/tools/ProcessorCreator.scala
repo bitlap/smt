@@ -66,8 +66,5 @@ object ProcessorCreator {
    * Having two identical type parameters will cause the compiler to recognize error and change the order of generics to avoid.
    */
   def apply[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
-    (
-    processRequest:   (Service, RRC, Req) ⇒ Resp,
-    processException: (Service, RC, Exception) ⇒ Resp
-  ): RRP[Req] = macro ProcessorCreatorMacro.OnlyWithFunctionalParameters[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
+    (processRequest: (Service, RRC, Req) ⇒ Resp)(processException: (Service, RC, Exception) ⇒ Resp): RRP[Req] = macro ProcessorCreatorMacro.OnlyWithFunctionalParameters[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
 }
