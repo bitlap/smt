@@ -29,12 +29,12 @@ object LogType extends Enumeration {
   type LogType = Value
   val JLog, Log4j2, Slf4j, ScalaLoggingLazy, ScalaLoggingStrict = Value
 
-  private lazy val types = Map(
-    JLog -> JLogImpl,
-    Log4j2 -> Log4J2Impl,
-    Slf4j -> Slf4jImpl,
-    ScalaLoggingStrict -> ScalaLoggingStrictImpl,
-    ScalaLoggingLazy -> ScalaLoggingLazyImpl
+  private lazy val types: Map[LogType, BaseLog] = Map(
+    JLogImpl.`type` -> JLogImpl,
+    Log4J2Impl.`type` -> Log4J2Impl,
+    Slf4jImpl.`type` -> Slf4jImpl,
+    ScalaLoggingStrictImpl.`type` -> ScalaLoggingStrictImpl,
+    ScalaLoggingLazyImpl.`type` -> ScalaLoggingLazyImpl
   )
 
   def getLogImpl(logType: LogType): BaseLog = {

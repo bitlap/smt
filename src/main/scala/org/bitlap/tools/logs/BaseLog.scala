@@ -27,7 +27,7 @@ import scala.reflect.macros.whitebox
 
 trait BaseLog {
 
-  val typ: LogType
+  val `type`: LogType
 
   def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree
 }

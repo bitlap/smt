@@ -28,5 +28,5 @@ package org.bitlap
  * @version 1.0
  */
 package object tools {
-  final val PACKAGE = "org.bitlap.tools"
+  final val PACKAGE: String = "org.bitlap.tools"
 }

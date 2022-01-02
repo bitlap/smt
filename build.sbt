@@ -96,6 +96,3 @@ def paradise(): Def.Setting[Seq[ModuleID]] = {
     case _ => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
 }
-
-// Only to import, and every thing in /intellij-plugin.
-lazy val `intellij-plugin` = (project in file("intellij-plugin")).settings(publish / skip := true)

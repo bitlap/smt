@@ -35,7 +35,7 @@ import scala.reflect.macros.whitebox
  */
 object ScalaLoggingStrictImpl extends BaseLog {
 
-  override val typ: LogType = LogType.ScalaLoggingStrict
+  override val `type`: LogType = LogType.ScalaLoggingStrict
 
   override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
     import c.universe._
