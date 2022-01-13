@@ -6,7 +6,7 @@ organization := "org.bitlap"
 
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
-lazy val scala213 = "2.13.6"
+lazy val scala213 = "2.13.8"
 lazy val lastVersionForExamples = "0.3.4"
 
 scalaVersion := scala213
