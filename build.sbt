@@ -55,7 +55,7 @@ lazy val core = (project in file("core"))
   .settings(
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-      "com.typesafe.play" %% "play-json" % "2.9.2" % Test,
+      "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
       "org.apache.logging.log4j" % "log4j-api" % "2.17.2" % Test,
       "org.apache.logging.log4j" % "log4j-core" % "2.17.2" % Test,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.2" % Test,
