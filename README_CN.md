@@ -24,17 +24,18 @@
 
 # 功能
 
+## core 模块
+
 - `@toString`
 - `@json`
 - `@builder`
-- `@synchronized`
 - `@log`
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
 - `@jacksonEnum`
 - `@elapsed`
-- `@JavaCompatible`
+- `@javaCompatible`
 - `ProcessorCreator`
 
 > Intellij插件 `Scala-Macro-Tools`。

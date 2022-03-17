@@ -24,17 +24,18 @@ Learn Scala macro and abstract syntax tree.
 
 # Features
 
+## core module
+
 - `@toString`
 - `@json`
 - `@builder`
-- `@synchronized`
 - `@log`
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
 - `@jacksonEnum`
 - `@elapsed`
-- `@JavaCompatible`
+- `@javaCompatible`
 - `ProcessorCreator`
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
