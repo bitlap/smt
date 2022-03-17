@@ -26,7 +26,7 @@ lazy val root = (project in file("."))
       "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.2" % Test,
-      "com.alipay.sofa" % "jraft-core" % "1.3.9" % Test
+      "com.alipay.sofa" % "jraft-core" % "1.3.10" % Test
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
