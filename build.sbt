@@ -1,3 +1,4 @@
+import sbt.librarymanagement.InclExclRule
 import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
@@ -53,23 +54,27 @@ lazy val commonSettings =
 lazy val cacheable = (project in file("cacheable"))
   .settings(commonSettings).settings(Publishing.publishSettings)
   .settings(
-    name := "scala-macro-tools-cacheable",
+    name := "smt-cacheable",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
-      "com.typesafe" % "config" % "1.4.1",
-      "dev.zio" %% "zio" % "1.0.13",
-      "dev.zio" %% "zio-schema" % "0.1.8",
-      "dev.zio" %% "zio-schema-protobuf" % "0.1.8",
+      "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT" % Provided, // 实验性质的
+      "com.typesafe" % "config" % "1.4.1" % Provided,
+      "dev.zio" %% "zio" % "1.0.13" % Provided,
+      "dev.zio" %% "zio-schema" % "0.1.8" % Provided,
+      "dev.zio" %% "zio-schema-protobuf" % "0.1.8" % Provided,
       "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
+    ),
+    excludeDependencies ++= Seq(
+      InclExclRule("com.google.protobuf")
     )
   )
-  .settings(paradise()).enablePlugins(AutomateHeaderPlugin)
+  .settings(paradise())
+  .enablePlugins(AutomateHeaderPlugin)
 
 lazy val core = (project in file("core"))
   .settings(commonSettings)
   .settings(
-    name := "scala-macro-tools-core",
+    name := "smt-core",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
@@ -86,7 +91,9 @@ lazy val core = (project in file("core"))
         case _ => new File("core/src/test/proto")
       }
     }
-  ).settings(Publishing.publishSettings).settings(paradise()).enablePlugins(AutomateHeaderPlugin)
+  ).settings(Publishing.publishSettings)
+  .settings(paradise())
+  .enablePlugins(AutomateHeaderPlugin)
   .enablePlugins(ProtocPlugin)
 
 lazy val root = (project in file(".")).aggregate(core, cacheable)

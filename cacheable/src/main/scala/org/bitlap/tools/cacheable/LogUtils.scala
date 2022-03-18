@@ -39,7 +39,7 @@ object LogUtils {
     Logging.console(
       logLevel = LogLevel.Debug,
       format = LogFormat.ColoredLogFormat()
-    ) >>> Logging.withRootLoggerName("bitlap-scala-macro-tools-cacheable")
+    ) >>> Logging.withRootLoggerName("bitlap-smt-cacheable")
 
   private val logLayer: ULayer[Logging] = (Console.live ++ Clock.live) >>> loggingLayer
 
