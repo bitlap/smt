@@ -53,6 +53,7 @@ lazy val commonSettings =
 lazy val cacheable = (project in file("cacheable"))
   .settings(commonSettings).settings(Publishing.publishSettings)
   .settings(
+    name := "scala-macro-tools-cacheable",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
@@ -68,6 +69,7 @@ lazy val cacheable = (project in file("cacheable"))
 lazy val core = (project in file("core"))
   .settings(commonSettings)
   .settings(
+    name := "scala-macro-tools-core",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",

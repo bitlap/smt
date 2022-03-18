@@ -49,7 +49,8 @@ Learn Scala macro and abstract syntax tree.
 Add library dependency
 
 ```scala
-"org.bitlap.tools" %% "scala-macro-tools" % "<VERSION>"
+"org.bitlap.tools" %% "scala-macro-tools-core" % "<VERSION>"
+"org.bitlap.tools" %% "scala-macro-tools-cacheable" % "<VERSION>" // when you need cacheable module
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
