@@ -14,7 +14,7 @@
       "dev.zio" %% "zio-schema-protobuf" % <VERSION>
     ```
 
-1. 向`application.conf`中添加redis配置, 默认配置：
+1. 向`application.conf`中添加redis配置，默认配置：
 
 ```
 redis  {
@@ -22,12 +22,12 @@ redis  {
   port = 6379
 }
 ```
-> 没有`application.conf`则使用默认配置，否则使用`application.conf`中的配置
+> resources下没有`application.conf`则使用默认配置，否则使用`application.conf`中的配置
 
 2. 直接使用cacheable的`Cache`，支持`ZIO`和`ZStream`：
 
 ```scala
-  // 注意：  方法的参数用于持久化，故必须都已经重写了`toString`方法
+  // 注意： 方法的参数用于持久化存储的field，故参数必须都已经重写了`toString`方法
 def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
   val $result = ZStream.fromEffect(ZIO.effect("hello world" + Random.nextInt()))
   Cache($result)("UseCaseExample-readStreamFunction", List(id, key)) // "UseCaseExample-readStreamFunction" is hash key
@@ -43,7 +43,7 @@ def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
 
 ```scala
 @cacheable
-def readStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
+def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
   ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
 }
 ```
