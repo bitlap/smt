@@ -1,6 +1,12 @@
 import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
+ThisBuild / resolvers ++= Seq(
+  Resolver.mavenLocal,
+  Resolver.sonatypeRepo("public"),
+  Resolver.sonatypeRepo("snapshots")
+)
+
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
@@ -48,7 +54,18 @@ lazy val commonSettings =
     ))
 
 lazy val cacheable = (project in file("cacheable"))
-  .settings(commonSettings).settings(Publishing.publishSettings).settings(paradise()).enablePlugins(AutomateHeaderPlugin)
+  .settings(commonSettings).settings(Publishing.publishSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
+      "com.typesafe" % "config" % "1.4.1",
+      "dev.zio" %% "zio" % "1.0.13",
+      "dev.zio" %% "zio-schema" % "0.1.8",
+      "dev.zio" %% "zio-schema-protobuf" % "0.1.8",
+      "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
+    )
+  )
+  .settings(paradise()).enablePlugins(AutomateHeaderPlugin)
 
 lazy val core = (project in file("core"))
   .settings(commonSettings)
