@@ -12,13 +12,10 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
 lazy val lastVersionForExamples = "0.3.4"
 
-lazy val supportedScalaVersions = List(scala213, scala212, scala211)
-
 lazy val commonSettings =
   Seq(
     organization := "org.bitlap",
     scalaVersion := scala213,
-    crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
@@ -56,6 +53,7 @@ lazy val commonSettings =
 lazy val cacheable = (project in file("cacheable"))
   .settings(commonSettings).settings(Publishing.publishSettings)
   .settings(
+    crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
       "com.typesafe" % "config" % "1.4.1",
@@ -70,6 +68,7 @@ lazy val cacheable = (project in file("cacheable"))
 lazy val core = (project in file("core"))
   .settings(commonSettings)
   .settings(
+    crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
       "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
