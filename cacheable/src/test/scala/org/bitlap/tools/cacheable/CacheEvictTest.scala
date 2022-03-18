@@ -23,51 +23,51 @@ package org.bitlap.tools.cacheable
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import zio.stream.ZStream
 import zio.ZIO
+import zio.stream.ZStream
 
 import scala.util.Random
 
 /**
  *
  * @author 梦境迷离
- * @since 2021/8/7
+ * @since 2022/3/19
  * @version 1.0
  */
-class CacheableTest extends AnyFlatSpec with Matchers {
+class CacheEvictTest extends AnyFlatSpec with Matchers {
 
-  "cacheable1" should "ok" in {
-    @cacheable
-    def readStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
+  "cacheEvict1" should "ok" in {
+    @cacheEvict(values = Seq("readStreamFunction1"))
+    def updateStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
     }
 
-    @cacheable
-    def readAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] = {
+    @cacheEvict(values = Seq("readStreamFunction1"))
+    def updateAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] = {
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
     }
   }
 
-  "cacheable2" should "ok" in {
-    @cacheable
-    def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+  "cacheEvict2" should "ok" in {
+    @cacheEvict(values = Seq("readStreamFunction1"))
+    def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
     }
   }
 
-  "cacheable3" should "String cannot compile" in {
+  "cacheEvict3" should "String cannot compile" in {
     """
-      |    @cacheable
-      |    def readFunction(id: Int, key: String): String = {
+      |    @cacheEvict(values = Seq("readStreamFunction1"))
+      |    def updateFunction(id: Int, key: String): String = {
       |      s"hello world--$id-$key-${Random.nextInt()}"
       |    }
       |""".stripMargin shouldNot compile
   }
 
-  "cacheable4" should "need specified type, otherwise cannot compile" in {
+  "cacheEvict4" should "need specified type, otherwise cannot compile" in {
     """
-      |    @cacheable
-      |    def readFunction(id: Int, key: String) = {
+      |    @cacheEvict(values = Seq("readStreamFunction1"))
+      |    def updateFunction(id: Int, key: String) = {
       |      s"hello world--$id-$key-${Random.nextInt()}"
       |    }
       |""".stripMargin shouldNot compile

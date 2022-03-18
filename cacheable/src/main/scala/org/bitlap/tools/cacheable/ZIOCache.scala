@@ -31,9 +31,9 @@ import zio.ZIO
  */
 trait ZIOCache[R, E, T] extends Cache[ZIO[R, E, T]] {
 
-  override def getIfPresent(business: => ZIO[R, E, T])(identity: String, args: List[_]): ZIO[R, E, T]
+  override def getIfPresent(business: => ZIO[R, E, T])(identities: List[String], args: List[_]): ZIO[R, E, T]
 
-  override final def update(business: => ZIO[R, E, T])(identity: String, args: List[_]): ZIO[R, E, T] = throw new UnsupportedOperationException()
+  override final def evict(business: => ZIO[R, E, T])(identities: List[String], args: List[_]): ZIO[R, E, T] = throw new UnsupportedOperationException()
 
   override def toString: String = "ZIOCache"
 

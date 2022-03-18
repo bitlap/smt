@@ -26,26 +26,43 @@ import java.time.format.DateTimeFormatter
 import scala.reflect.macros.whitebox
 
 /**
- * GetAndSet cache
+ * Evict cache
  *
  * @author 梦境迷离
- * @since 2022/3/18
+ * @since 2022/3/19
  * @version 1.0
  */
-object CacheableMacro {
+object CacheEvictMacro {
 
-  class CacheableProcessor(val c: whitebox.Context) {
+  class CacheEvictProcessor(val c: whitebox.Context) {
 
     import c.universe._
 
     private lazy val resultValName: c.universe.TermName = TermName("$result")
-    private lazy val keyValName: c.universe.TermName = TermName("$key")
+    private lazy val argsValName: c.universe.TermName = TermName("$args")
 
-    private val verbose: Boolean = {
+    private val parameters: Tuple2[Boolean, Seq[String]] = {
       c.prefix.tree match {
-        case q"new cacheable(verbose=$verbose)" => c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate)))
-        case q"new cacheable($verbose)"         => c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate)))
-        case q"new cacheable()"                 => false
+        case q"new cacheEvict(verbose=$verbose, values=$values)" =>
+          Tuple2(
+            c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate))),
+            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+          )
+        case q"new cacheEvict($verbose, values=$values)" =>
+          Tuple2(
+            c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate))),
+            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+          )
+        case q"new cacheEvict(values=$values)" =>
+          Tuple2(
+            false,
+            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+          )
+        case q"new cacheEvict($values)" =>
+          Tuple2(
+            false,
+            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+          )
         case _ =>
           c.abort(c.enclosingPosition, "Unexpected annotation pattern!")
       }
@@ -82,6 +99,10 @@ object CacheableMacro {
           if (!(tp <:< typeOf[zio.ZIO[_, _, _]]) && !(tp <:< typeOf[zio.stream.ZStream[_, _, _]])) {
             c.abort(c.enclosingPosition, s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!")
           }
+          if (parameters._2.isEmpty) {
+            c.abort(c.enclosingPosition, s"The filed `values` cannot be empty!")
+          }
+          // TODO check values is valid
           val clazz = c.enclosingClass match {
             case ClassDef(_, name, _, Template(_, _, _)) => name.decodedName.toString
             case ModuleDef(_, name, Template(_, _, _))   => name.decodedName.toString
@@ -89,13 +110,13 @@ object CacheableMacro {
           val newBody =
             q"""
              val $resultValName = ${defDef.rhs}
-             val $keyValName = List($clazz, ${name.decodedName.toString})
-             org.bitlap.tools.cacheable.Cache($resultValName)($keyValName, ..${getParamsName(vparamss)})
+             val $argsValName = List(..${parameters._2}).map(p => $clazz + "-" + p)
+             org.bitlap.tools.cacheable.Cache.evict($resultValName)(${argsValName}, ..${getParamsName(vparamss)})
            """
           DefDef(mods, name, tparams, vparamss, tpt, newBody)
 
       }
-      printTree(force = verbose, resTree)
+      printTree(force = parameters._1, resTree)
       c.Expr[Any](resTree)
     }
   }

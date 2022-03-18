@@ -24,7 +24,7 @@ redis  {
 ```
 > resources下没有`application.conf`则使用默认配置，否则使用`application.conf`中的配置
 
-2. 直接使用cacheable的`Cache`，支持`ZIO`和`ZStream`：
+2. 直接使用cacheable模块的`Cache`，支持`ZIO`和`ZStream`：
 
 ```scala
   // 注意： 方法的参数用于持久化存储的field，故参数必须都已经重写了`toString`方法
@@ -41,6 +41,8 @@ def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
 
 3. 使用`@cacheable`注解自动生成:
 
+> 使用hash存储 key=className-methodName
+
 ```scala
 @cacheable
 def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
@@ -48,8 +50,35 @@ def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = 
 }
 ```
 
-4. TODO
+## 如何使用 cacheEvict
+
+> 使用hash存储 key=className-methodName 对应`cacheable` key
+
+1. 直接使用cacheable模块的`Cache`，支持`ZIO`和`ZStream`：
+
+```scala
+  // 注意： 方法的参数用于持久化存储的field，故参数必须都已经重写了`toString`方法
+def updateStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+   val $result = ZStream.fromEffect(ZIO.effect("hello world" + Random.nextInt()))
+   Cache.evict($result)(List("readFunction1", "readFunction2"), List(id, key))
+}
+
+def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+   val $result = ZIO.effect("hello world" + Random.nextInt())
+   Cache.evict($result)(List("readFunction1", "readFunction2"), List(id, key))
+}
+```
+
+2. 使用`@cacheEvict`注解自动生成:
+
+```scala
+@cacheEvict(values = Seq("readStreamFunction1"))
+def updateStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
+   ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
+}
+```
+
+## TODO
 
 - expire 缓存key的过期处理
-- cacheEvict 操作时主动删除缓存
 - 缓存key的构建策略

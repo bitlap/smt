@@ -31,9 +31,9 @@ import zio.stream.ZStream
  */
 trait ZStreamCache[R, E, T] extends Cache[ZStream[R, E, T]] {
 
-  override def getIfPresent(business: => ZStream[R, E, T])(identity: String, args: List[_]): ZStream[R, E, T]
+  override def getIfPresent(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T]
 
-  override final def update(business: => ZStream[R, E, T])(identity: String, args: List[_]): ZStream[R, E, T] = throw new UnsupportedOperationException()
+  override final def evict(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T] = throw new UnsupportedOperationException()
 
   override def toString: String = "ZStreamCache"
 

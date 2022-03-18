@@ -21,20 +21,21 @@
 
 package org.bitlap.tools.cacheable
 
-import zio.stream.ZStream
+import org.bitlap.tools.cacheable.macros.CacheEvictMacro
+
+import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 
 /**
- * Redis Update Cache for ZStream.
+ * A distributed cache for zio.
  *
  * @author 梦境迷离
- * @version 2.0,2022/3/19
+ * @param verbose Whether to enable detailed log.
+ * @param values  Indicates which caches the purge operation occurs on.
+ * @since 2022/3/18
+ * @version 1.0
  */
-trait ZStreamUpdateCache[R, E, T] extends Cache[ZStream[R, E, T]] {
+@compileTimeOnly("enable macro to expand macro annotations")
+final class cacheEvict(verbose: Boolean = false, values: Seq[String] = Nil) extends StaticAnnotation {
 
-  override final def getIfPresent(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T] = throw new UnsupportedOperationException()
-
-  override def evict(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T]
-
-  override def toString: String = "ZStreamUpdateCache"
-
+  def macroTransform(annottees: Any*): Any = macro CacheEvictMacro.CacheEvictProcessor.impl
 }
