@@ -9,7 +9,7 @@
    ```
       "dev.zio" %% "zio-redis" % <VERSION>,
       "com.typesafe" % "config" % <VERSION>,
-      "dev.zio" %% "zio" % "1.0.13" % <VERSION>,
+      "dev.zio" %% "zio" % <VERSION>,
       "dev.zio" %% "zio-schema" % <VERSION>,
       "dev.zio" %% "zio-schema-protobuf" % <VERSION>
     ```
