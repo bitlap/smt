@@ -21,29 +21,35 @@
 
 package org.bitlap.tools.cacheable
 
-import zio.{ redis, Has, ULayer, ZIO, ZLayer }
-import zio.redis.{ Redis, RedisError }
-import zio.schema.Schema
+import com.typesafe.config.{ Config, ConfigFactory }
+import zio._
+import zio.logging.Logging
+import zio.redis.{ Redis, RedisConfig, RedisError, RedisExecutor }
+import zio.schema.codec.{ Codec, ProtobufCodec }
 
 /**
+ * redis configuration
+ *
  * @author 梦境迷离
- * @see https://zio.dev/version-1.x/datatypes/contextual/#module-pattern-20
- * @version 2.0,2022/1/17
+ * @since 2022/1/10
+ * @version 2.0
  */
-case class ZioRedisLive(private val rs: Redis) extends ZioRedisService {
+object ZRedisConfiguration {
 
-  private lazy val redisLayer: ULayer[Has[Redis]] = ZLayer.succeed(rs)
+  private val conf: Config = ConfigFactory.load()
+  private val custom: Config = ConfigFactory.load("application.conf")
 
-  override def hDel(key: String, field: String): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.hDel(key, field).orDie.provideLayer(redisLayer)
+  private val redisConf: RedisConfig =
+    if (custom.isEmpty) {
+      RedisConfig(conf.getString("redis.host"), conf.getInt("redis.port"))
+    } else {
+      RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
+    }
 
-  override def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.hSet[String, String, T](key, field -> value).provideLayer(redisLayer)
+  private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
 
-  override def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]] =
-    redis.hGet(key, field).returning[T].provideLayer(redisLayer)
-
-  override def exists(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.exists(key).provideLayer(redisLayer)
-
+  val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
+    ((Logging.ignore ++ ZLayer.succeed(redisConf)) >>>
+      RedisExecutor.local ++ ZRedisConfiguration.codec) >>>
+      (Redis.live >>> (r => ZRedisLive(r)).toLayer)
 }

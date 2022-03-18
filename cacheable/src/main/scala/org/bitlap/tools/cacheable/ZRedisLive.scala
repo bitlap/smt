@@ -19,17 +19,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools
+package org.bitlap.tools.cacheable
 
-import zio.Has
+import zio.{ redis, Has, ULayer, ZIO, ZLayer }
+import zio.redis.{ Redis, RedisError }
+import zio.schema.Schema
 
 /**
  * @author 梦境迷离
- * @since 2022/2/27
- * @version 1.0
+ * @see https://zio.dev/version-1.x/datatypes/contextual/#module-pattern-20
+ * @version 2.0,2022/1/17
  */
-package object cacheable {
+case class ZRedisLive(private val rs: Redis) extends ZRedisService {
 
-  type ZRedisCacheService = Has[ZRedisService]
+  private lazy val redisLayer: ULayer[Has[Redis]] = ZLayer.succeed(rs)
+
+  override def hDel(key: String, field: String): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.hDel(key, field).orDie.provideLayer(redisLayer)
+
+  override def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.hSet[String, String, T](key, field -> value).provideLayer(redisLayer)
+
+  override def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]] =
+    redis.hGet(key, field).returning[T].provideLayer(redisLayer)
+
+  override def exists(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.exists(key).provideLayer(redisLayer)
 
 }

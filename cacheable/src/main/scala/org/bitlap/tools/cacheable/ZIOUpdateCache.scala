@@ -21,35 +21,20 @@
 
 package org.bitlap.tools.cacheable
 
-import com.typesafe.config.{ Config, ConfigFactory }
-import zio._
-import zio.logging.Logging
-import zio.redis.{ Redis, RedisConfig, RedisError, RedisExecutor }
-import zio.schema.codec.{ Codec, ProtobufCodec }
+import zio.ZIO
 
 /**
- * redis configuration
+ * Redis Update Cache for ZIO.
  *
  * @author 梦境迷离
- * @since 2022/1/10
- * @version 2.0
+ * @version 2.0,2022/3/18
  */
-object ZioRedisConfiguration {
+trait ZIOUpdateCache[R, E, T] extends Cache[ZIO[R, E, T]] {
 
-  private val conf: Config = ConfigFactory.load()
-  private val custom: Config = ConfigFactory.load("application.conf")
+  override final def getIfPresent(business: => ZIO[R, E, T])(identity: String, args: List[_]): ZIO[R, E, T] = throw new UnsupportedOperationException()
 
-  private val redisConf: RedisConfig =
-    if (custom.isEmpty) {
-      RedisConfig(conf.getString("redis.host"), conf.getInt("redis.port"))
-    } else {
-      RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
-    }
+  override def update(business: => ZIO[R, E, T])(identity: String, args: List[_]): ZIO[R, E, T]
 
-  private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
+  override def toString: String = "ZIOUpdateCache"
 
-  val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
-    ((Logging.ignore ++ ZLayer.succeed(redisConf)) >>>
-      RedisExecutor.local ++ ZioRedisConfiguration.codec) >>>
-      (Redis.live >>> (r => ZioRedisLive(r)).toLayer)
 }

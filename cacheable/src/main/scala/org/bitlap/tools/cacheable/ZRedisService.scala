@@ -31,7 +31,7 @@ import zio.schema.Schema
  * @author 梦境迷离
  * @version 2.0,2022/1/10
  */
-trait ZioRedisService {
+trait ZRedisService {
 
   /**
    * @param key
@@ -66,19 +66,19 @@ trait ZioRedisService {
 
 }
 
-object ZioRedisService {
+object ZRedisService {
 
-  implicit val zioRedisLayer: Layer[RedisError.IOError, ZRedisCacheService] = ZioRedisConfiguration.redisLayer
+  implicit val zioRedisLayer: Layer[RedisError.IOError, ZRedisCacheService] = ZRedisConfiguration.redisLayer
 
   def hDel(key: String, field: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
-    ZIO.serviceWith[ZioRedisService](_.hDel(key, field)).provideLayer(layer)
+    ZIO.serviceWith[ZRedisService](_.hDel(key, field)).provideLayer(layer)
 
   def hSet[T: Schema](key: String, field: String, value: T)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
-    ZIO.serviceWith[ZioRedisService](_.hSet[T](key, field, value)).provideLayer(layer)
+    ZIO.serviceWith[ZRedisService](_.hSet[T](key, field, value)).provideLayer(layer)
 
   def hGet[T: Schema](key: String, field: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Option[T]] =
-    ZIO.serviceWith[ZioRedisService](_.hGet(key, field)).provideLayer(layer)
+    ZIO.serviceWith[ZRedisService](_.hGet(key, field)).provideLayer(layer)
 
   def exists(key: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
-    ZIO.serviceWith[ZioRedisService](_.exists(key)).provideLayer(layer)
+    ZIO.serviceWith[ZRedisService](_.exists(key)).provideLayer(layer)
 }

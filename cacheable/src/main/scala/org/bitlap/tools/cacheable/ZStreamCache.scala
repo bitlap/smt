@@ -27,10 +27,14 @@ import zio.stream.ZStream
  * Redis Cache for ZStream.
  *
  * @author 梦境迷离
- * @version 2.0,2022/1/10
+ * @version 2.0,2022/3/19
  */
 trait ZStreamCache[R, E, T] extends Cache[ZStream[R, E, T]] {
 
-  override def cacheRead(business: => ZStream[R, E, T])(identity: String, args: List[_]): ZStream[R, E, T]
+  override def getIfPresent(business: => ZStream[R, E, T])(identity: String, args: List[_]): ZStream[R, E, T]
+
+  override final def update(business: => ZStream[R, E, T])(identity: String, args: List[_]): ZStream[R, E, T] = throw new UnsupportedOperationException()
+
+  override def toString: String = "ZStreamCache"
 
 }

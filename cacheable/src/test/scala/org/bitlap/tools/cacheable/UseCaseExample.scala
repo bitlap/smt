@@ -21,9 +21,9 @@
 
 package org.bitlap.tools.cacheable
 
+import zio.console.putStrLn
 import zio.stream.ZStream
 import zio.{ ExitCode, UIO, URIO, ZIO }
-import zio.console.putStrLn
 
 import scala.util.Random
 
@@ -47,6 +47,16 @@ object UseCaseExample extends zio.App {
   def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
     val $result = ZIO.effect("hello world" + Random.nextInt())
     Cache($result)("UseCaseExample-readFunction", List(id, key))
+  }
+
+  def updateStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+    val $result = ZStream.fromEffect(ZIO.effect("hello world" + Random.nextInt()))
+    Cache.of($result)("UseCaseExample-updateStreamFunction", List(id, key))
+  }
+
+  def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    val $result = ZIO.effect("hello world" + Random.nextInt())
+    Cache.of($result)("UseCaseExample-updateFunction", List(id, key))
   }
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
