@@ -1,5 +1,4 @@
-<img align="right" width="25%" height="25%" src="img.png" alt="https://bitlap.org"/>
-
+<img align="right" width="20%" height="30%" src="img.png" alt="https://bitlap.org"/>
 
 # scala-macro-tools
 
