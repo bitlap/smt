@@ -13,9 +13,9 @@ object Publishing {
 
   //publish by sbt publishSigned
   lazy val publishSettings = Seq(
-    credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype_credentials"),
+    credentials += Credentials(Path.userHome / ".ivy2" / ".bitlap_sonatype_credentials"),
     publishTo := {
-      val nexus = "https://oss.sonatype.org/"
+      val nexus = "https://s01.oss.sonatype.org/"
       if (isSnapshot.value)
         Some("snapshots" at nexus + "content/repositories/snapshots")
       else
