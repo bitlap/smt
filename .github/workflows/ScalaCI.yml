@@ -26,9 +26,6 @@ jobs:
       - name: Build
         run: sbt +compile
 
-      - name: Code Style
-        run: sbt scalafmtCheckAll
-
       - name: Checking headers
         run: sbt headerCheckAll
 

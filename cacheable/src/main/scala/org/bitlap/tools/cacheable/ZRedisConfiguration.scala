@@ -36,15 +36,9 @@ import zio.schema.codec.{ Codec, ProtobufCodec }
  */
 object ZRedisConfiguration {
 
-  private val conf: Config = ConfigFactory.load()
-  private val custom: Config = ConfigFactory.load("application.conf")
-
-  private val redisConf: RedisConfig =
-    if (custom.isEmpty) {
-      RedisConfig(conf.getString("redis.host"), conf.getInt("redis.port"))
-    } else {
-      RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
-    }
+  private val conf: Config = ConfigFactory.load("reference.conf")
+  private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
+  private val redisConf: RedisConfig = RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
 
   private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
 
