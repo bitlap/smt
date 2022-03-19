@@ -67,7 +67,7 @@ lazy val cacheable = (project in file("cacheable"))
     )
   )
   .settings(paradise())
-  .enablePlugins(AutomateHeaderPlugin)
+  .enablePlugins(AutomateHeaderPlugin, HeaderPlugin)
 
 lazy val core = (project in file("core"))
   .settings(commonSettings)
@@ -91,8 +91,7 @@ lazy val core = (project in file("core"))
     }
   ).settings(Publishing.publishSettings)
   .settings(paradise())
-  .enablePlugins(AutomateHeaderPlugin)
-  .enablePlugins(ProtocPlugin)
+  .enablePlugins(HeaderPlugin, AutomateHeaderPlugin, ProtocPlugin)
 
 lazy val root = (project in file(".")).aggregate(core, cacheable)
   .settings(
