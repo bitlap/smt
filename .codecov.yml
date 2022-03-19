@@ -16,9 +16,9 @@ comment:
   behavior: default
 
 ignore:
-  - "core/src/main/scala/org/bitlap/tools/package.scala"
-  - "core/src/main/scala/org/bitlap/tools/macros/macros.scala"
-  - "cacheable/src/main/scala/org/bitlap/tools/cacheable/LogUtils.scala"
-  - "cacheable/src/main/scala/org/bitlap/tools/cacheable/ZRedisConfiguration.scala"
-  - "cacheable/src/main/scala/org/bitlap/tools/cacheable/ZRedisLive.scala"
-  - "cacheable/src/main/scala/org/bitlap/tools/cacheable/ZRedisService.scala"
+  - "**/package.scala"
+  - "**/macros.scala"
+  - "**/LogUtils.scala"
+  - "**/ZRedisConfiguration.scala"
+  - "**/ZRedisLive.scala"
+  - "**/ZRedisService.scala"
