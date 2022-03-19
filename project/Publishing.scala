@@ -15,7 +15,7 @@ object Publishing {
   lazy val publishSettings = Seq(
     credentials += Credentials(Path.userHome / ".ivy2" / ".sonatype_credentials"),
     publishTo := {
-      val nexus = "https://s01.oss.sonatype.org/"
+      val nexus = "https://oss.sonatype.org/"
       if (isSnapshot.value)
         Some("snapshots" at nexus + "content/repositories/snapshots")
       else
