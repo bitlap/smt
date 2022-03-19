@@ -44,8 +44,6 @@ object CacheableMacro {
         case q"new cacheable(verbose=$verbose)" => c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate)))
         case q"new cacheable($verbose)"         => c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate)))
         case q"new cacheable()"                 => false
-        case _ =>
-          c.abort(c.enclosingPosition, "Unexpected annotation pattern!")
       }
     }
 

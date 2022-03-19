@@ -25,6 +25,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import zio.stream.ZStream
 import zio.ZIO
+import zio.Task
 
 import scala.util.Random
 
@@ -73,4 +74,15 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
+  "cacheable5" should "expected annotation pattern" in {
+    @cacheable(verbose = true)
+    def readFunction1(id: Int, key: String): Task[String] = {
+      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+
+    @cacheable(true)
+    def readFunction2(id: Int, key: String): Task[String] = {
+      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+  }
 }

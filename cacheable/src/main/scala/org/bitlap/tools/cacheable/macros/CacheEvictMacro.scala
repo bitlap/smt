@@ -46,7 +46,7 @@ object CacheEvictMacro {
             c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate))),
             c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
           )
-        case q"new cacheEvict($verbose, values=$values)" =>
+        case q"new cacheEvict($verbose, $values)" =>
           Tuple2(
             c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate))),
             c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
@@ -56,10 +56,10 @@ object CacheEvictMacro {
             false,
             c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
           )
-        case q"new cacheEvict($values)" =>
+        case q"new cacheEvict()" =>
           Tuple2(
             false,
-            c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+            Nil
           )
         case _ =>
           c.abort(c.enclosingPosition, "Unexpected annotation pattern!")

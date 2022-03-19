@@ -84,4 +84,35 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
       |    }
       |""".stripMargin shouldNot compile
   }
+
+  "cacheEvict6" should "expected annotation pattern" in {
+    @cacheEvict(verbose = true, values = List("readStreamFunction1"))
+    def updateFunction1(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+
+    @cacheEvict(true, List("readStreamFunction1"))
+    def updateFunction2(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+
+    @cacheEvict()
+    def updateFunction3(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+
+    @cacheEvict
+    def updateFunction4(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+  }
+
+  "cacheEvict7" should "unexpected annotation pattern" in {
+    """
+      |    @cacheEvict(values = List("readStreamFunction1"), verbose=true)
+      |    def updateFunction1(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      |      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+      |    }
+      |""".stripMargin shouldNot compile
+  }
 }
