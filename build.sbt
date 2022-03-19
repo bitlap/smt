@@ -98,6 +98,7 @@ lazy val root = (project in file(".")).aggregate(tools, cacheable)
   .settings(
     publishArtifact := false,
     publish / skip := true,
+    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")) // otherwise headerCheckAll will failed
   )
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
