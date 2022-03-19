@@ -57,7 +57,7 @@ Add library dependency
 
 ```scala
 "org.bitlap" %% "smt-tools" % "<VERSION>" // named smt-tools since 0.4.0 
-"org.bitlap" %% "smt-cacheable" % "<VERSION>" // when you need cacheable module
+"org.bitlap" %% "smt-cacheable" % "<VERSION>" // when you need cacheable module, not support 2.11.x
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
