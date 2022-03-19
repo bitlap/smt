@@ -74,7 +74,7 @@ object elapsedMacro {
     }
 
     private def getPrintlnLog(methodName: TermName): c.universe.Tree = {
-      val log = findNameOnEnclosingClass(TypeName("org.slf4j.Logger"))
+      val log = findValDefInEnclosingClass(TypeName("org.slf4j.Logger"))
       if (log.isEmpty) { // if there is no slf4j log, print it to the console
         getLog(methodName, q"_root_.scala.Predef.println")
       } else {

@@ -21,9 +21,9 @@
 
 package org.bitlap.tools.cacheable
 
-import zio.{ redis, Has, ULayer, ZIO, ZLayer }
 import zio.redis.{ Redis, RedisError }
 import zio.schema.Schema
+import zio.{ Has, ULayer, ZIO, ZLayer, redis }
 
 /**
  * @author 梦境迷离
@@ -34,8 +34,8 @@ case class ZRedisLive(private val rs: Redis) extends ZRedisService {
 
   private lazy val redisLayer: ULayer[Has[Redis]] = ZLayer.succeed(rs)
 
-  override def hDel(key: String, field: String): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.hDel(key, field).orDie.provideLayer(redisLayer)
+  override def del(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.del(key).orDie.provideLayer(redisLayer)
 
   override def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long] =
     redis.hSet[String, String, T](key, field -> value).provideLayer(redisLayer)

@@ -21,8 +21,6 @@
 
 package org.bitlap.tools.cacheable.macros
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import scala.reflect.macros.whitebox
 
 /**
@@ -34,59 +32,38 @@ import scala.reflect.macros.whitebox
  */
 object CacheEvictMacro {
 
-  class CacheEvictProcessor(val c: whitebox.Context) {
+  class CacheEvictProcessor(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
     private lazy val resultValName: c.universe.TermName = TermName("$result")
     private lazy val argsValName: c.universe.TermName = TermName("$args")
 
-    private val parameters: Tuple2[Boolean, Seq[String]] = {
+    private val parameters: Tuple2[Boolean, List[String]] = {
       c.prefix.tree match {
         case q"new cacheEvict(verbose=$verbose, values=$values)" =>
           Tuple2(
             c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate))),
-            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+            c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
           )
         case q"new cacheEvict($verbose, values=$values)" =>
           Tuple2(
             c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate))),
-            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+            c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
           )
         case q"new cacheEvict(values=$values)" =>
           Tuple2(
             false,
-            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+            c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
           )
         case q"new cacheEvict($values)" =>
           Tuple2(
             false,
-            c.eval(c.Expr[Seq[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
+            c.eval(c.Expr[List[String]](c.untypecheck(values.asInstanceOf[Tree].duplicate)))
           )
         case _ =>
           c.abort(c.enclosingPosition, "Unexpected annotation pattern!")
       }
-    }
-
-    private def getParamsName(vparamss: List[List[ValDef]]): List[List[TermName]] = {
-      vparamss.map(_.map(_.name))
-    }
-
-    /**
-     * Output ast result.
-     *
-     * @param force
-     * @param resTree
-     */
-    private def printTree(force: Boolean, resTree: Tree): Unit = {
-      c.info(
-        c.enclosingPosition,
-        s"\n###### Time: ${
-          ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
-        } " +
-          s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
-        force = force
-      )
     }
 
     def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
@@ -99,19 +76,23 @@ object CacheEvictMacro {
           if (!(tp <:< typeOf[zio.ZIO[_, _, _]]) && !(tp <:< typeOf[zio.stream.ZStream[_, _, _]])) {
             c.abort(c.enclosingPosition, s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!")
           }
-          if (parameters._2.isEmpty) {
-            c.abort(c.enclosingPosition, s"The filed `values` cannot be empty!")
+          val enclosingClassName = getEnclosingClassName
+          parameters._2.toSet[String].foreach(defName => {
+            if (findDefDefInEnclosingClass(TermName(defName)).isEmpty) {
+              c.abort(c.enclosingPosition, s"The specified method: `$defName` does not exist in enclosing class: `$enclosingClassName`!")
+            }
+          })
+          val identities = if (parameters._2.isEmpty) {
+            getDefDefInEnclosingClass.map(_.decodedName.toString).map(p => enclosingClassName + "-" + p)
+          } else {
+            parameters._2.toSet.map(p => enclosingClassName + "-" + p)
           }
-          // TODO check values is valid
-          val clazz = c.enclosingClass match {
-            case ClassDef(_, name, _, Template(_, _, _)) => name.decodedName.toString
-            case ModuleDef(_, name, Template(_, _, _))   => name.decodedName.toString
-          }
+          c.info(c.enclosingPosition, s"These methods will remove from cache: $identities, key prefix is: $enclosingClassName", verbose)
           val newBody =
             q"""
              val $resultValName = ${defDef.rhs}
-             val $argsValName = List(..${parameters._2}).map(p => $clazz + "-" + p)
-             org.bitlap.tools.cacheable.Cache.evict($resultValName)(${argsValName}, ..${getParamsName(vparamss)})
+             val $argsValName = ${identities.toList}
+             org.bitlap.tools.cacheable.Cache.evict($resultValName)(${argsValName})
            """
           DefDef(mods, name, tparams, vparamss, tpt, newBody)
 
@@ -119,5 +100,7 @@ object CacheEvictMacro {
       printTree(force = parameters._1, resTree)
       c.Expr[Any](resTree)
     }
+
+    override protected val verbose: Boolean = parameters._1
   }
 }

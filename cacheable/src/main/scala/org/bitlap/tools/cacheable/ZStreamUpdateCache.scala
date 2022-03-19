@@ -33,7 +33,7 @@ trait ZStreamUpdateCache[R, E, T] extends Cache[ZStream[R, E, T]] {
 
   override final def getIfPresent(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T] = throw new UnsupportedOperationException()
 
-  override def evict(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T]
+  override def evict(business: => ZStream[R, E, T])(identities: List[String]): ZStream[R, E, T]
 
   override def toString: String = "ZStreamUpdateCache"
 

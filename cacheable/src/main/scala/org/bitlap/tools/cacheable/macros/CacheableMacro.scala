@@ -21,8 +21,6 @@
 
 package org.bitlap.tools.cacheable.macros
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import scala.reflect.macros.whitebox
 
 /**
@@ -34,14 +32,14 @@ import scala.reflect.macros.whitebox
  */
 object CacheableMacro {
 
-  class CacheableProcessor(val c: whitebox.Context) {
+  class CacheableProcessor(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
     private lazy val resultValName: c.universe.TermName = TermName("$result")
     private lazy val keyValName: c.universe.TermName = TermName("$key")
 
-    private val verbose: Boolean = {
+    override protected val verbose: Boolean = {
       c.prefix.tree match {
         case q"new cacheable(verbose=$verbose)" => c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate)))
         case q"new cacheable($verbose)"         => c.eval(c.Expr[Boolean](c.untypecheck(verbose.asInstanceOf[Tree].duplicate)))
@@ -55,23 +53,6 @@ object CacheableMacro {
       vparamss.map(_.map(_.name))
     }
 
-    /**
-     * Output ast result.
-     *
-     * @param force
-     * @param resTree
-     */
-    private def printTree(force: Boolean, resTree: Tree): Unit = {
-      c.info(
-        c.enclosingPosition,
-        s"\n###### Time: ${
-          ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
-        } " +
-          s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
-        force = force
-      )
-    }
-
     def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {
         case (defDef @ DefDef(mods, name, tparams, vparamss, tpt, _)) :: Nil =>
@@ -82,14 +63,10 @@ object CacheableMacro {
           if (!(tp <:< typeOf[zio.ZIO[_, _, _]]) && !(tp <:< typeOf[zio.stream.ZStream[_, _, _]])) {
             c.abort(c.enclosingPosition, s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!")
           }
-          val clazz = c.enclosingClass match {
-            case ClassDef(_, name, _, Template(_, _, _)) => name.decodedName.toString
-            case ModuleDef(_, name, Template(_, _, _))   => name.decodedName.toString
-          }
           val newBody =
             q"""
              val $resultValName = ${defDef.rhs}
-             val $keyValName = List($clazz, ${name.decodedName.toString})
+             val $keyValName = List(${getEnclosingClassName}, ${name.decodedName.toString})
              org.bitlap.tools.cacheable.Cache($resultValName)($keyValName, ..${getParamsName(vparamss)})
            """
           DefDef(mods, name, tparams, vparamss, tpt, newBody)

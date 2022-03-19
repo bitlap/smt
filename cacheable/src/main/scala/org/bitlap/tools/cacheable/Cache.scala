@@ -47,10 +47,9 @@ trait Cache[Z] {
    *
    * @param business   The function that returns the ZIO or ZStream effect.
    * @param identities Append all strings for cache key.
-   * @param args       The parameters fo the business function.
    * @return The result fo the business function.
    */
-  def evict(business: => Z)(identities: List[String], args: List[_]): Z
+  def evict(business: => Z)(identities: List[String]): Z
 
   /**
    * Build a string for cache key.
@@ -80,20 +79,19 @@ object Cache {
     cache.getIfPresent(business)(identities, args)
   }
 
-  def evict[R, E, T](business: => ZStream[R, E, T])(identities: List[String], args: List[_])(implicit streamCache: ZStreamUpdateCache[R, E, T]): ZStream[R, E, T] = {
-    streamCache.evict(business)(identities, args)
+  def evict[R, E, T](business: => ZStream[R, E, T])(identities: List[String])(implicit streamCache: ZStreamUpdateCache[R, E, T]): ZStream[R, E, T] = {
+    streamCache.evict(business)(identities)
   }
 
-  def evict[R, E, T](business: => ZIO[R, E, T])(identities: List[String], args: List[_])(implicit cache: ZIOUpdateCache[R, E, T]): ZIO[R, E, T] = {
-    cache.evict(business)(identities, args)
+  def evict[R, E, T](business: => ZIO[R, E, T])(identities: List[String])(implicit cache: ZIOUpdateCache[R, E, T]): ZIO[R, E, T] = {
+    cache.evict(business)(identities)
   }
 
   implicit def StreamUpdateCache[T: Schema]: ZStreamUpdateCache[Any, Throwable, T] = new ZStreamUpdateCache[Any, Throwable, T] {
-    override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
-      val $field = cacheField(args)
+    override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
-        updateResult <- ZStream.fromIterable(identities).map(key => ZRedisService.hDel(key, $field)) *> business
-        _ <- LogUtils.debugS(s"update: identities:[${identities}], field:[${$field}], updateResult:[$updateResult]")
+        updateResult <- ZStream.fromIterable(identities).map(key => ZRedisService.del(key)) *> business
+        _ <- LogUtils.debugS(s"update: identities:[${identities}], updateResult:[$updateResult]")
       } yield updateResult
     }
   }
@@ -113,11 +111,10 @@ object Cache {
   }
 
   implicit def UpdateCache[T: Schema]: ZIOUpdateCache[Any, Throwable, T] = new ZIOUpdateCache[Any, Throwable, T] {
-    override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
-      val $field = cacheField(args)
+    override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
       for {
-        updateResult <- ZIO.foreach_(identities)(key => ZRedisService.hDel(key, $field)) *> business
-        _ <- LogUtils.debug(s"update: identities:[${identities}], field:[${$field}], updateResult:[$updateResult]")
+        updateResult <- ZIO.foreach_(identities)(key => ZRedisService.del(key)) *> business
+        _ <- LogUtils.debug(s"update: identities:[${identities}], updateResult:[$updateResult]")
       } yield updateResult
     }
   }

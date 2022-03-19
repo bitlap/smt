@@ -462,12 +462,12 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   )
 
   /**
-   * Find the specified Name in the enclosingClass definition.
+   * Find the specified val Name in the enclosingClass definition.
    *
    * @param t
    * @return Return a optional [[scala.reflect.api.Names#TermName]]
    */
-  def findNameOnEnclosingClass(t: Name): Option[TermName] = {
+  def findValDefInEnclosingClass(t: Name): Option[TermName] = {
     @tailrec
     def doFind(trees: List[Tree]): Option[TermName] = trees match {
       case Nil => None

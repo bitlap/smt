@@ -36,20 +36,23 @@ import scala.util.Random
  */
 class CacheEvictTest extends AnyFlatSpec with Matchers {
 
+  // write readStreamFunction1 method , otherwise: The specified method: `readStreamFunction1` does not exist in enclosing class: `CacheEvictTest`!
+  def readStreamFunction1: String = "hello world"
+
   "cacheEvict1" should "ok" in {
-    @cacheEvict(values = Seq("readStreamFunction1"))
+    @cacheEvict(values = List("readStreamFunction1"))
     def updateStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
     }
 
-    @cacheEvict(values = Seq("readStreamFunction1"))
+    @cacheEvict(values = List("readStreamFunction1"))
     def updateAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] = {
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
     }
   }
 
   "cacheEvict2" should "ok" in {
-    @cacheEvict(values = Seq("readStreamFunction1"))
+    @cacheEvict(values = List("readStreamFunction1"))
     def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
     }
@@ -57,7 +60,7 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   "cacheEvict3" should "String cannot compile" in {
     """
-      |    @cacheEvict(values = Seq("readStreamFunction1"))
+      |    @cacheEvict(values = List("readStreamFunction1"))
       |    def updateFunction(id: Int, key: String): String = {
       |      s"hello world--$id-$key-${Random.nextInt()}"
       |    }
@@ -66,11 +69,19 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   "cacheEvict4" should "need specified type, otherwise cannot compile" in {
     """
-      |    @cacheEvict(values = Seq("readStreamFunction1"))
+      |    @cacheEvict(values = List("readStreamFunction1"))
       |    def updateFunction(id: Int, key: String) = {
       |      s"hello world--$id-$key-${Random.nextInt()}"
       |    }
       |""".stripMargin shouldNot compile
   }
 
+  "cacheEvict5" should "compile failed when function name not found" in {
+    """
+      |    @cacheEvict(values = List("1212"))
+      |    def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      |      ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+      |    }
+      |""".stripMargin shouldNot compile
+  }
 }

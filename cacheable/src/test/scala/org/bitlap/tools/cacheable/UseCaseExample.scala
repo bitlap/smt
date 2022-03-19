@@ -51,12 +51,12 @@ object UseCaseExample extends zio.App {
 
   def updateStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
     val $result = ZStream.fromEffect(ZIO.effect("hello world" + Random.nextInt()))
-    Cache.evict($result)(List("readFunction1", "readFunction2"), List(id, key))
+    Cache.evict($result)(List("readFunction1", "readFunction2"))
   }
 
   def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
     val $result = ZIO.effect("hello world" + Random.nextInt())
-    Cache.evict($result)(List("readFunction1", "readFunction2"), List(id, key))
+    Cache.evict($result)(List("readFunction1", "readFunction2"))
   }
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =

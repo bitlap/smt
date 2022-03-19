@@ -35,10 +35,9 @@ trait ZRedisService {
 
   /**
    * @param key
-   * @param field
    * @return Long
    */
-  def hDel(key: String, field: String): ZIO[ZRedisCacheService, RedisError, Long]
+  def del(key: String): ZIO[ZRedisCacheService, RedisError, Long]
 
   /**
    *
@@ -70,8 +69,8 @@ object ZRedisService {
 
   implicit val zioRedisLayer: Layer[RedisError.IOError, ZRedisCacheService] = ZRedisConfiguration.redisLayer
 
-  def hDel(key: String, field: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
-    ZIO.serviceWith[ZRedisService](_.hDel(key, field)).provideLayer(layer)
+  def del(key: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
+    ZIO.serviceWith[ZRedisService](_.del(key)).provideLayer(layer)
 
   def hSet[T: Schema](key: String, field: String, value: T)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
     ZIO.serviceWith[ZRedisService](_.hSet[T](key, field, value)).provideLayer(layer)
