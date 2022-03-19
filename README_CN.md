@@ -24,9 +24,9 @@
 - Java 8、11 编译通过
 - Scala 2.11.12、2.12.14、2.13.6 编译通过
 
-# 功能
+# 模块功能
 
-## core 模块
+## core
 
 - `@toString`
 - `@json`
@@ -41,6 +41,11 @@
 - `ProcessorCreator`
 
 > Intellij插件 `Scala-Macro-Tools`。
+
+## cacheable
+
+- `@cacheable` / `Cache.apply`
+- `@cacheEvict` / `Cache.evict`
 
 # 文档
 

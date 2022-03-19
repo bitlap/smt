@@ -24,9 +24,9 @@ Learn Scala macro and abstract syntax tree.
 - Compile passed in Java 8、11
 - Compile passed in Scala 2.11.12、2.12.14、2.13.6
 
-# Features
+# Module Features
 
-## core module
+## core
 
 - `@toString`
 - `@json`
@@ -41,6 +41,11 @@ Learn Scala macro and abstract syntax tree.
 - `ProcessorCreator`
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
+
+## cacheable
+
+- `@cacheable` / `Cache.apply`
+- `@cacheEvict` / `Cache.evict`
 
 # Document
 
