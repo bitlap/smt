@@ -36,7 +36,7 @@ object applyMacro {
     import c.universe._
 
     private val extractArgumentsDetail: Tuple1[Boolean] = {
-      extractArgumentsTuple1 {
+      c.prefix.tree match {
         case q"new apply(verbose=$verbose)" => Tuple1(evalTree(verbose.asInstanceOf[Tree]))
         case q"new apply()"                 => Tuple1(false)
         case _                              => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
