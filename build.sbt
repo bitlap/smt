@@ -95,6 +95,10 @@ lazy val core = (project in file("core"))
   .enablePlugins(ProtocPlugin)
 
 lazy val root = (project in file(".")).aggregate(core, cacheable)
+  .settings(
+    publishArtifact := false,
+    publish / skip := true,
+  )
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
