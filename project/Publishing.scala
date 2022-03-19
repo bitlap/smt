@@ -13,6 +13,7 @@ object Publishing {
 
   //publish by sbt publishSigned
   lazy val publishSettings = Seq(
+    isSnapshot := version.value endsWith "SNAPSHOT",
     credentials += Credentials(Path.userHome / ".ivy2" / ".bitlap_sonatype_credentials"),
     publishTo := {
       val nexus = "https://s01.oss.sonatype.org/"
@@ -40,7 +41,6 @@ object Publishing {
       )
     ),
     sonatypeProfileName := organization.value,
-    isSnapshot := version.value endsWith "SNAPSHOT",
     homepage := Some(url("https://bitlap.org")),
     scmInfo := Some(
       ScmInfo(
