@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,31 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable
+package org.bitlap.cacheable
 
-import zio.redis.{ Redis, RedisError }
-import zio.schema.Schema
-import zio.{ Has, ULayer, ZIO, ZLayer, redis }
+import zio.stream.ZStream
 
 /**
+ * Redis Cache for ZStream.
+ *
  * @author 梦境迷离
- * @see https://zio.dev/version-1.x/datatypes/contextual/#module-pattern-20
- * @version 2.0,2022/1/17
+ * @version 2.0,2022/3/19
  */
-case class ZRedisLive(private val rs: Redis) extends ZRedisService {
+trait ZStreamCache[R, E, T] extends Cache[ZStream[R, E, T]] {
 
-  private lazy val redisLayer: ULayer[Has[Redis]] = ZLayer.succeed(rs)
+  override def getIfPresent(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T]
 
-  override def del(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.del(key).orDie.provideLayer(redisLayer)
+  override final def evict(business: => ZStream[R, E, T])(identities: List[String]): ZStream[R, E, T] = throw new UnsupportedOperationException()
 
-  override def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.hSet[String, String, T](key, field -> value).provideLayer(redisLayer)
-
-  override def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]] =
-    redis.hGet(key, field).returning[T].provideLayer(redisLayer)
-
-  override def exists(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
-    redis.exists(key).provideLayer(redisLayer)
+  override def toString: String = "ZStreamCache"
 
 }

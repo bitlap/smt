@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,33 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable
+package org.bitlap.cacheable
 
-import zio.clock.Clock
-import zio.console.Console
-import zio.logging.{ LogFormat, LogLevel, Logger, Logging }
-import zio.{ UIO, ULayer, URLayer, ZIO }
-import zio.stream.{ UStream, ZStream }
+import zio.ZIO
 
 /**
- * Internal LogUtil
+ * Redis Cache for ZIO.
  *
  * @author 梦境迷离
- * @version 1.0,2022/3/18
+ * @version 2.0,2022/3/18
  */
-object LogUtils {
+trait ZIOCache[R, E, T] extends Cache[ZIO[R, E, T]] {
 
-  lazy val loggingLayer: URLayer[Console with Clock, Logging] =
-    Logging.console(
-      logLevel = LogLevel.Debug,
-      format = LogFormat.ColoredLogFormat()
-    ) >>> Logging.withRootLoggerName("bitlap-smt-cacheable")
+  override def getIfPresent(business: => ZIO[R, E, T])(identities: List[String], args: List[_]): ZIO[R, E, T]
 
-  private val logLayer: ULayer[Logging] = (Console.live ++ Clock.live) >>> loggingLayer
+  override final def evict(business: => ZIO[R, E, T])(identities: List[String]): ZIO[R, E, T] = throw new UnsupportedOperationException()
 
-  def debug(msg: => String): UIO[Unit] =
-    ZIO.serviceWith[Logger[String]](_.debug(msg)).provideLayer(logLayer)
+  override def toString: String = "ZIOCache"
 
-  def debugS(msg: => String): UStream[Unit] =
-    ZStream.fromEffect(debug(msg))
 }

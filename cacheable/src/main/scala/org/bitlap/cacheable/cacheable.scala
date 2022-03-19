@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,22 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable
+package org.bitlap.cacheable
 
-import zio.stream.ZStream
+import org.bitlap.cacheable.macros.CacheableMacro.CacheableProcessor
+
+import scala.annotation.{ StaticAnnotation, compileTimeOnly }
 
 /**
- * Redis Cache for ZStream.
+ * A distributed cache for zio.
  *
  * @author 梦境迷离
- * @version 2.0,2022/3/19
+ * @param verbose Whether to enable detailed log.
+ * @since 2022/3/18
+ * @version 1.0
  */
-trait ZStreamCache[R, E, T] extends Cache[ZStream[R, E, T]] {
+@compileTimeOnly("enable macro to expand macro annotations")
+final class cacheable(verbose: Boolean = false) extends StaticAnnotation {
 
-  override def getIfPresent(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T]
-
-  override final def evict(business: => ZStream[R, E, T])(identities: List[String]): ZStream[R, E, T] = throw new UnsupportedOperationException()
-
-  override def toString: String = "ZStreamCache"
-
+  def macroTransform(annottees: Any*): Any = macro CacheableProcessor.impl
 }

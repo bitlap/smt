@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,17 +19,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools
+package org.bitlap.cacheable
 
-import zio.Has
+import zio.clock.Clock
+import zio.console.Console
+import zio.logging.{ LogFormat, LogLevel, Logger, Logging }
+import zio.{ UIO, ULayer, URLayer, ZIO }
+import zio.stream.{ UStream, ZStream }
 
 /**
+ * Internal LogUtil
+ *
  * @author 梦境迷离
- * @since 2022/2/27
- * @version 1.0
+ * @version 1.0,2022/3/18
  */
-package object cacheable {
+object LogUtils {
 
-  type ZRedisCacheService = Has[ZRedisService]
+  lazy val loggingLayer: URLayer[Console with Clock, Logging] =
+    Logging.console(
+      logLevel = LogLevel.Debug,
+      format = LogFormat.ColoredLogFormat()
+    ) >>> Logging.withRootLoggerName("bitlap-smt-cacheable")
 
+  private val logLayer: ULayer[Logging] = (Console.live ++ Clock.live) >>> loggingLayer
+
+  def debug(msg: => String): UIO[Unit] =
+    ZIO.serviceWith[Logger[String]](_.debug(msg)).provideLayer(logLayer)
+
+  def debugS(msg: => String): UStream[Unit] =
+    ZStream.fromEffect(debug(msg))
 }

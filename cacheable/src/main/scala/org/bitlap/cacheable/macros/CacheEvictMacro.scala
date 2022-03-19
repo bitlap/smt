@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable.macros
+package org.bitlap.cacheable.macros
 
 import scala.reflect.macros.whitebox
 
@@ -92,7 +92,7 @@ object CacheEvictMacro {
             q"""
              val $resultValName = ${defDef.rhs}
              val $argsValName = ${identities.toList}
-             org.bitlap.tools.cacheable.Cache.evict($resultValName)(${argsValName})
+             org.bitlap.cacheable.Cache.evict($resultValName)(${argsValName})
            """
           DefDef(mods, name, tparams, vparamss, tpt, newBody)
 

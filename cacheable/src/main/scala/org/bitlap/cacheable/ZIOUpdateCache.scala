@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,21 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable
+package org.bitlap.cacheable
 
-import scala.annotation.{ compileTimeOnly, StaticAnnotation }
-import org.bitlap.tools.cacheable.macros.CacheableMacro
+import zio.ZIO
 
 /**
- * A distributed cache for zio.
+ * Redis Update Cache for ZIO.
  *
  * @author 梦境迷离
- * @param verbose Whether to enable detailed log.
- * @since 2022/3/18
- * @version 1.0
+ * @version 2.0,2022/3/18
  */
-@compileTimeOnly("enable macro to expand macro annotations")
-final class cacheable(verbose: Boolean = false) extends StaticAnnotation {
+trait ZIOUpdateCache[R, E, T] extends Cache[ZIO[R, E, T]] {
 
-  def macroTransform(annottees: Any*): Any = macro CacheableMacro.CacheableProcessor.impl
+  override final def getIfPresent(business: => ZIO[R, E, T])(identities: List[String], args: List[_]): ZIO[R, E, T] = throw new UnsupportedOperationException()
+
+  override def evict(business: => ZIO[R, E, T])(identities: List[String]): ZIO[R, E, T]
+
+  override def toString: String = "ZIOUpdateCache"
+
 }

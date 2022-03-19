@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,23 +19,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable
+package org.bitlap.cacheable
 
-import org.bitlap.tools.cacheable.macros.CacheEvictMacro
-
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import zio.redis.{ Redis, RedisError }
+import zio.schema.Schema
+import zio.{ Has, ULayer, ZIO, ZLayer, redis }
 
 /**
- * A distributed cache for zio.
- *
  * @author 梦境迷离
- * @param verbose Whether to enable detailed log.
- * @param values  Indicates which caches the purge operation occurs on.
- * @since 2022/3/18
- * @version 1.0
+ * @see https://zio.dev/version-1.x/datatypes/contextual/#module-pattern-20
+ * @version 2.0,2022/1/17
  */
-@compileTimeOnly("enable macro to expand macro annotations")
-final class cacheEvict(verbose: Boolean = false, values: List[String] = Nil) extends StaticAnnotation {
+case class ZRedisLive(private val rs: Redis) extends ZRedisService {
 
-  def macroTransform(annottees: Any*): Any = macro CacheEvictMacro.CacheEvictProcessor.impl
+  private lazy val redisLayer: ULayer[Has[Redis]] = ZLayer.succeed(rs)
+
+  override def del(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.del(key).orDie.provideLayer(redisLayer)
+
+  override def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.hSet[String, String, T](key, field -> value).provideLayer(redisLayer)
+
+  override def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]] =
+    redis.hGet(key, field).returning[T].provideLayer(redisLayer)
+
+  override def exists(key: String): ZIO[ZRedisCacheService, RedisError, Long] =
+    redis.exists(key).provideLayer(redisLayer)
+
 }

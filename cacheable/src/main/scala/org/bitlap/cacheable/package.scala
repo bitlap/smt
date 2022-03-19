@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 org.bitlap
+ * Copyright (c) 2022 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,22 +19,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.cacheable
+package org.bitlap
 
-import zio.ZIO
+import zio.Has
 
 /**
- * Redis Cache for ZIO.
- *
  * @author 梦境迷离
- * @version 2.0,2022/3/18
+ * @since 2022/2/27
+ * @version 1.0
  */
-trait ZIOCache[R, E, T] extends Cache[ZIO[R, E, T]] {
+package object cacheable {
 
-  override def getIfPresent(business: => ZIO[R, E, T])(identities: List[String], args: List[_]): ZIO[R, E, T]
-
-  override final def evict(business: => ZIO[R, E, T])(identities: List[String]): ZIO[R, E, T] = throw new UnsupportedOperationException()
-
-  override def toString: String = "ZIOCache"
+  type ZRedisCacheService = Has[ZRedisService]
 
 }
