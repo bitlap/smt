@@ -56,8 +56,8 @@ Learn Scala macro and abstract syntax tree.
 Add library dependency
 
 ```scala
-"org.bitlap.tools" %% "smt-core" % "<VERSION>" // named smt-core since 0.3.5 
-"org.bitlap.tools" %% "smt-cacheable" % "<VERSION>" // when you need cacheable module
+"org.bitlap" %% "smt-tools" % "<VERSION>" // named smt-tools since 0.4.0 
+"org.bitlap" %% "smt-cacheable" % "<VERSION>" // when you need cacheable module
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.

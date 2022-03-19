@@ -58,8 +58,8 @@
 > 在gradle，maven中，通常`scala-macro-tools`被替换为`scala-macro-tools_2.12`这种。其中，`2.12`表示Scala版本号。
 
 ```scala
-"org.bitlap.tools" %% "smt-core" % "<VERSION>" // 从0.3.5开始名字改成 smt-core 
-"org.bitlap.tools" %% "smt-cacheable" % "<VERSION>" // 如果需要使用cacheable module，则引入smt-cacheable
+"org.bitlap" %% "smt-tools" % "<VERSION>" // 从0.3.5开始名字改成 smt-tools 
+"org.bitlap" %% "smt-cacheable" % "<VERSION>" // 如果需要使用cacheable module，则引入smt-cacheable
 ```
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。

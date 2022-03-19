@@ -70,10 +70,10 @@ lazy val cacheable = (project in file("cacheable"))
   .settings(paradise())
   .enablePlugins(AutomateHeaderPlugin, HeaderPlugin)
 
-lazy val core = (project in file("core"))
+lazy val tools = (project in file("tools"))
   .settings(commonSettings)
   .settings(
-    name := "smt-core",
+    name := "smt-tools",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
@@ -94,7 +94,7 @@ lazy val core = (project in file("core"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin, AutomateHeaderPlugin, ProtocPlugin)
 
-lazy val root = (project in file(".")).aggregate(core, cacheable)
+lazy val root = (project in file(".")).aggregate(tools, cacheable)
   .settings(
     publishArtifact := false,
     publish / skip := true,
