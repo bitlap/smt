@@ -14,7 +14,30 @@ jobs:
     strategy:
       matrix:
         java-version: [ 8, 11 ]
-        redis-version: [ 4, 5, 6 ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+      - name: Cache scala dependencies
+        uses: coursier/cache-action@v6
+
+      - name: Build
+        run: sbt +compile
+
+      - name: Code Style
+        run: sbt scalafmtCheckAll
+
+      - name: Checking headers
+        run: sbt headerCheckAll
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+        redis-version: [ 4 ]
     steps:
       - uses: actions/checkout@v2
       - name: Setup JDK
@@ -22,19 +45,26 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - name: Build
-        run: sbt +compile
-        
+      - name: Cache scala dependencies
+        uses: coursier/cache-action@v6
+
       - name: Start Redis
         uses: supercharge/redis-github-action@1.4.0
         with:
-          redis-version: ${{ matrix.redis-version }}        
+          redis-version: ${{ matrix.redis-version }}
 
       - name: Run Test
-        run: sbt coverage test coverageReport # test in scala2.13.x java 8
+        run: sbt coverage test coverageReport
 
       - name: Aggregate coverage report
         run: sbt coverageAggregate
 
       - name: Upload test coverage report
         run: bash <(curl -s https://codecov.io/bash)
+
+  ci:
+    runs-on: ubuntu-20.04
+    needs: [ build, test ]
+    steps:
+      - name: Aggregate outcomes
+        run: echo "build succeeded"
