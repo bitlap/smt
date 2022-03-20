@@ -27,5 +27,5 @@ import zio.schema.{ DeriveSchema, Schema }
 case class CacheValue(i: String)
 
 object CacheValue {
-  implicit val userSecuritySchema: Schema[CacheValue] = DeriveSchema.gen[CacheValue]
+  implicit val cacheValueSchema: Schema[CacheValue] = DeriveSchema.gen[CacheValue]
 }

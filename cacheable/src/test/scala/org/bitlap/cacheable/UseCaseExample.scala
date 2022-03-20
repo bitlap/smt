@@ -29,6 +29,7 @@ import zio.{ ExitCode, UIO, URIO, ZIO }
 import scala.util.Random
 
 /**
+ * use these function to test it.
  *
  * @author 梦境迷离
  * @version 1.0,2022/3/18
@@ -62,7 +63,12 @@ object UseCaseExample extends zio.App {
 
   def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
     val $result = ZIO.effect(CacheValue(Random.nextInt()))
-    Cache($result)(List("UseCaseExample", "readFunction"), List(id, key))
+    Cache($result)(List("UseCaseExample", "readEntityFunction"), List(id, key))
+  }
+
+  def readStreamEntityFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] = {
+    val $result = ZStream.fromEffect(ZIO.effect(CacheValue(Random.nextInt())))
+    Cache($result)(List("UseCaseExample", "readStreamEntityFunction"), List(id, key))
   }
 
   case class CacheValue(i: Int)
@@ -73,8 +79,9 @@ object UseCaseExample extends zio.App {
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
-      ret <- readStreamFunction(1, "hello-world").runHead
-      _ <- LogUtils.debug(ret.getOrElse("null"))
+      ret <- readStreamEntityFunction(1, "hello-world").runHead
+      cache = zio.Runtime.default.unsafeRun(ZRedisService.hGet[CacheValue]("UseCaseExample-readStreamEntityFunction", "1-hello-world"))
+      _ <- LogUtils.debug(s"${ret.toString}    $cache")
       _ <- putStrLn("Hello good to meet you!")
     } yield ()).foldM(
       e => LogUtils.debug(s"error => $e").exitCode,

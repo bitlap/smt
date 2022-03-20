@@ -124,7 +124,6 @@ object Cache {
       val $field = cacheField(args)
       for {
         cacheValue <- ZRedisService.hGet[T]($key, $field)
-        _ = println(zio.Runtime.default.unsafeRun(ZRedisService.hGet[T]($key, $field)))
         _ <- LogUtils.debug(s"ZIO getIfPresent: identity:[${$key}], field:[${$field}], cacheValue:[$cacheValue]")
         result <- cacheValue.fold(business.tap(r => ZRedisService.hSet[T]($key, $field, r).as(r)))(value => ZIO.effectTotal(value))
         _ <- LogUtils.debug(s"ZIO getIfPresent: identity:[${$key}], field:[${$field}], result:[$result]")

@@ -21,9 +21,9 @@
 
 package org.bitlap.cacheable
 
-import zio.{ IO, Layer, ZIO }
 import zio.redis.RedisError
 import zio.schema.Schema
+import zio.{ IO, Layer, ZIO }
 
 /**
  * Redis service.
@@ -55,29 +55,18 @@ trait ZRedisService {
    * @return Option[T]
    */
   def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]]
-
-  /**
-   *
-   * @param key
-   * @return Long
-   */
-  def exists(key: String): ZIO[ZRedisCacheService, RedisError, Long]
-
 }
 
 object ZRedisService {
 
-  implicit val zioRedisLayer: Layer[RedisError.IOError, ZRedisCacheService] = ZRedisConfiguration.redisLayer
+  lazy val zioRedisLayer: Layer[RedisError.IOError, ZRedisCacheService] = ZRedisConfiguration.redisLayer
 
-  def del(key: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
+  def del(key: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer): IO[RedisError, Long] =
     ZIO.serviceWith[ZRedisService](_.del(key)).provideLayer(layer)
 
-  def hSet[T: Schema](key: String, field: String, value: T)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
+  def hSet[T: Schema](key: String, field: String, value: T)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer): IO[RedisError, Long] =
     ZIO.serviceWith[ZRedisService](_.hSet[T](key, field, value)).provideLayer(layer)
 
-  def hGet[T: Schema](key: String, field: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Option[T]] =
-    ZIO.serviceWith[ZRedisService](_.hGet(key, field)).provideLayer(layer)
-
-  def exists(key: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService]): IO[RedisError, Long] =
-    ZIO.serviceWith[ZRedisService](_.exists(key)).provideLayer(layer)
+  def hGet[T: Schema](key: String, field: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer): IO[RedisError, Option[T]] =
+    ZIO.serviceWith[ZRedisService](_.hGet[T](key, field)).provideLayer(layer)
 }

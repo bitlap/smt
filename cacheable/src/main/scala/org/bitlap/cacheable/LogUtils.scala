@@ -41,7 +41,7 @@ object LogUtils {
       format = LogFormat.ColoredLogFormat()
     ) >>> Logging.withRootLoggerName("bitlap-smt-cacheable")
 
-  private val logLayer: ULayer[Logging] = (Console.live ++ Clock.live) >>> loggingLayer
+  lazy val logLayer: ULayer[Logging] = (Console.live ++ Clock.live) >>> loggingLayer
 
   def debug(msg: => String): UIO[Unit] =
     ZIO.serviceWith[Logger[String]](_.debug(msg)).provideLayer(logLayer)
