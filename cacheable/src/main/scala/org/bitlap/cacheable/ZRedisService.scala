@@ -55,6 +55,9 @@ trait ZRedisService {
    * @return Option[T]
    */
   def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]]
+
+  def hGetAll[T: Schema](key: String): ZIO[ZRedisCacheService, RedisError, Map[String, T]]
+
 }
 
 object ZRedisService {

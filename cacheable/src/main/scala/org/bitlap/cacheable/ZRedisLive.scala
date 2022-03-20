@@ -42,4 +42,7 @@ case class ZRedisLive(private val rs: Redis) extends ZRedisService {
 
   override def hGet[T](key: String, field: String)(implicit schema: Schema[T]): ZIO[ZRedisCacheService, RedisError, Option[T]] =
     redis.hGet(key, field).returning[T](schema).provideLayer(redisLayer)
+
+  override def hGetAll[T: Schema](key: String): ZIO[ZRedisCacheService, RedisError, Map[String, T]] =
+    redis.hGetAll(key).returning[String, T].provideLayer(redisLayer)
 }
