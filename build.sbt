@@ -88,8 +88,8 @@ lazy val tools = (project in file("tools"))
     ),
     ProtocConfig / sourceDirectory := {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n < 13 => new File("core/src/test/resources") // test only for 2.13
-        case _ => new File("core/src/test/proto")
+        case Some((2, n)) if n < 13 => new File("tools/src/test/resources") // test only for 2.13
+        case _ => new File("tools/src/test/proto")
       }
     }
   ).settings(Publishing.publishSettings)
