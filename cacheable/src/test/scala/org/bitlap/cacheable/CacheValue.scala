@@ -24,7 +24,7 @@ package org.bitlap.cacheable
 import zio.schema.{ DeriveSchema, Schema }
 
 // The case class should be here, not in the test
-case class CacheValue(i: Int)
+case class CacheValue(i: String)
 
 object CacheValue {
   implicit val userSecuritySchema: Schema[CacheValue] = DeriveSchema.gen[CacheValue]

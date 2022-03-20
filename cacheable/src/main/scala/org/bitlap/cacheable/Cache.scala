@@ -91,7 +91,7 @@ object Cache {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
         updateResult <- ZStream.fromIterable(identities).map(key => ZRedisService.del(key)) *> business
-        _ <- LogUtils.debugS(s"update: identities:[${identities}], updateResult:[$updateResult]")
+        _ <- LogUtils.debugS(s"ZStream update: identities:[${identities}], updateResult:[$updateResult]")
       } yield updateResult
     }
   }
@@ -100,12 +100,11 @@ object Cache {
     override def getIfPresent(business: => ZStream[Any, Throwable, T])(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
       val $key = cacheKey(identities)
       val $field = cacheField(args)
-      val $default = business.mapM(r => ZRedisService.hSet[T]($key, $field, r).as(r))
       for {
         cacheValue <- ZStream.fromEffect(ZRedisService.hGet[T]($key, $field))
-        _ <- LogUtils.debugS(s"getIfPresent: identity:[${$key}],field:[${$field}],cacheValue:[$cacheValue]")
-        result <- cacheValue.fold($default)(value => ZStream.succeed(value))
-        _ <- LogUtils.debugS(s"getIfPresent: identity:[${$key}],field:[${$field}],result:[$result]")
+        _ <- LogUtils.debugS(s"ZStream getIfPresent: identity:[${$key}],field:[${$field}],cacheValue:[$cacheValue]")
+        result <- cacheValue.fold(business.mapM(r => ZRedisService.hSet[T]($key, $field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
+        _ <- LogUtils.debugS(s"ZStream getIfPresent: identity:[${$key}],field:[${$field}],result:[$result]")
       } yield result
     }
   }
@@ -123,12 +122,12 @@ object Cache {
     override def getIfPresent(business: => ZIO[Any, Throwable, T])(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
       val $key = cacheKey(identities)
       val $field = cacheField(args)
-      val $default = business.tap(r => ZRedisService.hSet[T]($key, $field, r).as(r))
       for {
         cacheValue <- ZRedisService.hGet[T]($key, $field)
-        _ <- LogUtils.debug(s"getIfPresent: identity:[${$key}], field:[${$field}], cacheValue:[$cacheValue]")
-        result <- cacheValue.fold($default)(value => ZIO.succeed(value))
-        _ <- LogUtils.debug(s"getIfPresent: identity:[${$key}], field:[${$field}], result:[$result]")
+        _ = println(zio.Runtime.default.unsafeRun(ZRedisService.hGet[T]($key, $field)))
+        _ <- LogUtils.debug(s"ZIO getIfPresent: identity:[${$key}], field:[${$field}], cacheValue:[$cacheValue]")
+        result <- cacheValue.fold(business.tap(r => ZRedisService.hSet[T]($key, $field, r).as(r)))(value => ZIO.effectTotal(value))
+        _ <- LogUtils.debug(s"ZIO getIfPresent: identity:[${$key}], field:[${$field}], result:[$result]")
       } yield result
     }
   }

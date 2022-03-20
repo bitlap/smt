@@ -83,7 +83,7 @@ object CacheEvictMacro {
             }
           })
           val identities = if (parameters._2.isEmpty) {
-            getDefDefInEnclosingClass.map(_.decodedName.toString).map(p => enclosingClassName + "-" + p)
+            getDefDefInEnclosingClass.map(_.decodedName.toString).filter(_ != "<init>").map(p => enclosingClassName + "-" + p)
           } else {
             parameters._2.toSet.map(p => enclosingClassName + "-" + p)
           }

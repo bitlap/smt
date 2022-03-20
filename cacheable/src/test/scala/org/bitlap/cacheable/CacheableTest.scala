@@ -26,6 +26,8 @@ import org.scalatest.matchers.should.Matchers
 import zio.stream.ZStream
 import zio.{ Task, ZIO }
 
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 import scala.util.Random
 
 /**
@@ -35,6 +37,10 @@ import scala.util.Random
  * @version 1.0
  */
 class CacheableTest extends AnyFlatSpec with Matchers {
+
+  val runtime = zio.Runtime.default
+  val readIOMethodName = "readIOFunction"
+  val readStreamMethodName = "readStreamFunction"
 
   "cacheable1" should "ok" in {
     @cacheable
@@ -88,7 +94,47 @@ class CacheableTest extends AnyFlatSpec with Matchers {
   "cacheable6" should "ok when return type is case class" in {
     @cacheable
     def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
-      ZIO.effect(CacheValue(Random.nextInt()))
+      ZIO.effect(CacheValue(Random.nextInt() + ""))
     }
+  }
+
+  "cacheable8" should "zio operation is ok with redis" in {
+    val cacheValue = Random.nextInt().toString
+
+    @cacheable
+    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+      ZIO.effect(cacheValue)
+    }
+
+    println(cacheValue)
+
+    val method = runtime.unsafeRunToFuture(readIOFunction(1, "hello"))
+    val methodResult = Await.result(method.future, 10.seconds)
+    println("methodResult:" + methodResult)
+
+    val cache = runtime.unsafeRunToFuture(ZRedisService.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello"))
+    val cacheResult = Await.result(cache.future, 10.seconds)
+    println("cacheResult:" + cacheResult)
+    Some(methodResult) shouldEqual cacheResult
+  }
+
+  "cacheable9" should "zstream operation is ok with redis" in {
+    val cacheValue = Random.nextInt().toString
+
+    @cacheable
+    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+      ZStream.fromEffect(ZIO.effect(cacheValue))
+    }
+
+    println(cacheValue)
+
+    val method = runtime.unsafeRunToFuture(readStreamFunction(1, "hello").runHead)
+    val methodResult = Await.result(method.future, 10.seconds)
+    println("methodResult:" + methodResult)
+
+    val cache = runtime.unsafeRunToFuture(ZRedisService.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello"))
+    val cacheResult = Await.result(cache.future, 10.seconds)
+    println("cacheResult:" + cacheResult)
+    methodResult shouldEqual cacheResult
   }
 }

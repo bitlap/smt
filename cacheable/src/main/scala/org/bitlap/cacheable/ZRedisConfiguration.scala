@@ -42,8 +42,8 @@ object ZRedisConfiguration {
 
   private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
 
-  val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
+  lazy val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
     ((Logging.ignore ++ ZLayer.succeed(redisConf)) >>>
-      RedisExecutor.local ++ ZRedisConfiguration.codec) >>>
+      RedisExecutor.live ++ ZRedisConfiguration.codec) >>>
       (Redis.live >>> (r => ZRedisLive(r)).toLayer)
 }
