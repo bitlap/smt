@@ -114,7 +114,7 @@ object Cache {
     override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
       for {
         updateResult <- ZIO.foreach_(identities)(key => ZRedisService.del(key)) *> business
-        _ <- LogUtils.debug(s"update: identities:[${identities}], updateResult:[$updateResult]")
+        _ <- LogUtils.debug(s"update: identities:[$identities], updateResult:[$updateResult]")
       } yield updateResult
     }
   }

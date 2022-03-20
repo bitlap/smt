@@ -22,6 +22,7 @@
 package org.bitlap.cacheable
 
 import zio.console.putStrLn
+import zio.schema.{ DeriveSchema, Schema }
 import zio.stream.ZStream
 import zio.{ ExitCode, UIO, URIO, ZIO }
 
@@ -57,6 +58,17 @@ object UseCaseExample extends zio.App {
   def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
     val $result = ZIO.effect("hello world" + Random.nextInt())
     Cache.evict($result)(List("readFunction1", "readFunction2"))
+  }
+
+  def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+    val $result = ZIO.effect(CacheValue(Random.nextInt()))
+    Cache($result)(List("UseCaseExample", "readFunction"), List(id, key))
+  }
+
+  case class CacheValue(i: Int)
+
+  object CacheValue {
+    implicit val userSecuritySchema: Schema[CacheValue] = DeriveSchema.gen[CacheValue]
   }
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =

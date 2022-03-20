@@ -24,8 +24,7 @@ package org.bitlap.cacheable
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import zio.stream.ZStream
-import zio.ZIO
-import zio.Task
+import zio.{ Task, ZIO }
 
 import scala.util.Random
 
@@ -83,6 +82,13 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     @cacheable(true)
     def readFunction2(id: Int, key: String): Task[String] = {
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
+    }
+  }
+
+  "cacheable6" should "ok when return type is case class" in {
+    @cacheable
+    def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+      ZIO.effect(CacheValue(Random.nextInt()))
     }
   }
 }

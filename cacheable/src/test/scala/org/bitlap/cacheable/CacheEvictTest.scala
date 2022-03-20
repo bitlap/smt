@@ -115,4 +115,11 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
       |    }
       |""".stripMargin shouldNot compile
   }
+
+  "cacheEvict8" should "ok when return type is case class" in {
+    @cacheEvict
+    def updateEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+      ZIO.effect(CacheValue(Random.nextInt()))
+    }
+  }
 }

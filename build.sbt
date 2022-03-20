@@ -27,6 +27,7 @@ lazy val commonSettings =
         case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
       }
     } ++ Seq("-language:experimental.macros"),
+    Compile / compile := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
     organizationName := "org.bitlap",
     startYear := Some(2022),
     headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
@@ -68,7 +69,7 @@ lazy val cacheable = (project in file("cacheable"))
     )
   )
   .settings(paradise())
-  .enablePlugins(AutomateHeaderPlugin, HeaderPlugin)
+  .enablePlugins(HeaderPlugin)
 
 lazy val tools = (project in file("tools"))
   .settings(commonSettings)
@@ -92,7 +93,7 @@ lazy val tools = (project in file("tools"))
     }
   ).settings(Publishing.publishSettings)
   .settings(paradise())
-  .enablePlugins(HeaderPlugin, AutomateHeaderPlugin, ProtocPlugin)
+  .enablePlugins(HeaderPlugin, ProtocPlugin)
 
 lazy val root = (project in file(".")).aggregate(tools, cacheable)
   .settings(
