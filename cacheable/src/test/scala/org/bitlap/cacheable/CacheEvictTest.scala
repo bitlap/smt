@@ -26,8 +26,6 @@ import org.scalatest.matchers.should.Matchers
 import zio.ZIO
 import zio.stream.ZStream
 
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
 import scala.util.Random
 
 /**
@@ -147,21 +145,13 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
       ZIO.effect(Random.nextInt() + "")
     }
 
-    println(cacheValue)
-
-    runtime.unsafeRun(ZRedisService.del("CacheableTest-" + readIOMethodName))
-
-    val method = runtime.unsafeRunToFuture(readIOFunction(1, "hello"))
-    val methodResult = Await.result(method.future, 10.seconds)
-    println("methodResult:" + methodResult)
-
-    val updateMethod = runtime.unsafeRunToFuture(updateIOFunction(1, "hello"))
-    val updateMethodResult = Await.result(updateMethod.future, 10.seconds)
-    println("updateMethodResult:" + updateMethodResult)
-
-    val cache = runtime.unsafeRunToFuture(ZRedisService.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello"))
-    val cacheResult = Await.result(cache.future, 10.seconds)
-    cacheResult shouldEqual None
+    val result = runtime.unsafeRun(for {
+      _ <- ZRedisService.del("CacheableTest-" + readIOMethodName)
+      read <- readIOFunction(1, "hello")
+      update <- updateIOFunction(1, "hello")
+      cache <- ZRedisService.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello")
+    } yield cache)
+    result shouldEqual None
   }
 
   "cacheEvict10" should "zstream operation is ok with redis" in {
@@ -177,20 +167,13 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
       ZStream.fromEffect(ZIO.effect(Random.nextInt() + ""))
     }
 
-    println(cacheValue)
-
-    runtime.unsafeRun(ZRedisService.del("CacheableTest-" + readStreamMethodName))
-
-    val method = runtime.unsafeRunToFuture(readStreamFunction(1, "hello").runHead)
-    val methodResult = Await.result(method.future, 10.seconds)
-    println("methodResult:" + methodResult)
-
-    val updateMethod = runtime.unsafeRunToFuture(updateStreamFunction(1, "hello").runHead)
-    val updateMethodResult = Await.result(updateMethod.future, 10.seconds)
-    println("updateMethodResult:" + updateMethodResult)
-
-    val cache = runtime.unsafeRunToFuture(ZRedisService.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello"))
-    val cacheResult = Await.result(cache.future, 10.seconds)
-    cacheResult shouldEqual None
+    val result = runtime.unsafeRun(for {
+      _ <- ZRedisService.del("CacheableTest-" + readStreamMethodName)
+      read <- readStreamFunction(1, "hello").runHead
+      update <- updateStreamFunction(1, "hello").runHead
+      cache <- ZRedisService.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello")
+    } yield cache
+    )
+    result shouldEqual None
   }
 }
