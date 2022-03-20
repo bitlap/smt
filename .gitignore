@@ -14,7 +14,10 @@
 examples/scala2-11/target/
 examples/scala2-12/target/
 examples/scala2-13/target/
-cacheable/target
+cacheable-core/target
+cacheable-caffeine/target
+cacheable-redis/target
+
 tools/target
 
 ## plugin

@@ -57,7 +57,14 @@ Add library dependency
 
 ```scala
 "org.bitlap" %% "smt-tools" % "<VERSION>" // named smt-tools since 0.4.0 
-"org.bitlap" %% "smt-cacheable" % "<VERSION>" // when you need cacheable module, not support 2.11.x
+
+// when you need cacheable module (not support Scala 2.11.x)
+// include dependencies: zio,zio-streams,zio-logging
+"org.bitlap" %% "smt-cacheable-core" % "<VERSION>" 
+// local cache, include dependencies: config, caffeine
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>" 
+// distributed cache, include dependencies: zio-redis,config,zio-schema, optional (zio-schema-protobuf,zio-schema-derivation for case class)
+"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.

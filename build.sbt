@@ -52,23 +52,55 @@ lazy val commonSettings =
       pushChanges
     ))
 
-lazy val cacheable = (project in file("cacheable"))
+lazy val `cacheable-core` = (project in file("cacheable-core"))
   .settings(commonSettings).settings(Publishing.publishSettings)
   .settings(
-    name := "smt-cacheable",
+    name := "smt-cacheable-core",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT" % Provided, // 实验性质的
-      "com.typesafe" % "config" % "1.4.1" % Provided,
-      "dev.zio" %% "zio" % "1.0.13" % Provided,
-      "dev.zio" %% "zio-schema" % "0.1.8" % Provided,
-      "dev.zio" %% "zio-schema-protobuf" % "0.1.8" % Provided,
-      "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
+      "dev.zio" %% "zio" % "1.0.13",
+      "dev.zio" %% "zio-streams" % "1.0.13",
+      "dev.zio" %% "zio-logging" % "0.5.14"
     ),
     excludeDependencies ++= Seq(
       InclExclRule("com.google.protobuf")
     )
   )
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
+lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
+  .settings(commonSettings).settings(Publishing.publishSettings)
+  .settings(
+    name := "smt-cacheable-caffeine",
+    crossScalaVersions := List(scala213, scala212),
+    libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.4.1",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.5"
+    ),
+    excludeDependencies ++= Seq(
+      InclExclRule("com.google.protobuf")
+    )
+  ).dependsOn(`cacheable-core`)
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
+lazy val `cacheable-redis` = (project in file("cacheable-redis"))
+  .settings(commonSettings).settings(Publishing.publishSettings)
+  .settings(
+    name := "smt-cacheable-redis",
+    crossScalaVersions := List(scala213, scala212),
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
+      "com.typesafe" % "config" % "1.4.1",
+      "dev.zio" %% "zio-schema" % "0.1.8",
+      "dev.zio" %% "zio-schema-protobuf" % "0.1.8",
+      "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
+    ),
+    excludeDependencies ++= Seq(
+      InclExclRule("com.google.protobuf")
+    )
+  ).dependsOn(`cacheable-core`)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -96,7 +128,7 @@ lazy val tools = (project in file("tools"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin, ProtocPlugin)
 
-lazy val root = (project in file(".")).aggregate(tools, cacheable)
+lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
   .settings(
     publishArtifact := false,
     publish / skip := true,
