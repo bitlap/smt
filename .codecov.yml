@@ -16,5 +16,9 @@ comment:
   behavior: default
 
 ignore:
-  - "src/main/scala/org/bitlap/tools/package.scala"
-  - "src/main/scala/org/bitlap/tools/macros/macros.scala"
+  - "**/package.scala"
+  - "**/macros.scala"
+  - "**/LogUtils.scala"
+  - "**/ZRedisConfiguration.scala"
+  - "**/ZRedisLive.scala"
+  - "**/ZRedisService.scala"

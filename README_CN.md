@@ -1,12 +1,14 @@
-<img align="right" width="30%" height="30%" src="img.png" alt="https://bitlap.org"/> 
+<img align="right" width="20%" height="30%" src="img.png" alt="https://bitlap.org"/> 
 
 # scala-macro-tools
 
-[![Build](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml)
-[![codecov](https://codecov.io/gh/bitlap/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT)](https://codecov.io/gh/bitlap/scala-macro-tools)
-[![Maven Central deprecated](https://img.shields.io/maven-central/v/io.github.jxnu-liguobin/scala-macro-tools_2.13.svg?label=Maven%20Central$20deprecated)](https://search.maven.org/search?q=g:%22io.github.jxnu-liguobin%22%20AND%20a:%22scala-macro-tools_2.13%22)
-[![Maven Central](https://img.shields.io/maven-central/v/org.bitlap/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.bitlap%22%20AND%20a:%22scala-macro-tools_2.13%22)
-[![Version](https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools)](https://plugins.jetbrains.com/plugin/17202-scala-macro-tools)
+| CI                                                                                                                                                                         | Codecov                                                                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Build](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml) | [![codecov](https://codecov.io/gh/bitlap/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT)](https://codecov.io/gh/bitlap/scala-macro-tools) |
+
+| Scaladex                                                                                                                                                                                                                                | Maven Central                                                                                                                                               | Jetbrains Plugin                                                                                                                              |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![scala-macro-tools Scala version support](https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools/latest-by-scala-version.svg?platform=jvm)](https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools) | [![Maven Central](https://img.shields.io/maven-central/v/org.bitlap/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.bitlap%22%20AND%20a:%22scala-macro-tools_2.13%22) | [![Version](https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools)](https://plugins.jetbrains.com/plugin/17202-scala-macro-tools) |
 
 该库的目的
 --
@@ -22,22 +24,38 @@
 - Java 8、11 编译通过
 - Scala 2.11.12、2.12.14、2.13.6 编译通过
 
-# 功能
+# 模块功能
+
+## `tools`
 
 - `@toString`
 - `@json`
 - `@builder`
-- `@synchronized`
 - `@log`
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
 - `@jacksonEnum`
 - `@elapsed`
-- `@JavaCompatible`
+- `@javaCompatible`
 - `ProcessorCreator`
 
 > Intellij插件 `Scala-Macro-Tools`。
+
+## `cacheable-core`
+
+基于zio的类似Spring`@Cacheable`和`@CacheEvict`注解的缓存API定义。该模块不包含具体的存储媒介。
+
+- `@cacheable` / `Cache.apply`
+- `@cacheEvict` / `Cache.evict`
+
+## `cacheable-caffeine`
+
+基于zio和caffeine的内存缓存实现，需要`cacheable-core`。
+
+## `cacheable-redis`
+
+基于zio和zio-redis的分布式缓存实现，需要`cacheable-core`。
 
 # 文档
 
@@ -47,10 +65,18 @@
 
 添加库依赖，在sbt中
 
-> 在gradle，maven中，通常`scala-macro-tools`被替换为`scala-macro-tools_2.12`这种。其中，`2.12`表示Scala版本号。
+> 在gradle，maven中，通常`smt-tools`被替换为`smt-tools_2.12`这种。其中，`2.12`表示Scala版本号。
 
 ```scala
-"org.bitlap.tools" %% "scala-macro-tools" % "<VERSION>"
+"org.bitlap" %% "smt-tools" % "<VERSION>" //从0.4.0开始名字改成 smt-tools 
+
+// 如果需要使用cacheable module，则引入下面模块 (不支持 Scala2.11.x)
+// 内部包含的依赖: zio, zio-streams, zio-logging
+"org.bitlap" %% "smt-cacheable-core" % "<VERSION>"
+// 本地缓存, 内部包含的依赖: config, caffeine
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
+// 分布式缓存, 内部包含的依赖: zio-redis, config, zio-schema, 可选的 (zio-schema-protobuf,zio-schema-derivation用于样例类序列化)
+"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
 ```
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。
