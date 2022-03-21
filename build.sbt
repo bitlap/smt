@@ -75,7 +75,7 @@ lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
     name := "smt-cacheable-caffeine",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.4.1",
+      "com.typesafe" % "config" % "1.4.2",
       "com.github.ben-manes.caffeine" % "caffeine" % "2.5.5"
     ),
     excludeDependencies ++= Seq(
@@ -92,7 +92,7 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
-      "com.typesafe" % "config" % "1.4.1",
+      "com.typesafe" % "config" % "1.4.2",
       "dev.zio" %% "zio-schema" % "0.1.8",
       "dev.zio" %% "zio-schema-protobuf" % "0.1.8",
       "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
