@@ -51,11 +51,11 @@ A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no imple
 
 ## `cacheable-caffeine`
 
-A memory cache based on zio and caffeine. It need `cacheable-core` module.
+A memory cache based on zio and caffeine. It needs `cacheable-core` module.
 
 ## `cacheable-redis`
 
-A distributed cache based on zio and zio-redis. It need `cacheable-core` module.
+A distributed cache based on zio and zio-redis. It needs `cacheable-core` module.
 
 # Document
 
