@@ -26,7 +26,7 @@ Learn Scala macro and abstract syntax tree.
 
 # Module Features
 
-## core
+## `tools`
 
 - `@toString`
 - `@json`
@@ -42,10 +42,20 @@ Learn Scala macro and abstract syntax tree.
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
-## cacheable
+## `cacheable-core`
+
+A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media. 
 
 - `@cacheable` / `Cache.apply`
 - `@cacheEvict` / `Cache.evict`
+
+## `cacheable-caffeine`
+
+A memory cache based on zio and caffeine. It need `cacheable-core` module.
+
+## `cacheable-redis`
+
+A distributed cache based on zio and zio-redis. It need `cacheable-core` module.
 
 # Document
 

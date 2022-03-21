@@ -26,7 +26,7 @@
 
 # 模块功能
 
-## core
+## `tools`
 
 - `@toString`
 - `@json`
@@ -42,10 +42,20 @@
 
 > Intellij插件 `Scala-Macro-Tools`。
 
-## cacheable
+## `cacheable-core`
+
+基于zio的类似Spring`@Cacheable`和`@CacheEvict`注解的缓存API定义。该模块不包含具体的存储媒介。
 
 - `@cacheable` / `Cache.apply`
 - `@cacheEvict` / `Cache.evict`
+
+## `cacheable-caffeine`
+
+基于zio和caffeine的内存缓存实现，需要`cacheable-core`。
+
+## `cacheable-redis`
+
+基于zio和zio-redis的分布式缓存实现，需要`cacheable-core`。
 
 # 文档
 
