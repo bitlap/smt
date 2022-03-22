@@ -76,7 +76,7 @@ lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.4.1",
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.5"
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.6"
     ),
     excludeDependencies ++= Seq(
       InclExclRule("com.google.protobuf")
