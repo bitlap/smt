@@ -104,6 +104,18 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
+lazy val `cacheable-benchmark` = (project in file("cacheable-benchmark"))
+  .settings(commonSettings)
+  .settings(
+    name := "smt-cacheable-benchmark",
+    publish / skip := true,
+    excludeDependencies ++= Seq(
+      InclExclRule("com.google.protobuf")
+    )
+  ).dependsOn(`cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin, JmhPlugin)
+
 lazy val tools = (project in file("tools"))
   .settings(commonSettings)
   .settings(
@@ -128,7 +140,7 @@ lazy val tools = (project in file("tools"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin, ProtocPlugin)
 
-lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
+lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`, `cacheable-benchmark`)
   .settings(
     publishArtifact := false,
     publish / skip := true,
