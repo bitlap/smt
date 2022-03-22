@@ -68,7 +68,7 @@ object ZCaffeine {
   def del(key: String): Task[Unit] = {
     key.synchronized {
       ZIO.effect {
-        hashCache.invalidate(key)
+        hashCache.put(key, new ConcurrentHashMap())
       }
     }
   }
