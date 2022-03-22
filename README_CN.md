@@ -2,13 +2,13 @@
 
 # scala-macro-tools
 
-| CI                                                                                                                                                                         | Codecov                                                                                                                                                     |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Build](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg)](https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml) | [![codecov](https://codecov.io/gh/bitlap/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT)](https://codecov.io/gh/bitlap/scala-macro-tools) |
+| Project Stage | CI              | Codecov                                   |
+|--------------| --------------- |-------------------------------------------|
+| ![Stage]     | ![CI][Badge-CI] | [![codecov][Badge-Codecov]][Link-Codecov] |
 
-| Scaladex                                                                                                                                                                                                                                | Maven Central                                                                                                                                               | Jetbrains Plugin                                                                                                                              |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![scala-macro-tools Scala version support](https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools/latest-by-scala-version.svg?platform=jvm)](https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools) | [![Maven Central](https://img.shields.io/maven-central/v/org.bitlap/scala-macro-tools_2.13.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.bitlap%22%20AND%20a:%22scala-macro-tools_2.13%22) | [![Version](https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools)](https://plugins.jetbrains.com/plugin/17202-scala-macro-tools) |
+| Scaladex                                                                                    | Jetbrains Plugin                              |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [![scala-macro-tools Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] |
 
 该库的目的
 --
@@ -94,3 +94,13 @@ addCompilerPlugin("org.scalamacros" % "paradise_<your-scala-version>" % "<plugin
 如果这不起作用，可以谷歌寻找替代品。
 
 在`scala 2.13.x`版本中，macro paradise的功能直接包含在scala编译器中。然而，仍然必须启用编译器标志`-Ymacro annotations`。
+
+[Stage]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
+[Badge-CI]: https://github.com/bitlap/scala-macro-tools/actions/workflows/ScalaCI.yml/badge.svg
+[Badge-Scaladex]: https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools/latest-by-scala-version.svg?platform=jvm
+[Badge-Jetbrains]: https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools
+[Badge-Codecov]: https://codecov.io/gh/bitlap/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT
+
+[Link-Jetbrains]: https://plugins.jetbrains.com/plugin/17202-scala-macro-tools
+[Link-Codecov]: https://codecov.io/gh/bitlap/scala-macro-tools
+[Link-Scaladex]: https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools
