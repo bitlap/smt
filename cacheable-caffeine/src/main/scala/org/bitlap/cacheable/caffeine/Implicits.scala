@@ -37,7 +37,7 @@ object Implicits {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
         updateResult <- ZStream.fromIterable(identities).map(key => ZCaffeine.del(key)) *> business
-        _ <- if (ZCaffeine.disabledLog) ZStream.empty else LogUtils.debugS(s"Caffeine ZStream update: identities:[$identities], updateResult:[$updateResult]")
+        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream update: identities:[$identities], updateResult:[$updateResult]")
       } yield updateResult
     }
   }
@@ -48,9 +48,9 @@ object Implicits {
       val field = cacheField(args)
       for {
         cacheValue <- ZStream.fromEffect(ZCaffeine.hGet[T](key, field))
-        _ <- if (ZCaffeine.disabledLog) ZStream.empty else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
+        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
         result <- cacheValue.fold(business.mapM(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
-        _ <- LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
+        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
       } yield result
     }
   }

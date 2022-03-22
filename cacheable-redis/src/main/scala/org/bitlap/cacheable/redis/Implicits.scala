@@ -38,7 +38,7 @@ object Implicits {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
         updateResult <- ZStream.fromIterable(identities).map(key => ZRedisService.del(key)) *> business
-        _ <- if (ZRedisConfiguration.disabledLog) ZStream.empty else LogUtils.debugS(s"Redis ZStream update: identities:[$identities], updateResult:[$updateResult]")
+        _ <- if (ZRedisConfiguration.disabledLog) ZStream.unit else LogUtils.debugS(s"Redis ZStream update: identities:[$identities], updateResult:[$updateResult]")
       } yield updateResult
     }
   }
@@ -49,9 +49,9 @@ object Implicits {
       val field = cacheField(args)
       for {
         cacheValue <- ZStream.fromEffect(ZRedisService.hGet[T](key, field))
-        _ <- if (ZRedisConfiguration.disabledLog) ZStream.empty else LogUtils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
+        _ <- if (ZRedisConfiguration.disabledLog) ZStream.unit else LogUtils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
         result <- cacheValue.fold(business.mapM(r => ZRedisService.hSet[T](key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
-        _ <- if (ZRedisConfiguration.disabledLog) ZStream.empty else LogUtils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
+        _ <- if (ZRedisConfiguration.disabledLog) ZStream.unit else LogUtils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
       } yield result
     }
   }
