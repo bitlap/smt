@@ -3,12 +3,12 @@
 # scala-macro-tools
 
 | Project Stage | CI              | Codecov                                   |
-|--------------| --------------- |-------------------------------------------|
-| ![Stage]     | ![CI][Badge-CI] | [![codecov][Badge-Codecov]][Link-Codecov] |
+| ------------- | --------------- | ----------------------------------------- |
+| ![Stage]      | ![CI][Badge-CI] | [![codecov][Badge-Codecov]][Link-Codecov] |
 
-| Scaladex                                                                                    | Jetbrains Plugin                              |
-| ------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| [![scala-macro-tools Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] |
+| Scaladex                                                                    | Jetbrains Plugin                              | Nexus Snapshots                                                  |
+| --------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+| [![scala-macro-tools Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] | [![Sonatype Nexus (Snapshots)][Badge-Snapshots]][Link-Snapshots] |
 
 Motivation
 --
@@ -99,7 +99,9 @@ you must still enable the compiler flag `-Ymacro-annotations`.
 [Badge-Scaladex]: https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools/latest-by-scala-version.svg?platform=jvm
 [Badge-Jetbrains]: https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools
 [Badge-Codecov]: https://codecov.io/gh/bitlap/scala-macro-tools/branch/master/graph/badge.svg?token=IA596YRTOT
+[Badge-Snapshots]: https://img.shields.io/nexus/s/org.bitlap/smt-tools_2.13?server=https%3A%2F%2Fs01.oss.sonatype.org
 
 [Link-Jetbrains]: https://plugins.jetbrains.com/plugin/17202-scala-macro-tools
 [Link-Codecov]: https://codecov.io/gh/bitlap/scala-macro-tools
 [Link-Scaladex]: https://index.scala-lang.org/bitlap/scala-macro-tools/scala-macro-tools
+[Link-Snapshots]: https://s01.oss.sonatype.org/content/repositories/snapshots/org/bitlap/
