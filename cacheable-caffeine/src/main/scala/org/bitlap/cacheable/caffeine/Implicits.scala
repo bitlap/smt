@@ -37,7 +37,7 @@ object Implicits {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
         updateResult <- ZStream.fromIterable(identities).map(key => ZCaffeine.del(key)) *> business
-        _ <- LogUtils.debugS(s"Caffeine ZStream update: identities:[$identities], updateResult:[$updateResult]")
+        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream update: identities:[$identities], updateResult:[$updateResult]")
       } yield updateResult
     }
   }
@@ -48,9 +48,9 @@ object Implicits {
       val field = cacheField(args)
       for {
         cacheValue <- ZStream.fromEffect(ZCaffeine.hGet[T](key, field))
-        _ <- LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
+        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
         result <- cacheValue.fold(business.mapM(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
-        _ <- LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
+        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
       } yield result
     }
   }
@@ -59,7 +59,7 @@ object Implicits {
     override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
       for {
         updateResult <- ZIO.foreach_(identities)(key => ZCaffeine.del(key)) *> business
-        _ <- LogUtils.debug(s"Caffeine ZIO update: identities:[$identities], updateResult:[$updateResult]")
+        _ <- LogUtils.debug(s"Caffeine ZIO update: identities:[$identities], updateResult:[$updateResult]").unless(ZCaffeine.disabledLog)
       } yield updateResult
     }
   }
@@ -70,9 +70,9 @@ object Implicits {
       val field = cacheField(args)
       for {
         cacheValue <- ZCaffeine.hGet[T](key, field)
-        _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]")
+        _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZCaffeine.disabledLog)
         result <- cacheValue.fold(business.tap(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZIO.effectTotal(value))
-        _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]")
+        _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZCaffeine.disabledLog)
       } yield result
     }
   }

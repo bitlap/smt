@@ -19,34 +19,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.cacheable.redis
+package org.bitlap.cacheable.benchmark
 
-import com.typesafe.config.{ Config, ConfigFactory }
-import org.bitlap.cacheable.core.LogUtils
-import zio.redis.{ Redis, RedisConfig, RedisError, RedisExecutor }
-import zio.schema.codec.{ Codec, ProtobufCodec }
-import zio.{ Has, Layer, ULayer, ZLayer }
-import zio.logging.Logging
+import zio.{ BootstrapRuntime, ZIO }
+import zio.internal.Platform
 
 /**
- * redis configuration
+ * runtime
  *
  * @author 梦境迷离
- * @since 2022/1/10
- * @version 2.0
+ * @version 1.0,2022/3/22
  */
-object ZRedisConfiguration {
+trait BenchmarkRuntime extends BootstrapRuntime {
 
-  private lazy val conf: Config = ConfigFactory.load("reference.conf")
-  private lazy val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
-  private lazy val redisConf: RedisConfig = RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
+  override val platform: Platform = Platform.benchmark
 
-  lazy val disabledLog: Boolean = custom.getBoolean("redis.disabledLog")
-
-  private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
-
-  lazy val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
-    (((if (disabledLog) Logging.ignore else LogUtils.logLayer) ++ ZLayer.succeed(redisConf)) >>>
-      RedisExecutor.live ++ ZRedisConfiguration.codec) >>>
-      (Redis.live >>> (r => ZRedisLive(r)).toLayer)
+  final def execute[T](query: ZIO[Any, Throwable, T]): Unit =
+    unsafeRun(query.catchAll(_ => ZIO.effect(())))
 }

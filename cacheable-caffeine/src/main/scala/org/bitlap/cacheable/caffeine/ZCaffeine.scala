@@ -40,6 +40,8 @@ object ZCaffeine {
   private val conf: Config = ConfigFactory.load("reference.conf")
   private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
 
+  lazy val disabledLog: Boolean = custom.getBoolean("caffeine.disabledLog")
+
   private lazy val maximumSize = custom.getInt("caffeine.maximumSize")
   private lazy val expireAfterWriteSeconds = custom.getInt("caffeine.expireAfterWriteSeconds")
 
@@ -92,9 +94,8 @@ object ZCaffeine {
           chm.put(field, value)
           hashCache.put(key, chm)
         } else {
-          val chm = hashMap.get(key).asInstanceOf[ConcurrentHashMap[String, Any]]
-          chm.put(field, value)
-          hashCache.put(key, chm)
+          hashMap.put(field, value)
+          hashCache.put(key, new ConcurrentHashMap(hashMap))
         }
       }
     }
