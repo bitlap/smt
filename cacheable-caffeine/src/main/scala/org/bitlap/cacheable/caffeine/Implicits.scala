@@ -46,12 +46,15 @@ object Implicits {
     override def getIfPresent(business: => ZStream[Any, Throwable, T])(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
-      for {
-        cacheValue <- ZStream.fromEffect(ZCaffeine.hGet[T](key, field))
-        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
-        result <- cacheValue.fold(business.mapM(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
-        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
-      } yield result
+      val locked = s"$key-$field"
+      locked.synchronized {
+        for {
+          cacheValue <- ZStream.fromEffect(ZCaffeine.hGet[T](key, field))
+          _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
+          result <- cacheValue.fold(business.mapM(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
+          _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
+        } yield result
+      }
     }
   }
 
@@ -68,12 +71,15 @@ object Implicits {
     override def getIfPresent(business: => ZIO[Any, Throwable, T])(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
-      for {
-        cacheValue <- ZCaffeine.hGet[T](key, field)
-        _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZCaffeine.disabledLog)
-        result <- cacheValue.fold(business.tap(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZIO.effectTotal(value))
-        _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZCaffeine.disabledLog)
-      } yield result
+      val locked = s"$key-$field"
+      locked.synchronized {
+        for {
+          cacheValue <- ZCaffeine.hGet[T](key, field)
+          _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZCaffeine.disabledLog)
+          result <- cacheValue.fold(business.tap(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZIO.effectTotal(value))
+          _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZCaffeine.disabledLog)
+        } yield result
+      }
     }
   }
 }

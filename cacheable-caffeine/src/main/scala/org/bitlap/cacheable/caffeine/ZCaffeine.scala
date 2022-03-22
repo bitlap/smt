@@ -50,32 +50,16 @@ object ZCaffeine {
     .expireAfterWrite(expireAfterWriteSeconds, TimeUnit.SECONDS).build[String, ConcurrentHashMap[String, Any]]
 
   def hGet[T](key: String, field: String): Task[Option[T]] = {
-    key.synchronized {
-      ZIO.effect {
-        val hashMap = hashCache.getIfPresent(key)
-        if (hashMap == null || hashMap.isEmpty) {
+    ZIO.effect {
+      val hashMap = hashCache.getIfPresent(key)
+      if (hashMap == null || hashMap.isEmpty) {
+        None
+      } else {
+        val fieldValue = hashMap.get(field)
+        if (fieldValue == null || !fieldValue.isInstanceOf[T]) {
           None
         } else {
-          val fieldValue = hashMap.get(field)
-          if (fieldValue == null || !fieldValue.isInstanceOf[T]) {
-            None
-          } else {
-            Some(fieldValue.asInstanceOf[T])
-          }
-        }
-      }
-    }
-  }
-
-  def hDel(key: String, field: String): Task[Unit] = {
-    key.synchronized {
-      ZIO.effect {
-        val hashMap = hashCache.getIfPresent(key)
-        if (hashMap == null || hashMap.isEmpty) {
-          ()
-        } else {
-          hashMap.remove(field)
-          hashCache.put(key, new ConcurrentHashMap(hashMap))
+          Some(fieldValue.asInstanceOf[T])
         }
       }
     }
@@ -90,17 +74,15 @@ object ZCaffeine {
   }
 
   def hSet(key: String, field: String, value: Any): Task[Unit] = {
-    key.synchronized {
-      ZIO.effect {
-        val hashMap = hashCache.getIfPresent(key)
-        if (hashMap == null || hashMap.isEmpty) {
-          val chm = new ConcurrentHashMap[String, Any]()
-          chm.put(field, value)
-          hashCache.put(key, chm)
-        } else {
-          hashMap.put(field, value)
-          hashCache.put(key, new ConcurrentHashMap(hashMap))
-        }
+    ZIO.effect {
+      val hashMap = hashCache.getIfPresent(key)
+      if (hashMap == null || hashMap.isEmpty) {
+        val chm = new ConcurrentHashMap[String, Any]()
+        chm.put(field, value)
+        hashCache.put(key, chm)
+      } else {
+        hashMap.put(field, value)
+        hashCache.put(key, new ConcurrentHashMap(hashMap))
       }
     }
   }
