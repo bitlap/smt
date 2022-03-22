@@ -50,16 +50,18 @@ object ZCaffeine {
     .expireAfterWrite(expireAfterWriteSeconds, TimeUnit.SECONDS).build[String, ConcurrentHashMap[String, Any]]
 
   def hGet[T](key: String, field: String): Task[Option[T]] = {
-    ZIO.effect {
-      val hashMap = hashCache.getIfPresent(key)
-      if (hashMap == null || hashMap.isEmpty) {
-        None
-      } else {
-        val fieldValue = hashMap.get(field)
-        if (fieldValue == null || !fieldValue.isInstanceOf[T]) {
+    key.synchronized {
+      ZIO.effect {
+        val hashMap = hashCache.getIfPresent(key)
+        if (hashMap == null || hashMap.isEmpty) {
           None
         } else {
-          Some(fieldValue.asInstanceOf[T])
+          val fieldValue = hashMap.get(field)
+          if (fieldValue == null || !fieldValue.isInstanceOf[T]) {
+            None
+          } else {
+            Some(fieldValue.asInstanceOf[T])
+          }
         }
       }
     }
@@ -80,8 +82,10 @@ object ZCaffeine {
   }
 
   def del(key: String): Task[Unit] = {
-    ZIO.effect {
-      hashCache.invalidate(key)
+    key.synchronized {
+      ZIO.effect {
+        hashCache.invalidate(key)
+      }
     }
   }
 
