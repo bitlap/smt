@@ -12,7 +12,7 @@ ThisBuild / resolvers ++= Seq(
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
-lazy val lastVersionForExamples = "0.3.4"
+lazy val lastVersionForExamples = "0.4.0-SNAPSHOT"
 
 lazy val commonSettings =
   Seq(
@@ -132,29 +132,44 @@ lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cache
   .settings(
     publishArtifact := false,
     publish / skip := true,
-    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")) // otherwise headerCheckAll will failed
+    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap"))
   )
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
-    "org.bitlap" %% "scala-macro-tools" % lastVersionForExamples,
+    "org.bitlap" %% "smt-tools" % lastVersionForExamples,
+    "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
+    "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
+    "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
+  excludeDependencies ++= Seq(
+    InclExclRule("com.google.protobuf")
+  ),
   Compile / scalacOptions += "-Ymacro-annotations"
 )
 
 lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVersion := scala212)
   .settings(libraryDependencies ++= Seq(
-    "org.bitlap" %% "scala-macro-tools" % lastVersionForExamples,
+    "org.bitlap" %% "smt-tools" % lastVersionForExamples,
+    "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
+    "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
+    "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
   )).settings(
   publish / skip := true,
+  excludeDependencies ++= Seq(
+    InclExclRule("com.google.protobuf")
+  ),
   paradise()
 )
 
 lazy val `scala2-11` = (project in file("examples/scala2-11")).settings(scalaVersion := scala211)
   .settings(libraryDependencies ++= Seq(
-    "org.bitlap" %% "scala-macro-tools" % lastVersionForExamples,
+    "org.bitlap" %% "smt-tools" % lastVersionForExamples,
   )).settings(
+  excludeDependencies ++= Seq(
+    InclExclRule("com.google.protobuf")
+  ),
   publish / skip := true,
   paradise()
 )

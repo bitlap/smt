@@ -19,15 +19,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.cacheable.redis
+package org.bitlap.tools
 
+import scala.util.Random
 import org.bitlap.cacheable.core.{ Cache, LogUtils }
-import org.bitlap.cacheable.redis.Implicits._
+import org.bitlap.cacheable.caffeine.Implicits._
 import zio.console.putStrLn
 import zio.stream.ZStream
 import zio.{ ExitCode, UIO, URIO, ZIO }
-
-import scala.util.Random
+import org.bitlap.cacheable.core.cacheable
 
 /**
  * use these function to test it.
@@ -35,8 +35,9 @@ import scala.util.Random
  * @author 梦境迷离
  * @version 1.0,2022/3/18
  */
-object UseCaseExample extends zio.App {
+object CacheExample extends zio.App {
 
+  // import org.bitlap.cacheable.caffeine.Implicits._
   def readAliasStreamFunction(id: Int, key: String): zio.stream.Stream[Throwable, String] = {
     val $result = ZStream.fromEffect(ZIO.effect("hello world" + Random.nextInt()))
     Cache($result)(List("UseCaseExample", "readAliasStreamFunction"), List(id, key))
@@ -47,36 +48,21 @@ object UseCaseExample extends zio.App {
     Cache($result)(List("UseCaseExample", "readStreamFunction"), List(id, key))
   }
 
-  def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
-    val $result = ZIO.effect("hello world" + Random.nextInt())
-    Cache($result)(List("UseCaseExample", "readFunction"), List(id, key))
-  }
-
   def updateStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
     val $result = ZStream.fromEffect(ZIO.effect("hello world" + Random.nextInt()))
-    Cache.evict($result)(List("readFunction1", "readFunction2"))
+    Cache.evict($result)(List("readFunction1", "readFunction2")) // not macro, not check whether read function is exists
   }
 
-  def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
-    val $result = ZIO.effect("hello world" + Random.nextInt())
-    Cache.evict($result)(List("readFunction1", "readFunction2"))
-  }
-
-  def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
-    val $result = ZIO.effect(CacheValue(Random.nextInt() + ""))
-    Cache($result)(List("UseCaseExample", "readEntityFunction"), List(id, key))
-  }
-
+  @cacheable // caffeine
   def readStreamEntityFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] = {
-    val $result = ZStream.fromEffect(ZIO.effect(CacheValue(Random.nextInt() + "")))
-    Cache($result)(List("UseCaseExample", "readStreamEntityFunction"), List(id, key))
+    ZStream.fromEffect(ZIO.effect(CacheValue(Random.nextInt() + "")))
   }
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
-      ret <- readStreamEntityFunction(1, "hello-world").runHead
-      cache = zio.Runtime.default.unsafeRun(ZRedisService.hGet[CacheValue]("UseCaseExample-readStreamEntityFunction", "1-hello-world"))
-      _ <- LogUtils.debug(s"${ret.toString}    $cache")
+      cache1 <- readStreamEntityFunction(1, "hello-world").runHead
+      cache2 <- updateStreamFunction(2, "helloworld").runHead
+      _ <- LogUtils.debug(s"${cache1.toString}  ${cache2.toString}")
       _ <- putStrLn("Hello good to meet you!")
     } yield ()).foldM(
       e => LogUtils.debug(s"error => $e").exitCode,
