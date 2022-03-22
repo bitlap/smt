@@ -47,7 +47,7 @@ object Implicits {
       val key = cacheKey(identities)
       val field = cacheField(args)
       val locked = s"$key-$field"
-      locked.synchronized {
+      locked.synchronized { // TODO redis lock
         for {
           cacheValue <- ZStream.fromEffect(ZCaffeine.hGet[T](key, field))
           _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
