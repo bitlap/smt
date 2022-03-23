@@ -26,6 +26,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import zio.ZIO
 import zio.stream.ZStream
+import zio.stm.STM
 
 import scala.util.Random
 
@@ -101,10 +102,10 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
     }
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-" + readIOMethodName)
+      _ <- STM.atomically(ZCaffeine.del("CacheableTest-" + readIOMethodName))
       read <- readIOFunction(1, "hello")
       update <- updateIOFunction(1, "hello")
-      cache <- ZCaffeine.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello")
+      cache <- STM.atomically(ZCaffeine.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello"))
     } yield cache)
     result shouldEqual None
   }
@@ -123,10 +124,10 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
     }
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-" + readStreamMethodName)
+      _ <- STM.atomically(ZCaffeine.del("CacheableTest-" + readStreamMethodName))
       read <- readStreamFunction(1, "hello").runHead
       update <- updateStreamFunction(1, "hello").runHead
-      cache <- ZCaffeine.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello")
+      cache <- STM.atomically(ZCaffeine.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello"))
     } yield cache
     )
     result shouldEqual None

@@ -26,8 +26,11 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import zio.stream.ZStream
 import zio.{ Task, ZIO }
+import org.bitlap.cacheable.core.cacheEvict
+import zio.stm.STM
 
 import scala.util.Random
+import java.util
 
 /**
  *
@@ -38,7 +41,8 @@ import scala.util.Random
 class CacheableTest extends AnyFlatSpec with Matchers {
 
   val runtime = zio.Runtime.default
-  val readIOMethodName = "readIOFunction"
+
+  def readIOFunction(id: Int, key: String) = ???
 
   "cacheable1" should "ok" in {
     @cacheable(local = true)
@@ -93,11 +97,71 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     }
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
+      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
       method <- readIOFunction(1, "hello")
-      cache <- ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello")
+      cache <- STM.atomically(ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello"))
     } yield method -> cache
     )
     Some(result._1) shouldEqual result._2
+  }
+
+  // ===================================================================================================================
+  // test multi-threads
+
+  case class StoreData(id: String, name: String)
+
+  val globalId = Random.nextInt().toString
+  val storeMap = new util.HashMap[String, StoreData]()
+  storeMap.put(globalId + "", StoreData(globalId, "zhangsan"))
+
+  "cacheable7" should "test multi-threads" in {
+    @cacheable(true)
+    def readIOFunction(id: Int): ZStream[Any, Throwable, StoreData] = {
+      ZStream.fromEffect(
+        ZIO.effect(storeMap.get(id + ""))
+      )
+    }
+
+    @cacheEvict(local = true)
+    def updateIOFunction(value: String): ZStream[Any, Throwable, StoreData] = {
+      ZStream.fromEffect(
+        ZIO.effect(storeMap.put(globalId, StoreData(globalId, value)))
+      )
+    }
+
+    val result = runtime.unsafeRun(for {
+      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      method <- readIOFunction(globalId.toInt).runHead
+      update <- updateIOFunction("lisi").runHead
+      after <- readIOFunction(globalId.toInt).runHead
+    } yield Some("lisi") -> after.map(_.name)
+    )
+    result._1 shouldEqual result._2
+  }
+
+  "cacheable8" should "test multi-threads" in {
+    @cacheable(true)
+    def readIOFunction(id: Int): ZStream[Any, Throwable, StoreData] = {
+      ZStream.fromEffect(
+        ZIO.effect(storeMap.get(id + ""))
+      )
+    }
+
+    @cacheEvict(local = true)
+    def updateIOFunction(id: String): ZStream[Any, Throwable, StoreData] = {
+      ZStream.fromEffect(
+        ZIO.effect(storeMap.put(globalId, StoreData(id, "zhangsan")))
+      )
+    }
+
+    val newId = Random.nextInt().toString
+    val result = runtime.unsafeRun(for {
+      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      method <- readIOFunction(globalId.toInt).runHead
+      update <- updateIOFunction(newId).runHead
+      after <- readIOFunction(globalId.toInt).runHead
+    } yield Some(newId) -> after.map(_.id)
+    )
+    result._1 shouldEqual result._2
   }
 }

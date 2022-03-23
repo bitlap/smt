@@ -26,14 +26,15 @@ import zio.console.Console
 import zio.logging.{ LogFormat, LogLevel, Logger, Logging }
 import zio.stream.{ UStream, ZStream }
 import zio.{ UIO, ULayer, URLayer, ZIO }
+import zio.blocking.Blocking
 
 /**
- * Internal LogUtil
+ * Internal Utils
  *
  * @author 梦境迷离
  * @version 1.0,2022/3/18
  */
-object LogUtils {
+object Utils {
 
   lazy val loggingLayer: URLayer[Console with Clock, Logging] =
     Logging.console(
@@ -48,4 +49,8 @@ object LogUtils {
 
   def debugS(msg: => String): UStream[Unit] =
     ZStream.fromEffect(debug(msg))
+
+  def effectBlocking[T](action: => T): ZIO[Any, Throwable, T] = {
+    ZIO.serviceWith[Blocking.Service](_.effectBlocking(action)).provideLayer(Blocking.live)
+  }
 }

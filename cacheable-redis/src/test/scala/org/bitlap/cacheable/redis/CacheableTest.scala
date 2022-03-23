@@ -26,6 +26,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import zio.stream.ZStream
 import zio.{ Task, ZIO }
+import zio.Chunk
 
 import scala.util.Random
 
@@ -60,57 +61,58 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       ZIO.effect(CacheValue(Random.nextInt() + ""))
     }
   }
-
-  "cacheable4" should "zstream operation is ok with redis" in {
-    val cacheValue = Random.nextInt().toString
-
-    @cacheable(local = false)
-    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
-      ZStream.fromEffect(ZIO.effect(cacheValue))
-    }
-
-    val result = runtime.unsafeRun(for {
-      _ <- ZRedisService.del("CacheableTest-readStreamFunction")
-      method <- readStreamFunction(1, "hello").runHead
-      cache <- ZRedisService.hGet[String]("CacheableTest-readStreamFunction", "1-hello")
-    } yield method -> cache
-    )
-    result._1 shouldEqual result._2
-  }
-
-  "cacheable5" should "entity zstream is ok with redis" in {
-    val cacheValue = CacheValue(Random.nextInt().toString)
-
-    @cacheable(local = false)
-    def readEntityStreamFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] = {
-      ZStream.fromEffect(ZIO.effect(cacheValue))
-    }
-
-    val result = runtime.unsafeRun(for {
-      _ <- ZRedisService.del("CacheableTest-readEntityStreamFunction")
-      method <- readEntityStreamFunction(1, "hello").runHead
-    } yield method
-    )
-
-    result shouldEqual Some(cacheValue)
-  }
-
-  "cacheable6" should "entity zio is ok with redis" in {
-    val cacheValue = CacheValue(Random.nextInt().toString)
-
-    @cacheable(local = false)
-    def readEntityIOFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
-      ZIO.effect(cacheValue)
-    }
-
-    val result = runtime.unsafeRun(for {
-      _ <- ZRedisService.del("CacheableTest-readEntityIOFunction")
-      method <- readEntityIOFunction(1, "hello")
-      //      cache <- ZRedisService.hGet[CacheValue]("CacheableTest-readEntityIOFunction", "1-hello")
-    } yield Some(method) -> Some(cacheValue)
-    )
-
-    result._1 shouldEqual result._2
-
-  }
+  //
+  //  "cacheable4" should "zstream operation is ok with redis" in {
+  //    val chunk = Chunk(Random.nextInt().toString, Random.nextInt().toString, Random.nextInt().toString)
+  //
+  //    @cacheable(local = false)
+  //    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+  //      ZStream.fromIterable(chunk)
+  //    }
+  //
+  //    println(chunk)
+  //    val result = runtime.unsafeRun(for {
+  //      _ <- ZRedisService.del("CacheableTest-readStreamFunction")
+  //      method <- readStreamFunction(1, "hello").runCollect
+  //      cache <- ZRedisService.hGet[Chunk[String]]("CacheableTest-readStreamFunction", "1-hello")
+  //    } yield method -> cache
+  //    )
+  //    result._1 shouldEqual result._2
+  //  }
+  //
+  //  "cacheable5" should "entity zstream is ok with redis" in {
+  //    val cacheValue = CacheValue(Random.nextInt().toString)
+  //
+  //    @cacheable(local = false)
+  //    def readEntityStreamFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] = {
+  //      ZStream.fromEffect(ZIO.effect(cacheValue))
+  //    }
+  //
+  //    val result = runtime.unsafeRun(for {
+  //      _ <- ZRedisService.del("CacheableTest-readEntityStreamFunction")
+  //      method <- readEntityStreamFunction(1, "hello").runHead
+  //    } yield method
+  //    )
+  //
+  //    result shouldEqual Some(cacheValue)
+  //}
+  //
+  //  "cacheable6" should "entity zio is ok with redis" in {
+  //    val cacheValue = CacheValue(Random.nextInt().toString)
+  //
+  //    @cacheable(local = false)
+  //    def readEntityIOFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+  //      ZIO.effect(cacheValue)
+  //    }
+  //
+  //    val result = runtime.unsafeRun(for {
+  //      _ <- ZRedisService.del("CacheableTest-readEntityIOFunction")
+  //      method <- readEntityIOFunction(1, "hello")
+  //            cache <- ZRedisService.hGet[CacheValue]("CacheableTest-readEntityIOFunction", "1-hello")
+  //    } yield Some(method) -> Some(cache)
+  //    )
+  //
+  //    result._1 shouldEqual result._2
+  //
+  //  }
 }

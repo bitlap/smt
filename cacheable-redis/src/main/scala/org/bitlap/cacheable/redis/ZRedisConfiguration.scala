@@ -22,7 +22,7 @@
 package org.bitlap.cacheable.redis
 
 import com.typesafe.config.{ Config, ConfigFactory }
-import org.bitlap.cacheable.core.LogUtils
+import org.bitlap.cacheable.core.Utils
 import zio.redis.{ Redis, RedisConfig, RedisError, RedisExecutor }
 import zio.schema.codec.{ Codec, ProtobufCodec }
 import zio.{ Has, Layer, ULayer, ZLayer }
@@ -41,12 +41,12 @@ object ZRedisConfiguration {
   private lazy val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
   private lazy val redisConf: RedisConfig = RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
 
-  lazy val disabledLog: Boolean = custom.getBoolean("redis.disabledLog")
+  private[redis] lazy val disabledLog: Boolean = custom.getBoolean("redis.disabledLog")
 
   private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
 
   lazy val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
-    (((if (disabledLog) Logging.ignore else LogUtils.logLayer) ++ ZLayer.succeed(redisConf)) >>>
+    (((if (disabledLog) Logging.ignore else Utils.logLayer) ++ ZLayer.succeed(redisConf)) >>>
       RedisExecutor.live ++ ZRedisConfiguration.codec) >>>
       (Redis.live >>> (r => ZRedisLive(r)).toLayer)
 }

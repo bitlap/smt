@@ -21,10 +21,12 @@
 
 package org.bitlap.cacheable.redis
 
-import org.bitlap.cacheable.core.{ LogUtils, ZIOCache, ZIOUpdateCache, ZStreamCache, ZStreamUpdateCache }
+import org.bitlap.cacheable.core.{ Utils, ZIOCache, ZIOUpdateCache, ZStreamCache, ZStreamUpdateCache }
 import zio.ZIO
 import zio.schema.Schema
 import zio.stream.ZStream
+import zio.Chunk
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * redis cache
@@ -37,8 +39,8 @@ object Implicits {
   implicit def StreamUpdateCache[T: Schema]: ZStreamUpdateCache[Any, Throwable, T] = new ZStreamUpdateCache[Any, Throwable, T] {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
-        updateResult <- ZStream.fromIterable(identities).map(key => ZRedisService.del(key)) *> business
-        _ <- if (ZRedisConfiguration.disabledLog) ZStream.unit else LogUtils.debugS(s"Redis ZStream update: identities:[$identities], updateResult:[$updateResult]")
+        updateResult <- ZStream.fromIterable(identities).flatMap(key => ZStream.fromEffect(ZRedisService.del(key))) *> business
+        _ <- Utils.debugS(s"Redis ZStream update: identities:[$identities], updateResult:[$updateResult]").when(ZRedisConfiguration.disabledLog)
       } yield updateResult
     }
   }
@@ -47,11 +49,16 @@ object Implicits {
     override def getIfPresent(business: => ZStream[Any, Throwable, T])(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
+      lazy val ret = business.runCollect.tap(r => ZRedisService.hSet[Chunk[T]](key, field, r))
+      lazy val resultFun = (chunk: Chunk[T]) => if (chunk.isEmpty) ret else ZIO.succeed(chunk)
+      lazy val count = new AtomicLong(0L)
       for {
-        cacheValue <- ZStream.fromEffect(ZRedisService.hGet[T](key, field))
-        _ <- if (ZRedisConfiguration.disabledLog) ZStream.unit else LogUtils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
-        result <- cacheValue.fold(business.mapM(r => ZRedisService.hSet[T](key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
-        _ <- if (ZRedisConfiguration.disabledLog) ZStream.unit else LogUtils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
+        // TODO fix it, cannot get case class from redis and not lock
+        cacheValue <- ZStream.fromEffect(ZRedisService.hGet[Chunk[T]](key, field)).map(_.getOrElse(Chunk.empty))
+        _ <- Utils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]").when(ZRedisConfiguration.disabledLog)
+        ret <- ZStream.fromEffect(resultFun(cacheValue))
+        result <- ZStream.fromIterable(ret)
+        _ <- Utils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field(${count.incrementAndGet()}):[$field],result:[$result]").when(ZRedisConfiguration.disabledLog)
       } yield result
     }
   }
@@ -60,7 +67,7 @@ object Implicits {
     override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
       for {
         updateResult <- ZIO.foreach_(identities)(key => ZRedisService.del(key)) *> business
-        _ <- LogUtils.debug(s"Redis ZIO update: identities:[$identities], updateResult:[$updateResult]").unless(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debug(s"Redis ZIO update: identities:[$identities], updateResult:[$updateResult]").unless(ZRedisConfiguration.disabledLog)
       } yield updateResult
     }
   }
@@ -71,9 +78,9 @@ object Implicits {
       val field = cacheField(args)
       for {
         cacheValue <- ZRedisService.hGet[T](key, field)
-        _ <- LogUtils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZRedisConfiguration.disabledLog)
         result <- cacheValue.fold(business.tap(r => ZRedisService.hSet[T](key, field, r).as(r)))(value => ZIO.effectTotal(value))
-        _ <- LogUtils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZRedisConfiguration.disabledLog)
       } yield result
     }
   }

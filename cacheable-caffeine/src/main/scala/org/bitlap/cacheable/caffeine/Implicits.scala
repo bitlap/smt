@@ -21,6 +21,9 @@
 
 package org.bitlap.cacheable.caffeine
 
+import zio.stm.STM
+import zio.Chunk
+
 import org.bitlap.cacheable.core._
 import zio.ZIO
 import zio.stream.ZStream
@@ -35,10 +38,12 @@ object Implicits {
 
   implicit def StreamUpdateCache[T]: ZStreamUpdateCache[Any, Throwable, T] = new ZStreamUpdateCache[Any, Throwable, T] {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
-      for {
-        updateResult <- ZStream.fromIterable(identities).map(key => ZCaffeine.del(key)) *> business
-        _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream update: identities:[$identities], updateResult:[$updateResult]")
-      } yield updateResult
+      ZStream.fromEffect(STM.atomically {
+        STM.foreach_(identities)(key => ZCaffeine.del(key))
+      }) *> ({
+        Utils.debugS(s"Caffeine ZStream update: identities:[$identities]")
+          .when(ZCaffeine.disabledLog)
+      } *> business)
     }
   }
 
@@ -46,24 +51,30 @@ object Implicits {
     override def getIfPresent(business: => ZStream[Any, Throwable, T])(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
-      val locked = s"$key-$field"
-      locked.synchronized { // TODO redis lock
+      // TODO fix it?
+      lazy val syncResult = zio.Runtime.default.unsafeRun(business.runCollect)
+      val stmResult = STM.atomically {
         for {
-          cacheValue <- ZStream.fromEffect(ZCaffeine.hGet[T](key, field))
-          _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]")
-          result <- cacheValue.fold(business.mapM(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZStream.fromEffect(ZIO.effectTotal(value)))
-          _ <- if (ZCaffeine.disabledLog) ZStream.unit else LogUtils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
-        } yield result
+          chunk <- ZCaffeine.hGet[Chunk[T]](key, field).map(_.getOrElse(Chunk.empty))
+          ret <- if (chunk.isEmpty) ZCaffeine.hSet[Chunk[T]](key, field, syncResult) else STM.succeed(chunk)
+        } yield ret
       }
+      for {
+        ret <- ZStream.fromEffect(stmResult)
+        _ <- Utils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$ret]").when(ZCaffeine.disabledLog)
+        r <- ZStream.fromIterable(ret)
+      } yield r
     }
   }
 
   implicit def UpdateCache[T]: ZIOUpdateCache[Any, Throwable, T] = new ZIOUpdateCache[Any, Throwable, T] {
     override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
-      for {
-        updateResult <- ZIO.foreach_(identities)(key => ZCaffeine.del(key)) *> business
-        _ <- LogUtils.debug(s"Caffeine ZIO update: identities:[$identities], updateResult:[$updateResult]").unless(ZCaffeine.disabledLog)
-      } yield updateResult
+      STM.atomically {
+        STM.foreach_(identities)(key => ZCaffeine.del(key))
+      } *> {
+        business.tap(updateResult => Utils.debug(s"Caffeine ZIO update: identities:[$identities],updateResult:[$updateResult]")
+          .unless(ZCaffeine.disabledLog))
+      }
     }
   }
 
@@ -71,15 +82,15 @@ object Implicits {
     override def getIfPresent(business: => ZIO[Any, Throwable, T])(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
-      val locked = s"$key-$field"
-      locked.synchronized {
+      lazy val syncResult = zio.Runtime.default.unsafeRun(business)
+      // TODO fix it?
+      STM.atomically {
         for {
-          cacheValue <- ZCaffeine.hGet[T](key, field)
-          _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZCaffeine.disabledLog)
-          result <- cacheValue.fold(business.tap(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZIO.effectTotal(value))
-          _ <- LogUtils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZCaffeine.disabledLog)
-        } yield result
-      }
+          chunk <- ZCaffeine.hGet[T](key, field)
+          ret <- chunk.fold(ZCaffeine.hSet[T](key, field, syncResult))(c => STM.succeed(c))
+        } yield ret
+      }.tap(ret => Utils.debug(s"Caffeine ZIO getIfPresent: identity:[$key],field:[$field],result:[$ret]")
+        .when(ZCaffeine.disabledLog))
     }
   }
 }

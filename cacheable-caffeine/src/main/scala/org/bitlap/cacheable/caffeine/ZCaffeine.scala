@@ -21,14 +21,12 @@
 
 package org.bitlap.cacheable.caffeine
 
-import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.{ Cache, Caffeine }
 import com.typesafe.config.{ Config, ConfigFactory }
-import com.github.benmanes.caffeine.cache.Cache
 
-import java.util.concurrent.TimeUnit
-import zio.ZIO
-import zio.Task
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ ConcurrentHashMap, TimeUnit }
+import zio.stm.{ TRef, ZSTM }
+import zio.stm.USTM
 
 /**
  *
@@ -40,18 +38,24 @@ object ZCaffeine {
   private val conf: Config = ConfigFactory.load("reference.conf")
   private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
 
-  lazy val disabledLog: Boolean = custom.getBoolean("caffeine.disabledLog")
+  private[caffeine] lazy val disabledLog: Boolean = custom.getBoolean("caffeine.disabledLog")
 
   private lazy val maximumSize = custom.getInt("caffeine.maximumSize")
   private lazy val expireAfterWriteSeconds = custom.getInt("caffeine.expireAfterWriteSeconds")
 
   val hashCache: Cache[String, ConcurrentHashMap[String, Any]] = Caffeine.newBuilder()
     .maximumSize(maximumSize)
-    .expireAfterWrite(expireAfterWriteSeconds, TimeUnit.SECONDS).build[String, ConcurrentHashMap[String, Any]]
+    .expireAfterWrite(expireAfterWriteSeconds, TimeUnit.SECONDS)
+    .build[String, ConcurrentHashMap[String, Any]]
 
-  def hGet[T](key: String, field: String): Task[Option[T]] = {
-    ZIO.effect {
-      val hashMap = hashCache.getIfPresent(key)
+  private val cacheRef: USTM[TRef[Cache[String, ConcurrentHashMap[String, Any]]]] = TRef.make(hashCache)
+
+  def hGet[T](key: String, field: String): ZSTM[Any, Throwable, Option[T]] = {
+    for {
+      cache <- cacheRef
+      chm <- cache.get
+    } yield {
+      val hashMap = chm.getIfPresent(key)
       if (hashMap == null || hashMap.isEmpty) {
         None
       } else {
@@ -65,25 +69,32 @@ object ZCaffeine {
     }
   }
 
-  def del(key: String): Task[Unit] = {
-    key.synchronized {
-      ZIO.effect {
-        hashCache.put(key, new ConcurrentHashMap())
+  def del(key: String): ZSTM[Any, Throwable, Unit] = {
+    for {
+      cache <- cacheRef
+      ret <- cache.update { stmCache =>
+        stmCache.invalidate(key)
+        stmCache
       }
-    }
+    } yield ret
   }
 
-  def hSet(key: String, field: String, value: Any): Task[Unit] = {
-    ZIO.effect {
-      val hashMap = hashCache.getIfPresent(key)
-      if (hashMap == null || hashMap.isEmpty) {
-        val chm = new ConcurrentHashMap[String, Any]()
-        chm.put(field, value)
-        hashCache.put(key, chm)
-      } else {
-        hashMap.put(field, value)
-        hashCache.put(key, new ConcurrentHashMap(hashMap))
+  def hSet[T](key: String, field: String, value: Any): ZSTM[Any, Throwable, T] = {
+    for {
+      cache <- cacheRef
+      c <- cache.modify { stmCache =>
+        val hashMap = stmCache.getIfPresent(key)
+        if (hashMap == null || hashMap.isEmpty) {
+          val chm = new ConcurrentHashMap[String, Any]()
+          chm.put(field, value)
+          stmCache.put(key, chm)
+        } else {
+          hashMap.put(field, value)
+          stmCache.put(key, new ConcurrentHashMap(hashMap))
+        }
+        stmCache -> stmCache
       }
-    }
+    } yield c.getIfPresent(key).get(field).asInstanceOf[T]
+
   }
 }
