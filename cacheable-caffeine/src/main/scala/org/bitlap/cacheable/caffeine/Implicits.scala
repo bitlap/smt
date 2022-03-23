@@ -41,8 +41,8 @@ object Implicits {
       ZStream.fromEffect(STM.atomically {
         STM.foreach_(identities)(key => ZCaffeine.del(key))
       }) *> ({
-        Utils.debugS(s"Caffeine ZStream update: identities:[$identities]")
-          .when(ZCaffeine.disabledLog)
+        Utils.debugS(s"Caffeine ZStream update >>> identities:[$identities]")
+          .when(!ZCaffeine.disabledLog)
       } *> business)
     }
   }
@@ -61,7 +61,7 @@ object Implicits {
       }
       for {
         ret <- ZStream.fromEffect(stmResult)
-        _ <- Utils.debugS(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$ret]").when(ZCaffeine.disabledLog)
+        _ <- Utils.debugS(s"Caffeine ZStream getIfPresent >>> identity:[$key],field:[$field],result:[$ret]").when(!ZCaffeine.disabledLog)
         r <- ZStream.fromIterable(ret)
       } yield r
     }
@@ -72,8 +72,8 @@ object Implicits {
       STM.atomically {
         STM.foreach_(identities)(key => ZCaffeine.del(key))
       } *> {
-        business.tap(updateResult => Utils.debug(s"Caffeine ZIO update: identities:[$identities],updateResult:[$updateResult]")
-          .unless(ZCaffeine.disabledLog))
+        business.tap(updateResult => Utils.debug(s"Caffeine ZIO update >>> identities:[$identities],updateResult:[$updateResult]")
+          .when(!ZCaffeine.disabledLog))
       }
     }
   }
@@ -89,8 +89,8 @@ object Implicits {
           chunk <- ZCaffeine.hGet[T](key, field)
           ret <- chunk.fold(ZCaffeine.hSet[T](key, field, syncResult))(c => STM.succeed(c))
         } yield ret
-      }.tap(ret => Utils.debug(s"Caffeine ZIO getIfPresent: identity:[$key],field:[$field],result:[$ret]")
-        .when(ZCaffeine.disabledLog))
+      }.tap(ret => Utils.debug(s"Caffeine ZIO getIfPresent >>> identity:[$key],field:[$field],result:[$ret]")
+        .when(!ZCaffeine.disabledLog))
     }
   }
 }
