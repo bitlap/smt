@@ -40,7 +40,7 @@ object Implicits {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
       for {
         updateResult <- ZStream.fromIterable(identities).flatMap(key => ZStream.fromEffect(ZRedisService.del(key))) *> business
-        _ <- Utils.debugS(s"Redis ZStream update: identities:[$identities], updateResult:[$updateResult]").when(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debugS(s"Redis ZStream update >>> identities:[$identities], updateResult:[$updateResult]").when(!ZRedisConfiguration.disabledLog)
       } yield updateResult
     }
   }
@@ -55,10 +55,10 @@ object Implicits {
       for {
         // TODO fix it, cannot get case class from redis and not lock
         cacheValue <- ZStream.fromEffect(ZRedisService.hGet[Chunk[T]](key, field)).map(_.getOrElse(Chunk.empty))
-        _ <- Utils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cacheValue]").when(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debugS(s"Redis ZStream getIfPresent >>> identity:[$key],field:[$field],cacheValue:[$cacheValue]").when(!ZRedisConfiguration.disabledLog)
         ret <- ZStream.fromEffect(resultFun(cacheValue))
         result <- ZStream.fromIterable(ret)
-        _ <- Utils.debugS(s"Redis ZStream getIfPresent: identity:[$key],field(${count.incrementAndGet()}):[$field],result:[$result]").when(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debugS(s"Redis ZStream getIfPresent >>> identity:[$key],field(${count.incrementAndGet()}):[$field],result:[$result]").when(!ZRedisConfiguration.disabledLog)
       } yield result
     }
   }
@@ -67,7 +67,7 @@ object Implicits {
     override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
       for {
         updateResult <- ZIO.foreach_(identities)(key => ZRedisService.del(key)) *> business
-        _ <- Utils.debug(s"Redis ZIO update: identities:[$identities], updateResult:[$updateResult]").unless(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debug(s"Redis ZIO update >>> identities:[$identities], updateResult:[$updateResult]").when(!ZRedisConfiguration.disabledLog)
       } yield updateResult
     }
   }
@@ -78,9 +78,9 @@ object Implicits {
       val field = cacheField(args)
       for {
         cacheValue <- ZRedisService.hGet[T](key, field)
-        _ <- Utils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").unless(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]").when(!ZRedisConfiguration.disabledLog)
         result <- cacheValue.fold(business.tap(r => ZRedisService.hSet[T](key, field, r).as(r)))(value => ZIO.effectTotal(value))
-        _ <- Utils.debug(s"Redis ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]").unless(ZRedisConfiguration.disabledLog)
+        _ <- Utils.debug(s"Redis ZIO getIfPresent >>> identity:[$key], field:[$field], result:[$result]").when(!ZRedisConfiguration.disabledLog)
       } yield result
     }
   }
