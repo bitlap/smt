@@ -28,6 +28,7 @@ import zio.stream.ZStream
 import zio.{ Task, ZIO }
 import org.bitlap.cacheable.core.cacheEvict
 import zio.stm.STM
+import zio.Chunk
 
 import scala.util.Random
 import java.util
@@ -161,6 +162,24 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       update <- updateIOFunction(newId).runHead
       after <- readIOFunction(globalId.toInt).runHead
     } yield Some(newId) -> after.map(_.id)
+    )
+    result._1 shouldEqual result._2
+  }
+
+  "cacheable9" should "zio operation is ok with chunk" in {
+    val chunk = Chunk(Random.nextInt().toString, Random.nextInt().toString, Random.nextInt().toString)
+
+    @cacheable(local = true)
+    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, Chunk[String]] = {
+      ZIO.succeed(chunk)
+    }
+
+    println(chunk)
+    val result = runtime.unsafeRun(for {
+      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      method <- readIOFunction(1, "hello")
+      cache <- STM.atomically(ZCaffeine.hGet[Chunk[String]]("CacheableTest-readIOFunction", "1-hello").map(_.getOrElse(Chunk.empty)))
+    } yield method -> cache
     )
     result._1 shouldEqual result._2
   }
