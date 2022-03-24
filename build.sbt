@@ -29,7 +29,8 @@ lazy val commonSettings =
       }
     } ++ Seq("-language:experimental.macros"),
     Compile / compile := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
-    organizationName := "org.bitlap",
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    organizationName := "bitlap",
     startYear := Some(2022),
     headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
     licenses += License.MIT,
@@ -37,6 +38,10 @@ lazy val commonSettings =
     Test / fork := true,
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := true,
+    releaseTagName := {
+      (ThisBuild / version).value
+    },
+    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
@@ -47,6 +52,7 @@ lazy val commonSettings =
       commitReleaseVersion,
       tagRelease,
       releaseStepCommandAndRemaining("+publishSigned"),
+      releaseStepCommand("sonatypeBundleRelease"),
       setNextVersion,
       commitNextVersion,
       pushChanges

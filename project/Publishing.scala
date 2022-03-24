@@ -1,6 +1,6 @@
 import sbt.Keys._
 import sbt._
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
+import xerial.sbt.Sonatype.autoImport._
 
 /**
  * sbt publish setting
