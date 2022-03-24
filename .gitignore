@@ -9,6 +9,7 @@
 /target/scala-2.11/classes/
 /target/scala-2.11/test-classes/
 
+.DS_Store
 .idea/
 *.iml
 .bsp
