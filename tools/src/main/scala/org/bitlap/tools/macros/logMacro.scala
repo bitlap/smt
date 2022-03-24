@@ -39,15 +39,14 @@ object logMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail: (Boolean, logs.LogType.Value) = extractArgumentsTuple2 {
+    private val extractArgs: logs.LogType.Value = c.prefix.tree match {
       case q"new log(logType=$logType)" =>
         val tpe = getLogType(logType.asInstanceOf[Tree])
-        (false, tpe)
-      case q"new log(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), LogType.JLog)
-      case q"new log(verbose=$verbose, logType=$logType)" =>
+        tpe
+      case q"new log($logType)" =>
         val tpe = getLogType(logType.asInstanceOf[Tree])
-        (evalTree(verbose.asInstanceOf[Tree]), tpe)
-      case q"new log()" => (false, LogType.JLog)
+        tpe
+      case q"new log()" => LogType.JLog
       case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
@@ -63,11 +62,11 @@ object logMacro {
       val buildArg = (name: Name) => LogTransferArgument(name.toTermName.decodedName.toString, isClass = true)
       (annottees.map(_.tree) match {
         case (classDef: ClassDef) :: Nil =>
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
+          LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(classDef.name))
         case (moduleDef: ModuleDef) :: Nil =>
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
+          LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
         case (classDef: ClassDef) :: (_: ModuleDef) :: Nil =>
-          LogType.getLogImpl(extractArgumentsDetail._2).getTemplate(c)(buildArg(classDef.name))
+          LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(classDef.name))
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }).asInstanceOf[Tree]
     }
@@ -78,7 +77,7 @@ object logMacro {
           if (classDef.mods.hasFlag(Flag.CASE)) {
             c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
           }
-          val newClass = extractArgumentsDetail._2 match {
+          val newClass = extractArgs match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
               appendImplDefSuper(checkGetClassDef(annottees), _ => List(logTree(annottees)))
             case _ =>
@@ -90,7 +89,7 @@ object logMacro {
              $newClass
            """
         case (_: ModuleDef) :: _ =>
-          extractArgumentsDetail._2 match {
+          extractArgs match {
             case ScalaLoggingLazy | ScalaLoggingStrict => appendImplDefSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
             case _                                     => prependImplDefBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
           }
@@ -99,7 +98,7 @@ object logMacro {
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      printTree(force = extractArgumentsDetail._1, resTree)
+      printTree(force = true, resTree)
       c.Expr[Any](resTree)
     }
   }

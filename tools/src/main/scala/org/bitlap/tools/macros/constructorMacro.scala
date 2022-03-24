@@ -35,19 +35,18 @@ object constructorMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail: Tuple2[Boolean, Seq[String]] = {
-      extractArgumentsTuple2 {
-        case q"new constructor(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), Nil)
-        case q"new constructor(excludeFields=$excludeFields)" => (false, evalTree(excludeFields.asInstanceOf[Tree]))
-        case q"new constructor(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(excludeFields.asInstanceOf[Tree]))
-        case q"new constructor()" => (false, Nil)
+    private val extractArgs: Seq[String] = {
+      c.prefix.tree match {
+        case q"new constructor(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
+        case q"new constructor($excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
+        case q"new constructor()" => Seq.empty[String]
         case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
     }
 
     private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] = {
       getClassMemberValDefs(annotteeClassDefinitions).filter(v => v.mods.hasFlag(Flag.MUTABLE) &&
-        !extractArgumentsDetail._2.contains(v.name.decodedName.toString))
+        !extractArgs.contains(v.name.decodedName.toString))
     }
 
     /**
@@ -116,7 +115,6 @@ object constructorMacro {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
     }
-    override val verbose: Boolean = extractArgumentsDetail._1
   }
 
 }

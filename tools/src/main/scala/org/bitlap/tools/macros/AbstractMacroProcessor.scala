@@ -38,8 +38,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   protected final lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
 
-  protected val verbose: Boolean = false
-
   /**
    * Subclasses should override the method and return the final result abstract syntax tree, or an abstract syntax tree close to the final result.
    *
@@ -58,7 +56,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def impl(annottees: Expr[Any]*): Expr[Any] = {
     checkAnnottees(annottees)
     val resTree = collectCustomExpr(annottees)(createCustomExpr)
-    printTree(force = verbose, resTree.tree)
+    printTree(force = true, resTree.tree)
     resTree
   }
 

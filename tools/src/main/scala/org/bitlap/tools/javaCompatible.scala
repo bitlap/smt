@@ -29,11 +29,10 @@ import org.bitlap.tools.macros.javaCompatibleMacro
  * Fields marked `private[this]` in curry are not supported !
  *
  * @author 梦境迷离
- * @param verbose Whether to enable detailed log.
  * @since 2021/11/23
  * @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
-final class javaCompatible(verbose: Boolean = false) extends StaticAnnotation {
+final class javaCompatible extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro javaCompatibleMacro.JavaCompatibleProcessor.impl
 }
