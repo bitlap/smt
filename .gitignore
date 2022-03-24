@@ -8,12 +8,16 @@
 /target/scala-2.12/test-classes/
 /target/scala-2.11/classes/
 /target/scala-2.11/test-classes/
+
 .idea/
 *.iml
 .bsp
 examples/scala2-11/target/
 examples/scala2-12/target/
 examples/scala2-13/target/
+examples/scala2-11/project/target
+examples/scala2-12/project/target
+examples/scala2-13/project/target
 cacheable-core/target
 cacheable-caffeine/target
 cacheable-redis/target
