@@ -17,6 +17,8 @@ examples/scala2-13/target/
 cacheable-core/target
 cacheable-caffeine/target
 cacheable-redis/target
+cacheable-benchmark/target
+
 
 tools/target
 
