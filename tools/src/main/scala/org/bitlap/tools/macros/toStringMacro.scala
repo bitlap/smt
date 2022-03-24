@@ -41,7 +41,7 @@ object toStringMacro {
       (
         evalTree[Boolean](aa),
         evalTree[Boolean](bb),
-        evalTree[Boolean](cc),
+        evalTree[Boolean](cc)
       )
     }
 
@@ -65,7 +65,7 @@ object toStringMacro {
       val argument = Argument(
         extractArgumentsDetail._1,
         extractArgumentsDetail._2,
-        extractArgumentsDetail._3,
+        extractArgumentsDetail._3
       )
       val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(argument, classDecl)))
       c.Expr(

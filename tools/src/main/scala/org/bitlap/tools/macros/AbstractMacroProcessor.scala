@@ -76,15 +76,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def evalTree[T: WeakTypeTag](tree: Tree): T = c.eval(c.Expr[T](c.untypecheck(tree.duplicate)))
 
-  def extractArgumentsTuple2[T1: WeakTypeTag, T2: WeakTypeTag](partialFunction: PartialFunction[Tree, (T1, T2)]): (T1, T2) = {
-    partialFunction.apply(c.prefix.tree)
-  }
-
-  def extractArgumentsTuple4[T1: WeakTypeTag, T2: WeakTypeTag, T3: WeakTypeTag, T4: WeakTypeTag]
-    (partialFunction: PartialFunction[Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
-    partialFunction.apply(c.prefix.tree)
-  }
-
   /**
    * Output ast result.
    *
