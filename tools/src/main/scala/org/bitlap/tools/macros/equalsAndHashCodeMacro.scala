@@ -35,11 +35,10 @@ object equalsAndHashCodeMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail: (Boolean, Nil.type) = extractArgumentsTuple2 {
-      case q"new equalsAndHashCode(verbose=$verbose)" => (evalTree(verbose.asInstanceOf[Tree]), Nil)
-      case q"new equalsAndHashCode(excludeFields=$excludeFields)" => (false, evalTree(excludeFields.asInstanceOf[Tree]))
-      case q"new equalsAndHashCode(verbose=$verbose, excludeFields=$excludeFields)" => (evalTree(verbose.asInstanceOf[Tree]), evalTree(excludeFields.asInstanceOf[Tree]))
-      case q"new equalsAndHashCode()" => (false, Nil)
+    private val extractArgs: Seq[String] = c.prefix.tree match {
+      case q"new equalsAndHashCode(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
+      case q"new equalsAndHashCode($excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
+      case q"new equalsAndHashCode()" => Nil
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
@@ -51,17 +50,15 @@ object equalsAndHashCodeMacro {
       }
     }
 
-    override val verbose: Boolean = extractArgumentsDetail._1
-
     /**
      * Extract the internal fields of members belonging to the class.
      */
     private def getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
       if (annotteeClassDefinitions.exists(f => isNotLocalClassMember(f))) {
-        c.info(c.enclosingPosition, s"There is a non private class definition inside the class", extractArgumentsDetail._1)
+        c.info(c.enclosingPosition, s"There is a non private class definition inside the class", true)
       }
       getClassMemberValDefs(annotteeClassDefinitions).filter(p => isNotLocalClassMember(p) &&
-        !extractArgumentsDetail._2.contains(p.name.decodedName.toString)).map(_.name.toTermName)
+        !extractArgs.contains(p.name.decodedName.toString)).map(_.name.toTermName)
     }
 
     // equals method

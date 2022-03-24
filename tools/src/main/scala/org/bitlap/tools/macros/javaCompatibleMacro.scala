@@ -40,7 +40,7 @@ object javaCompatibleMacro {
      */
     private def getNoArgsContrWithCurrying(annotteeClassParams: List[List[Tree]], annotteeClassDefinitions: Seq[Tree]): Tree = {
       if (annotteeClassDefinitions.exists(f => !isNotLocalClassMember(f))) {
-        c.info(c.enclosingPosition, s"The params of 'private[this]' exists in class constructor", verbose)
+        c.info(c.enclosingPosition, s"The params of 'private[this]' exists in class constructor", true)
       }
       annotteeClassDefinitions.foreach {
         case defDef: DefDef if defDef.name.decodedName.toString == "this" && defDef.vparamss.isEmpty =>

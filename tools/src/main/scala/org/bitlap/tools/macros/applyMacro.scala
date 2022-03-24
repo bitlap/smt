@@ -35,14 +35,6 @@ object applyMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail: Tuple1[Boolean] = {
-      c.prefix.tree match {
-        case q"new apply(verbose=$verbose)" => Tuple1(evalTree(verbose.asInstanceOf[Tree]))
-        case q"new apply()"                 => Tuple1(false)
-        case _                              => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-      }
-    }
-
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
       val apply = getApplyMethodWithCurrying(classDefinition.className, classDefinition.classParamss, classDefinition.classTypeParams)
@@ -61,8 +53,6 @@ object applyMacro {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }
     }
-
-    override protected val verbose: Boolean = extractArgumentsDetail._1
   }
 
 }

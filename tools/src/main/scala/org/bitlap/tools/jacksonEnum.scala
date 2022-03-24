@@ -31,12 +31,11 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  * @author 梦境迷离
  * @author choly
  *
- * @param verbose       Whether to enable detailed log.
  * @param nonTypeRefers Whether to not generate the subclass of the TypeReference for paramTypes of class.
  * @since 2021/8/3
  * @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
-final class jacksonEnum(verbose: Boolean = false, nonTypeRefers: Seq[String] = Nil) extends StaticAnnotation {
+final class jacksonEnum(nonTypeRefers: Seq[String] = Nil) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro jacksonEnumMacro.JacksonEnumProcessor.impl
 }

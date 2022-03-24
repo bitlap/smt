@@ -38,8 +38,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   protected final lazy val SDKClasses = Set("java.lang.Object", "scala.AnyRef")
 
-  protected val verbose: Boolean = false
-
   /**
    * Subclasses should override the method and return the final result abstract syntax tree, or an abstract syntax tree close to the final result.
    *
@@ -58,7 +56,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def impl(annottees: Expr[Any]*): Expr[Any] = {
     checkAnnottees(annottees)
     val resTree = collectCustomExpr(annottees)(createCustomExpr)
-    printTree(force = verbose, resTree.tree)
+    printTree(force = true, resTree.tree)
     resTree
   }
 
@@ -77,15 +75,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return
    */
   def evalTree[T: WeakTypeTag](tree: Tree): T = c.eval(c.Expr[T](c.untypecheck(tree.duplicate)))
-
-  def extractArgumentsTuple2[T1: WeakTypeTag, T2: WeakTypeTag](partialFunction: PartialFunction[Tree, (T1, T2)]): (T1, T2) = {
-    partialFunction.apply(c.prefix.tree)
-  }
-
-  def extractArgumentsTuple4[T1: WeakTypeTag, T2: WeakTypeTag, T3: WeakTypeTag, T4: WeakTypeTag]
-    (partialFunction: PartialFunction[Tree, (T1, T2, T3, T4)]): (T1, T2, T3, T4) = {
-    partialFunction.apply(c.prefix.tree)
-  }
 
   /**
    * Output ast result.

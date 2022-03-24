@@ -57,28 +57,9 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |    }
       |    A2(1, 2, None, None).c
       |    """.stripMargin shouldNot compile
-
-    """    @apply @toString @builder @constructor(excludeFields=Seq("c"), verbose = true) //verbose should in front
-      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-      |      private val a: Int = 1
-      |      var b: Int = 1
-      |      protected var c: Int = _
-      |
-      |      def helloWorld: String = "hello world"
-      |    }
-      |    """.stripMargin shouldNot compile
   }
 
   "constructor2" should "ok at class" in {
-    """    @constructor(verbose = true)
-      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-      |      private val a: Int = 1
-      |      private var b: Int = 1
-      |      protected var c: Int = _
-      |
-      |      def helloWorld: String = "hello world"
-      |    }""".stripMargin should compile
-
     """    @constructor
       |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
       |      private val a: Int = 1
@@ -134,15 +115,6 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
       |    }""".stripMargin should compile
 
     """    @apply @toString @builder @constructor(excludeFields=Seq("c"))
-      |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-      |      private val a: Int = 1
-      |      var b: Int = 1
-      |      protected var c: Int = _
-      |
-      |      def helloWorld: String = "hello world"
-      |    }""".stripMargin should compile
-
-    """    @apply @toString @builder @constructor(verbose = true, excludeFields=Seq("c"))
       |    class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
       |      private val a: Int = 1
       |      var b: Int = 1

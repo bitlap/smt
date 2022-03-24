@@ -105,12 +105,8 @@ class JacksonEnumTest extends AnyFlatSpec with Matchers {
 
   "jacksonEnum6" should "failed when input args are invalid" in {
     """
-      |    @jacksonEnum(verbose=true, nonTypeRefers=Nil)
+      |    @jacksonEnum(nonTypeRefers=Nil)
       |    class A(enum1: EnumType.EnumType)
       |""".stripMargin should compile
-    """
-      |     @jacksonEnum(true)
-      |     class B(enum1: EnumType.EnumType)
-      |""".stripMargin shouldNot compile
   }
 }

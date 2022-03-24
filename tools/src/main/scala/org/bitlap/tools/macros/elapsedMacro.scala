@@ -53,7 +53,7 @@ object elapsedMacro {
       }
     }
 
-    private val extractArgumentsDetail: (Duration, LogLevel) = extractArgumentsTuple2 {
+    private val extractArgumentsDetail: (Duration, LogLevel) = c.prefix.tree match {
       case q"new elapsed(limit=$limit, logLevel=$logLevel)" => (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }

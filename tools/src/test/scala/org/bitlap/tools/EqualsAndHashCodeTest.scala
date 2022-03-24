@@ -32,12 +32,12 @@ import org.scalatest.matchers.should.Matchers
  */
 class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
 
-  @equalsAndHashCode(verbose = true)
+  @equalsAndHashCode
   @toString
   class Employee(name: String, age: Int, var role: String) extends Person(name, age)
 
   @toString
-  @equalsAndHashCode(verbose = true)
+  @equalsAndHashCode
   class Person(var name: String, var age: Int)
 
   "equals1" should "ok" in {
@@ -153,17 +153,9 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
   }
 
-  "equals5" should "failed when input not in order" in {
+  "equals5" should "ok" in {
     """
-      |    @equalsAndHashCode(excludeFields = Nil, verbose = true)
-      |    class Employee4(name: String, age: Int, var role: String) extends Person(name, age) {
-      |      val i = 0
-      |      def hello: String = ???
-      |    }
-      |""".stripMargin shouldNot compile
-
-    """
-      |    @equalsAndHashCode(verbose = true, excludeFields = Seq("i", "j", "k", "t"))
+      |    @equalsAndHashCode(excludeFields = Seq("i", "j", "k", "t"))
       |    class Employee5(name: String, age: Int, var role: String) extends Person(name, age) {
       |      val i = 0
       |      var j = 0
@@ -174,7 +166,7 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
       |""".stripMargin should compile
 
     """
-      |    @equalsAndHashCode(verbose = true, excludeFields = Seq("i", "j"))
+      |    @equalsAndHashCode(excludeFields = Seq("i", "j"))
       |    class Employee6(name: String, age: Int, var role: String) extends Person(name, age) {
       |      val i = 0
       |      var j = 0

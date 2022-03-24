@@ -31,51 +31,41 @@ import scala.reflect.macros.whitebox
  */
 object toStringMacro {
 
-  private final case class Argument(verbose: Boolean, includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
+  private final case class Argument(includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
 
   class ToStringProcessor(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
-    private def extractTree(aa: Tree, bb: Tree, cc: Tree, dd: Tree): (Boolean, Boolean, Boolean, Boolean) = {
+    private def extractTree(aa: Tree, bb: Tree, cc: Tree): (Boolean, Boolean, Boolean) = {
       (
         evalTree[Boolean](aa),
         evalTree[Boolean](bb),
-        evalTree[Boolean](cc),
-        evalTree[Boolean](dd)
+        evalTree[Boolean](cc)
       )
     }
 
-    private val extractArgumentsDetail: (Boolean, Boolean, Boolean, Boolean) = extractArgumentsTuple4 {
-      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
-        extractTree(q"false", bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], dd.asInstanceOf[Tree])
-      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc)" =>
-        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], q"false")
-      case q"new toString($aa, $bb, $cc)" =>
-        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], q"false")
-      case q"new toString(verbose=$aa, includeInternalFields=$bb, includeFieldNames=$cc, callSuper=$dd)" =>
-        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], dd.asInstanceOf[Tree])
-      case q"new toString($aa, $bb, $cc, $dd)" =>
-        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], dd.asInstanceOf[Tree])
-      case q"new toString(includeInternalFields=$bb, includeFieldNames=$cc)" =>
-        extractTree(q"false", bb.asInstanceOf[Tree], cc.asInstanceOf[Tree], q"false")
-      case q"new toString(includeInternalFields=$bb)" =>
-        extractTree(q"false", bb.asInstanceOf[Tree], q"true", q"false")
-      case q"new toString(includeFieldNames=$cc)" =>
-        extractTree(q"false", q"true", cc.asInstanceOf[Tree], q"false")
-      case q"new toString()" => (false, true, true, false)
+    private val extractArgumentsDetail: (Boolean, Boolean, Boolean) = c.prefix.tree match {
+      case q"new toString(includeInternalFields=$aa, includeFieldNames=$bb, callSuper=$cc)" =>
+        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree])
+      case q"new toString(includeInternalFields=$aa, includeFieldNames=$bb)" =>
+        extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], q"false")
+      case q"new toString(includeInternalFields=$aa)" =>
+        extractTree(aa.asInstanceOf[Tree], q"true", q"false")
+      case q"new toString(includeFieldNames=$aa)" =>
+        extractTree(q"true", aa.asInstanceOf[Tree], q"false")
+      case q"new toString(callSuper=$aa)" =>
+        extractTree(q"true", q"true", aa.asInstanceOf[Tree])
+      case q"new toString()" => (true, true, false)
       case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
-
-    override val verbose: Boolean = extractArgumentsDetail._1
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // extract parameters of annotation, must in order
       val argument = Argument(
         extractArgumentsDetail._1,
         extractArgumentsDetail._2,
-        extractArgumentsDetail._3,
-        extractArgumentsDetail._4
+        extractArgumentsDetail._3
       )
       val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(argument, classDecl)))
       c.Expr(

@@ -32,7 +32,7 @@ import org.scalatest.matchers.should.Matchers
  */
 class ToStringTest extends AnyFlatSpec with Matchers {
   "toString1" should "not contains internal field" in {
-    @toString(false, false, false)
+    @toString(includeInternalFields = false, includeFieldNames = false, callSuper = false)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -56,7 +56,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString3" should "not contains internal field but with name" in {
-    @toString(true, false, true)
+    @toString(includeInternalFields = false, includeFieldNames = true)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -68,7 +68,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString4" should "contains internal field but without name" in {
-    @toString(true, true, false)
+    @toString(includeInternalFields = true, includeFieldNames = false)
     class TestClass(val i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -80,7 +80,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString5" should "case class without name" in {
-    @toString(true, false, false)
+    @toString(includeInternalFields = false, includeFieldNames = false)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -92,7 +92,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString6" should "case class not contains internal field and with name" in {
-    @toString(true, false, true)
+    @toString(includeInternalFields = false, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -121,7 +121,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString8" should "case class contains internal field and with name, itself" in {
-    @toString(true, true, true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int, k: TestClass) {
       val y: Int = 0
       var z: String = "hello"
@@ -133,7 +133,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString9" should "case class contains internal field and with name, itself2" in {
-    @toString(true, true, true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int) {
       val y: Int = 0
       var z: String = "hello"
@@ -146,7 +146,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString10" should "case class contains internal field with name, itself3" in {
-    @toString(true, true, true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int, k: TestClass) {
       val y: Int = 0
       var z: String = "hello"
@@ -158,7 +158,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString11" should "class with name and code block contains method" in {
-    @toString(true, true, true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     class TestClass(i: Int = 0, var j: Int) {
       def helloWorld: String = i + ""
 
@@ -172,19 +172,19 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString12" should "class with name and not code block" in {
-    @toString(true, false, true)
+    @toString(includeInternalFields = false, includeFieldNames = true)
     class TestClass(i: Int = 0, var j: Int)
     val s = new TestClass(1, 2).toString
     println(s)
     assert(s == "TestClass(i=1, j=2)")
 
-    @toString(true, true, true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     class TestClass2(i: Int = 1, var j: Int = 2)
     val s2 = new TestClass2(1, 2).toString
     println(s2)
     assert(s2 == "TestClass2(i=1, j=2)")
 
-    @toString(true, true, false)
+    @toString(includeInternalFields = true, includeFieldNames = false)
     class TestClass3(i: Int = 1, var j: Int = 3)
     val s3 = new TestClass3(1, 2).toString
     println(s3)
@@ -192,19 +192,19 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   }
 
   "toString13" should "case class with name and not code block" in {
-    @toString(true, true, false)
+    @toString(includeInternalFields = true, includeFieldNames = false)
     case class TestClass(i: Int = 1, var j: Int = 3)
     val s = TestClass(1, 2).toString
     println(s)
     assert(s == "TestClass(1, 2)")
 
-    @toString(true, false, false)
+    @toString(includeInternalFields = true, includeFieldNames = false)
     case class TestClass2(i: Int = 1, var j: Int = 3)
     val s2 = TestClass2(1, 2).toString
     println(s2)
     assert(s2 == "TestClass2(1, 2)")
 
-    @toString(true, true, true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass3(i: Int = 1, var j: Int = 3)
     val s3 = TestClass3(1, 2).toString
     println(s3)
@@ -218,7 +218,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
     println(s1)
     assert(s1 == "TestClass1()")
 
-    @toString(true, false, false)
+    @toString(includeInternalFields = true, includeFieldNames = false)
     case class TestClass2()
     val s2 = TestClass2().toString
     println(s2)
@@ -228,16 +228,16 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString15" should "non-contains super toString" in {
     @toString()
     class TestClass1(val i: Int)
-    @toString(verbose = true, includeInternalFields = true, includeFieldNames = true, callSuper = false)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass2(j: Int = 1) extends TestClass1(1)
     val s1 = TestClass2().toString
     println(s1)
     assert(s1 == "TestClass2(j=1)")
 
-    @toString(verbose = true, includeInternalFields = true, includeFieldNames = true)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass2_1(j: Int = 1) extends TestClass1(1)
 
-    @toString(true, true, true, false)
+    @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass2_2(j: Int = 1) extends TestClass1(1)
 
     @toString(includeInternalFields = true, includeFieldNames = true)
@@ -256,7 +256,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString16" should "contains super toString" in {
     @toString()
     class TestClass1(val i: Int)
-    @toString(verbose = true, includeInternalFields = true, includeFieldNames = true, callSuper = true)
+    @toString(includeInternalFields = true, includeFieldNames = true, callSuper = true)
     case class TestClass2(j: Int = 1) extends TestClass1(1)
     val s1 = TestClass2().toString
     println(s1)
@@ -288,13 +288,10 @@ class ToStringTest extends AnyFlatSpec with Matchers {
     assert(s5.startsWith("TestClass5(super=org.bitlap.tools.ToStringTes") && s5.endsWith("1)"))
   }
 
-  "toString17" should "failed when input not in order" in {
+  "toString17" should "failed when input is invalid" in {
     """
-      | import org.bitlap.tools.logs.LogType
-      | @toString(includeFieldNames = false, callSuper = true, verbose = true)
+      | @toString(includeFieldNames = false, callSuper = true)
       | class TestClass6(val i: Int = 0, var j: Int)
-      |
-      | @toString(verbose = false, includeFieldNames = false) class TestClass6(val i: Int = 0, var j: Int)
       |""".stripMargin shouldNot compile
   }
 

@@ -50,7 +50,7 @@ redis  {
 
 ```
 [info] Benchmark                                   (limitRandNum)   Mode  Cnt       Score       Error  Units
-[info] CacheableBenchmarks.benchmarkCaffeineCache               2  thrpt   15  668084.614 ± 20389.518  ops/s
-[info] CacheableBenchmarks.benchmarkNoCache                     2  thrpt   15     164.198 ±     1.656  ops/s
-[info] CacheableBenchmarks.benchmarkRedisCache                  2  thrpt   15     663.941 ±   316.381  ops/s
+[info] CacheableBenchmarks.benchmarkCaffeineCache               2  thrpt   15  562046.757 ± 28099.275  ops/s
+[info] CacheableBenchmarks.benchmarkNoCache                     2  thrpt   15     164.256 ±     3.277  ops/s
+[info] CacheableBenchmarks.benchmarkRedisCache                  2  thrpt   15     576.943 ±   336.063  ops/s
 ```

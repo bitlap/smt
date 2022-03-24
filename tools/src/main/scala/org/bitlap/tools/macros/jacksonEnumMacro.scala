@@ -29,11 +29,11 @@ object jacksonEnumMacro {
 
     import c.universe._
 
-    private val extractArgumentsDetail: Tuple2[Boolean, Seq[String]] = {
-      extractArgumentsTuple2 {
-        case q"new jacksonEnum(verbose=$verbose, nonTypeRefers=$nonTypeRefers)" => Tuple2(evalTree(verbose.asInstanceOf[Tree]), evalTree(nonTypeRefers.asInstanceOf[Tree]))
-        case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => Tuple2(false, evalTree(nonTypeRefers.asInstanceOf[Tree]))
-        case q"new jacksonEnum()" => Tuple2(false, Nil)
+    private val extractArgs: Seq[String] = {
+      c.prefix.tree match {
+        case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
+        case q"new jacksonEnum($nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
+        case q"new jacksonEnum()" => Nil
         case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
     }
@@ -43,7 +43,7 @@ object jacksonEnumMacro {
       // Enum ?
       safeValDefs.filter(_.symbol.name.toTermName.toString == "Value").
         map(getTypeTermName).
-        filter(v => !extractArgumentsDetail._2.contains(v.decodedName.toString)).
+        filter(v => !extractArgs.contains(v.decodedName.toString)).
         distinct.
         map(c => q"""class ${TypeName(c.decodedName.toString + "TypeRefer")} extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[$c.type]""")
     }
@@ -68,15 +68,13 @@ object jacksonEnumMacro {
         // duplication should be removed
         val mods = safeValDef.mods.mapAnnotations(f => {
           if (!f.toString().contains("JsonScalaEnumeration") &&
-            !extractArgumentsDetail._2.contains(getTypeTermName(safeValDef).decodedName.toString)) f ++ List(getAnnotation(valDefTree)) else f
+            !extractArgs.contains(getTypeTermName(safeValDef).decodedName.toString)) f ++ List(getAnnotation(valDefTree)) else f
         })
         ValDef(mods, safeValDef.name, safeValDef.tpt, safeValDef.rhs)
       } else {
         valDefTree
       }
     }
-
-    override val verbose: Boolean = extractArgumentsDetail._1
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // return all typeReferClasses and new classDef
