@@ -17,6 +17,8 @@ lazy val lastVersionForExamples = "0.4.0-SNAPSHOT"
 lazy val commonSettings =
   Seq(
     organization := "org.bitlap",
+    organizationName := "bitlap",
+    startYear := Some(2022),
     scalaVersion := scala213,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
@@ -30,33 +32,12 @@ lazy val commonSettings =
     } ++ Seq("-language:experimental.macros"),
     Compile / compile := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
-    organizationName := "bitlap",
-    startYear := Some(2022),
     headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
-    licenses += License.MIT,
     Test / testOptions += Tests.Argument("-oDF"),
     Test / fork := true,
-    releaseIgnoreUntrackedFiles := true,
-    releaseCrossBuild := true,
-    releaseTagName := {
-      (ThisBuild / version).value
-    },
-    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-    releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      releaseStepCommandAndRemaining("+compile"),
-      releaseStepCommandAndRemaining("test"),
-      setReleaseVersion,
-      commitReleaseVersion,
-      tagRelease,
-      releaseStepCommandAndRemaining("+publishSigned"),
-      releaseStepCommand("sonatypeBundleRelease"),
-      setNextVersion,
-      commitNextVersion,
-      pushChanges
-    ))
+    publishConfiguration := publishConfiguration.value.withOverwrite(true),
+    publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
+  )
 
 lazy val `cacheable-core` = (project in file("cacheable-core"))
   .settings(commonSettings).settings(Publishing.publishSettings)
@@ -148,9 +129,27 @@ lazy val tools = (project in file("tools"))
 
 lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`, `cacheable-benchmark`)
   .settings(
-    publishArtifact := false,
+    crossScalaVersions := Nil,
     publish / skip := true,
-    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap"))
+    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
+    releaseIgnoreUntrackedFiles := true,
+    releaseCrossBuild := false, //@see https://www.scala-sbt.org/1.x/docs/Cross-Build.html
+    releaseTagName := (ThisBuild / version).value,
+    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      releaseStepCommandAndRemaining("+compile"),
+      releaseStepCommandAndRemaining("test"),
+      setReleaseVersion,
+      commitReleaseVersion,
+      tagRelease,
+      releaseStepCommandAndRemaining("+publishSigned"),
+      setNextVersion,
+      commitNextVersion,
+      pushChanges
+    )
   )
 
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)

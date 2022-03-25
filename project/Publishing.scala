@@ -22,7 +22,7 @@ object Publishing {
       else
         Some("releases" at nexus + "service/local/staging/deploy/maven2")
     },
-    licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT")),
+    licenses := Seq(License.MIT),
     publishMavenStyle := true,
     Test / publishArtifact := false,
     pomIncludeRepository := { _ => false },
