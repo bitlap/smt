@@ -67,16 +67,35 @@
 
 > 在gradle，maven中，通常`smt-tools`被替换为`smt-tools_2.12`这种。其中，`2.12`表示Scala版本号。
 
+**使用tools模块**
+
 ```scala
 "org.bitlap" %% "smt-tools" % "<VERSION>" //从0.4.0开始名字改成 smt-tools 
+```
 
-// 如果需要使用cacheable module，则引入下面模块 (不支持 Scala2.11.x)
+**使用cacheable模块API**
+
+```scala
 // 内部包含的依赖: zio, zio-streams, zio-logging
 "org.bitlap" %% "smt-cacheable-core" % "<VERSION>"
-// 本地缓存, 内部包含的依赖: config, caffeine
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
-// 分布式缓存, 内部包含的依赖: zio-redis, config, zio-schema, 可选的 (zio-schema-protobuf,zio-schema-derivation用于样例类序列化)
+```
+
+**使用redis实现的cacheable模块**
+
+> 目前不可用
+
+```scala
+// 分布式缓存, 内部包含的依赖: zio-redis, config, zio-schema, 可选的 (zio-schema-protobuf, zio-schema-derivation用于样例类序列化)
+// 依赖于`smt-cacheable-core`（不支持 Scala2.11.x）
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
+```
+
+**使用caffeine实现的cacheable模块**
+
+```scala
+// 本地缓存, 内部包含的依赖: config, caffeine
+// 依赖于`smt-cacheable-core`
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
 ```
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。

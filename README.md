@@ -65,16 +65,35 @@ A distributed cache based on zio and zio-redis. It needs `cacheable-core` module
 
 Add library dependency
 
+**Use `smt-tools`**
+
 ```scala
 "org.bitlap" %% "smt-tools" % "<VERSION>" // named smt-tools since 0.4.0 
+```
 
-// when you need cacheable module (not support Scala 2.11.x)
-// include dependencies: zio,zio-streams,zio-logging
-"org.bitlap" %% "smt-cacheable-core" % "<VERSION>" 
-// local cache, include dependencies: config, caffeine
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>" 
+**Only Use`smt-cacheable-core`**
+
+```scala
+// cache API, include dependencies: zio, zio-streams, zio-logging
+"org.bitlap" %% "smt-cacheable-core" % "<VERSION>"
+```
+
+**Use `smt-cacheable-redis`** 
+
+> Not Unavailable
+
+```scala
 // distributed cache, include dependencies: zio-redis,config,zio-schema, optional (zio-schema-protobuf,zio-schema-derivation for case class)
+// dependsOn `smt-cacheable-core`（not support Scala2.11.x）
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
+```
+
+**Use `smt-cacheable-caffeine`**
+
+```scala
+// local cache, include dependencies: config, caffeine
+// dependsOn `smt-cacheable-core`
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
