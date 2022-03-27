@@ -26,7 +26,6 @@ import org.bitlap.tools.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionR
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.bitlap.tools.method.ProcessorCreator
-import org.bitlap.tools.method.ProcessorCreator
 
 import java.util.concurrent.Executor
 import scala.jdk.CollectionConverters.MapHasAsScala

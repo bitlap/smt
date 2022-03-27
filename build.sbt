@@ -125,7 +125,7 @@ lazy val tools = (project in file("tools"))
     }
   ).settings(Publishing.publishSettings)
   .settings(paradise())
-  .enablePlugins(HeaderPlugin, ProtocPlugin)
+  .enablePlugins(HeaderPlugin, ProtocTestPlugin)
 
 lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`, `cacheable-benchmark`)
   .settings(
