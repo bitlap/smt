@@ -24,7 +24,7 @@ package org.bitlap.cacheable.redis
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.bitlap.cacheable.core.Utils
 import zio.redis.{ Redis, RedisConfig, RedisError, RedisExecutor }
-import zio.schema.codec.{ Codec, ProtobufCodec }
+import zio.schema.codec.{ Codec, JsonCodec }
 import zio.{ Has, Layer, ULayer, ZLayer }
 import zio.logging.Logging
 
@@ -43,7 +43,7 @@ object ZRedisConfiguration {
 
   private[redis] lazy val disabledLog: Boolean = custom.getBoolean("redis.disabledLog")
 
-  private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](ProtobufCodec)
+  private val codec: ULayer[Has[Codec]] = ZLayer.succeed[Codec](JsonCodec)
 
   lazy val redisLayer: Layer[RedisError.IOError, ZRedisCacheService] =
     (((if (disabledLog) Logging.ignore else Utils.logLayer) ++ ZLayer.succeed(redisConf)) >>>

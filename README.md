@@ -80,10 +80,10 @@ Add library dependency
 
 **Use `smt-cacheable-redis`** 
 
-> Not Unavailable
+> TODO Not unavailable, no distributed lock
 
 ```scala
-// distributed cache, include dependencies: zio-redis,config,zio-schema, optional (zio-schema-protobuf,zio-schema-derivation for case class)
+// distributed cache, include dependencies: zio-redis, config, zio-schema, zio-schema-json, optional (zio-schema-derivation for case class)
 // dependsOn `smt-cacheable-core`（not support Scala2.11.x）
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
 ```

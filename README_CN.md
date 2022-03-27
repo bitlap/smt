@@ -82,10 +82,10 @@
 
 **使用redis实现的cacheable模块**
 
-> 目前不可用
+> TODO，目前不可用，无分布式锁
 
 ```scala
-// 分布式缓存, 内部包含的依赖: zio-redis, config, zio-schema, 可选的 (zio-schema-protobuf, zio-schema-derivation用于样例类序列化)
+// 分布式缓存, 内部包含的依赖: zio-redis, config, zio-schema, zio-schema-json, 可选的 (zio-schema-derivation用于样例类序列化)
 // 依赖于`smt-cacheable-core`（不支持 Scala2.11.x）
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
 ```

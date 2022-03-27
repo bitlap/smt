@@ -81,7 +81,7 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
       "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
       "com.typesafe" % "config" % "1.4.2",
       "dev.zio" %% "zio-schema" % "0.1.8",
-      "dev.zio" %% "zio-schema-protobuf" % "0.1.8",
+      "dev.zio" %% "zio-schema-json" % "0.1.8",
       "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
     ),
     excludeDependencies ++= Seq(
