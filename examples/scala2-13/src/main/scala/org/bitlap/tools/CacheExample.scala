@@ -22,7 +22,7 @@
 package org.bitlap.tools
 
 import scala.util.Random
-import org.bitlap.cacheable.core.{ Cache, LogUtils }
+import org.bitlap.cacheable.core.{ Cache, Utils }
 import org.bitlap.cacheable.caffeine.Implicits._
 import zio.console.putStrLn
 import zio.stream.ZStream
@@ -62,10 +62,10 @@ object CacheExample extends zio.App {
     (for {
       cache1 <- readStreamEntityFunction(1, "hello-world").runHead
       cache2 <- updateStreamFunction(2, "helloworld").runHead
-      _ <- LogUtils.debug(s"${cache1.toString}  ${cache2.toString}")
+      _ <- Utils.debug(s"${cache1.toString}  ${cache2.toString}")
       _ <- putStrLn("Hello good to meet you!")
     } yield ()).foldM(
-      e => LogUtils.debug(s"error => $e").exitCode,
+      e => Utils.debug(s"error => $e").exitCode,
       _ => UIO.effectTotal(ExitCode.success)
     )
 

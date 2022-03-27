@@ -21,7 +21,7 @@
 
 package org.bitlap.tools
 
-import org.bitlap.cacheable.core.{ cacheable, Cache, LogUtils }
+import org.bitlap.cacheable.core.{ cacheable, Cache, Utils }
 import org.bitlap.cacheable.redis.Implicits._
 import zio.{ ExitCode, UIO, URIO, ZIO }
 import zio.console.putStrLn
@@ -62,10 +62,10 @@ object CacheExample extends zio.App {
     (for {
       cache1 <- readStreamEntityFunction(1, "hello-world").runHead
       cache2 <- updateStreamFunction(2, "helloworld").runHead
-      _ <- LogUtils.debug(s"${cache1.toString}  ${cache2.toString}")
+      _ <- Utils.debug(s"${cache1.toString}  ${cache2.toString}")
       _ <- putStrLn("Hello good to meet you!")
     } yield ()).foldM(
-      e => LogUtils.debug(s"error => $e").exitCode,
+      e => Utils.debug(s"error => $e").exitCode,
       _ => UIO.effectTotal(ExitCode.success)
     )
 
