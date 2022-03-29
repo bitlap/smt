@@ -68,9 +68,11 @@ class JavaCompatibleTest extends AnyFlatSpec with Matchers {
 
   "javaCompatible4" should "ok" in {
     @javaCompatible
-    case class A(a: Int, b: Short, c: Byte, d: Double, e: Float, f: Long, g: Char, h: Boolean, i: String)
+    case class A(var a: Int, b: Short, c: Byte, d: Double, e: Float, f: Long, g: Char, h: Boolean, i: String)
     val t = new A()
     assert(t.a == 0 && t.g == '?')
+    t.setA(10)
+    assert(t.a == 10)
   }
 
   "JavaCompatible5" should "ok" in {
