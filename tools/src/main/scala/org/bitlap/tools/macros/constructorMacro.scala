@@ -37,10 +37,12 @@ object constructorMacro {
 
     private val extractArgs: Seq[String] = {
       c.prefix.tree match {
-        case q"new constructor(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
-        case q"new constructor($excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
-        case q"new constructor()" => Seq.empty[String]
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+        case Apply(Select(New(Ident(TypeName("constructor"))), termNames.CONSTRUCTOR), List(NamedArg(Ident(TermName("excludeFields")), excludeFields))) =>
+          evalTree(excludeFields)
+        case Apply(Select(New(Ident(TypeName("constructor"))), termNames.CONSTRUCTOR), List()) => Seq.empty[String]
+        case other =>
+          //          c.info(c.enclosingPosition, s"${showRaw(other)}", true)
+          c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
     }
 

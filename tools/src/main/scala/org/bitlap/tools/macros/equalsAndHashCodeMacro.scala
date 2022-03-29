@@ -36,9 +36,9 @@ object equalsAndHashCodeMacro {
     import c.universe._
 
     private val extractArgs: Seq[String] = c.prefix.tree match {
-      case q"new equalsAndHashCode(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
-      case q"new equalsAndHashCode($excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
-      case q"new equalsAndHashCode()" => Nil
+      case Apply(Select(New(Ident(TypeName("equalsAndHashCode"))), termNames.CONSTRUCTOR), List(NamedArg(Ident(TermName("excludeFields")), excludeFields))) =>
+        evalTree(excludeFields)
+      case Apply(Select(New(Ident(TypeName("equalsAndHashCode"))), termNames.CONSTRUCTOR), List()) => Seq.empty[String]
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 

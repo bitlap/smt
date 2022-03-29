@@ -31,9 +31,9 @@ object jacksonEnumMacro {
 
     private val extractArgs: Seq[String] = {
       c.prefix.tree match {
-        case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
-        case q"new jacksonEnum($nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
-        case q"new jacksonEnum()" => Nil
+        case Apply(Select(New(Ident(TypeName("jacksonEnum"))), termNames.CONSTRUCTOR), List(NamedArg(Ident(TermName("nonTypeRefers")), nonTypeRefers))) =>
+          evalTree(nonTypeRefers)
+        case Apply(Select(New(Ident(TypeName("jacksonEnum"))), termNames.CONSTRUCTOR), List()) => Seq.empty[String]
         case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
     }

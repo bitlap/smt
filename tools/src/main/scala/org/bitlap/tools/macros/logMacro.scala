@@ -21,9 +21,9 @@
 
 package org.bitlap.tools.macros
 
-import org.bitlap.tools.logs.LogType._
 import org.bitlap.tools.logs.{ LogArgument, LogType }
-import org.bitlap.tools.{ PACKAGE, logs }
+import org.bitlap.tools.logs
+import org.bitlap.tools.logs.LogType._
 
 import scala.reflect.macros.whitebox
 
@@ -40,22 +40,14 @@ object logMacro {
     import c.universe._
 
     private val extractArgs: logs.LogType.Value = c.prefix.tree match {
-      case q"new log(logType=$logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        tpe
-      case q"new log($logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        tpe
-      case q"new log()" => LogType.JLog
-      case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
-    }
-
-    private def getLogType(logType: Tree): LogType = {
-      if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
-        evalTree(logType)
-      } else {
-        LogType.getLogType(logType.toString())
-      }
+      // use showRaw print ast
+      case Apply(Select(New(Ident(TypeName("log"))), termNames.CONSTRUCTOR), List(NamedArg(Ident(TermName("logType")), args))) =>
+        LogType.getLogType(args.toString)
+      case Apply(Select(New(Ident(TypeName("log"))), termNames.CONSTRUCTOR), List()) =>
+        LogType.JLog
+      case _ =>
+        //        c.info(c.enclosingPosition, s"${showRaw(other)}", true)
+        c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
     private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {
