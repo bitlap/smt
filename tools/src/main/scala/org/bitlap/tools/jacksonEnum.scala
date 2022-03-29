@@ -30,7 +30,6 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  *
  * @author 梦境迷离
  * @author choly
- *
  * @param nonTypeRefers Whether to not generate the subclass of the TypeReference for paramTypes of class.
  * @since 2021/8/3
  * @version 1.0

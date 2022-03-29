@@ -19,14 +19,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.logs
+package org.bitlap.tools.utils
+
+import scala.reflect.runtime.currentMirror
+import scala.reflect.runtime.universe._
 
 /**
+ * Scala runtime reflection
  *
  * @author 梦境迷离
- * @param classNameStr The Class Name.
- * @param isClass  Is it a class?
- * @since 2021/7/26
+ * @since 2021/12/5
  * @version 1.0
  */
-case class LogTransferArgument(classNameStr: String, isClass: Boolean)
+class ScalaReflectionUtils[T: WeakTypeTag] {
+
+  def createInstance(args: AnyRef*)(ctor: Int = 0): T = {
+    val tt = weakTypeTag[T]
+    currentMirror.reflectClass(tt.tpe.typeSymbol.asClass).reflectConstructor(
+      tt.tpe.members.filter(m =>
+        m.isMethod && m.asMethod.isConstructor
+      ).iterator.toSeq(ctor).asMethod
+    )(args: _*).asInstanceOf[T]
+  }
+}

@@ -19,15 +19,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.logs
+package org.bitlap.tools
 
-import org.bitlap.tools.logs.LogType.LogType
+import org.bitlap.tools.utils.ScalaReflectionUtils
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-import scala.reflect.macros.whitebox
-
-trait BaseLog {
-
-  val `type`: LogType
-
-  def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree
+/**
+ *
+ * @author 梦境迷离
+ * @since 2021/12/5
+ * @version 1.0
+ */
+class ScalaReflectionUtilsTest extends AnyFlatSpec with Matchers {
+  "Creator" should "ok" in {
+    val service = new ScalaReflectionUtils[NetService]().createInstance(null)(0)
+    println(service.openSession("1", "2"))
+  }
 }

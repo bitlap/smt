@@ -23,7 +23,13 @@ package org.bitlap.tools.logs
 
 import org.bitlap.tools.PACKAGE
 import org.bitlap.tools.logs.extension.{ ScalaLoggingLazyImpl, ScalaLoggingStrictImpl }
+import org.bitlap.tools.logs.impl.{ JLogImpl, Log4J2Impl, Slf4jImpl }
 
+/**
+ *
+ * @author 梦境迷离
+ * @version 1.0,2022/3/29
+ */
 object LogType extends Enumeration {
 
   type LogType = Value
@@ -41,6 +47,7 @@ object LogType extends Enumeration {
     types.getOrElse(logType, default = throw new Exception(s"Not support log type: $logType"))
   }
 
+  // TODO not use Enumeratio
   def getLogType(shortType: String): LogType = {
     val tpe1 = s"$PACKAGE.logs.$shortType" //LogType.JLog
     val tpe2 = s"$PACKAGE.logs.LogType.$shortType" // JLog

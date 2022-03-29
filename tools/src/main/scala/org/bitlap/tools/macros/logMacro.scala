@@ -22,7 +22,7 @@
 package org.bitlap.tools.macros
 
 import org.bitlap.tools.logs.LogType._
-import org.bitlap.tools.logs.{ LogTransferArgument, LogType }
+import org.bitlap.tools.logs.{ LogArgument, LogType }
 import org.bitlap.tools.{ PACKAGE, logs }
 
 import scala.reflect.macros.whitebox
@@ -59,7 +59,7 @@ object logMacro {
     }
 
     private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {
-      val buildArg = (name: Name) => LogTransferArgument(name.toTermName.decodedName.toString, isClass = true)
+      val buildArg = (name: Name) => LogArgument(name.toTermName.decodedName.toString, isClass = true)
       (annottees.map(_.tree) match {
         case (classDef: ClassDef) :: Nil =>
           LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(classDef.name))

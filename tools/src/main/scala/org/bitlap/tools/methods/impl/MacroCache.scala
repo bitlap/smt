@@ -19,22 +19,20 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.logs
+package org.bitlap.tools.methods.impl
 
-import org.bitlap.tools.logs.LogType.LogType
+/**
+ *
+ * @author 梦境迷离
+ * @since 2022/3/17
+ * @version 1.0
+ */
+object MacroCache {
 
-import scala.reflect.macros.whitebox
+  private var identityCount = 0
 
-object Slf4jImpl extends BaseLog {
-
-  override val `type`: LogType = LogType.Slf4j
-
-  override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
-    import c.universe._
-    if (logTransferArgument.isClass) {
-      q"""@transient private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(classOf[${TypeName(logTransferArgument.classNameStr)}])"""
-    } else {
-      q"""@transient private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(${TermName(logTransferArgument.classNameStr)}.getClass)"""
-    }
+  def getIdentityId: Int = identityCount.synchronized {
+    identityCount += 1; identityCount
   }
+
 }

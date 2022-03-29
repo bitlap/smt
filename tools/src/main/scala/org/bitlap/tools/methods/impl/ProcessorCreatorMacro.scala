@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.method.impl
+package org.bitlap.tools.methods.impl
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -168,7 +168,7 @@ object ProcessorCreatorMacro {
               $processException(service, rpcCtx, exception)
            }
        }
-       val service = new org.bitlap.tools.method.impl.Creator[$serviceType].createInstance(null)(0)
+       val service = new org.bitlap.tools.utils.ScalaReflectionUtils[$serviceType].createInstance(null)(0)
        new $className(service)
      """
     printTree[RRP](c)(processor)

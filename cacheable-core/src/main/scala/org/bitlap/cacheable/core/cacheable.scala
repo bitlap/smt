@@ -35,6 +35,5 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class cacheable(local: Boolean = true) extends StaticAnnotation {
-
   def macroTransform(annottees: Any*): Any = macro CacheableProcessor.impl
 }

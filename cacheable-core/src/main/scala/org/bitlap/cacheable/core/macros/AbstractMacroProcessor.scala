@@ -37,8 +37,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   import c.universe._
 
-  protected val verbose: Boolean = false
-
   /**
    * Output ast result.
    *
@@ -78,7 +76,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       case tree :: tail =>
         tree match {
           case DefDef(_, name, _, _, _, _) =>
-            c.info(c.enclosingPosition, s"Method: `${name.decodedName.toString}` in enclosing class: `$getEnclosingClassName`.", force = verbose)
+            c.info(c.enclosingPosition, s"Method: `${name.decodedName.toString}` in enclosing class: `$getEnclosingClassName`.", force = true)
             buffer.append(name)
             doFind(tail)
           case _ =>

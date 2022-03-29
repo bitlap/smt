@@ -36,6 +36,5 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class cacheEvict(local: Boolean = true, values: List[String] = Nil) extends StaticAnnotation {
-
   def macroTransform(annottees: Any*): Any = macro CacheEvictMacro.CacheEvictProcessor.impl
 }
