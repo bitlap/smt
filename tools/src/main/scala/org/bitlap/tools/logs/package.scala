@@ -21,19 +21,35 @@
 
 package org.bitlap.tools
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.bitlap.tools.method.impl.Creator
+import org.bitlap.tools.logs.LogType.LogType
+
+import scala.reflect.macros.whitebox
 
 /**
  *
  * @author 梦境迷离
- * @since 2021/12/5
- * @version 1.0
+ * @version 1.0,2022/3/29
  */
-class CreatorTest extends AnyFlatSpec with Matchers {
-  "Creator" should "ok" in {
-    val service = new Creator[NetService]().createInstance(null)(0)
-    println(service.openSession("1", "2"))
+package object logs {
+
+  /**
+   *
+   * @author 梦境迷离
+   * @version 1.0,2022/3/29
+   */
+  private[tools] trait BaseLog {
+
+    val `type`: LogType
+
+    def getTemplate(c: whitebox.Context)(logArgument: LogArgument): c.Tree
   }
+
+  /**
+   *
+   * @author 梦境迷离
+   * @param classNameStr The class Name.
+   * @param isClass      Is it a class?
+   */
+  private[tools] case class LogArgument(classNameStr: String, isClass: Boolean)
+
 }

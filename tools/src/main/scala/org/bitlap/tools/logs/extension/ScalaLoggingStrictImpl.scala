@@ -22,7 +22,7 @@
 package org.bitlap.tools.logs.extension
 
 import org.bitlap.tools.logs.LogType.LogType
-import org.bitlap.tools.logs.{ BaseLog, LogTransferArgument, LogType }
+import org.bitlap.tools.logs.{ BaseLog, LogArgument, LogType }
 
 import scala.reflect.macros.whitebox
 
@@ -37,7 +37,7 @@ object ScalaLoggingStrictImpl extends BaseLog {
 
   override val `type`: LogType = LogType.ScalaLoggingStrict
 
-  override def getTemplate(c: whitebox.Context)(logTransferArgument: LogTransferArgument): c.Tree = {
+  override def getTemplate(c: whitebox.Context)(logArgument: LogArgument): c.Tree = {
     import c.universe._
     tq"_root_.org.bitlap.tools.logs.extension.ScalaStrictLogging"
   }

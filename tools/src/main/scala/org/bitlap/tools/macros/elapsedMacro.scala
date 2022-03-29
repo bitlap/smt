@@ -28,9 +28,9 @@ import scala.concurrent.duration._
 import scala.reflect.macros.whitebox
 
 /**
- * 1.Annotation is only supported use on non-abstract method.
- * 2.For methods that are not future, `try finally` is used to implement the timing of the method.
- * 3.For methods that are Futures, `Future map` is used to implement the timing of the method.
+ * 1. This annotation only support use on non-abstract method.
+ * 2. For methods that are not future, `try finally` is used to implement the timing of the method.
+ * 3. For methods that are Futures, `Future map` is used to implement the timing of the method.
  *
  * @author 梦境迷离
  * @since 2021/8/7

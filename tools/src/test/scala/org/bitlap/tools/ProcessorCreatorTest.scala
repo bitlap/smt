@@ -22,10 +22,10 @@
 package org.bitlap.tools
 
 import com.alipay.sofa.jraft.rpc.{ RpcContext, RpcRequestClosure, RpcRequestProcessor }
+import org.bitlap.tools.methods.ProcessorCreator
 import org.bitlap.tools.test.proto.BOpenSession.{ BOpenSessionReq, BOpenSessionResp }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.tools.method.ProcessorCreator
 
 import java.util.concurrent.Executor
 import scala.jdk.CollectionConverters.MapHasAsScala

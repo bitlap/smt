@@ -41,6 +41,5 @@ final class toString(
     includeFieldNames:     Boolean = true,
     callSuper:             Boolean = false
 ) extends StaticAnnotation {
-
   def macroTransform(annottees: Any*): Any = macro toStringMacro.ToStringProcessor.impl
 }

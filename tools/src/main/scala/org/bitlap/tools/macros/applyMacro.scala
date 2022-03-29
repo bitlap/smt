@@ -35,6 +35,28 @@ object applyMacro {
 
     import c.universe._
 
+    /**
+     * We generate apply method with currying, and we have to deal with the first layer of currying alone.
+     *
+     * @param typeName
+     * @param fieldss
+     * @return A apply method with currying.
+     * @example Return a tree, such as `def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)`
+     */
+    private def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
+      val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
+      val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      // not currying
+      val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
+        q"def apply[..$classTypeParams](..${allFieldsTermName.flatten}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
+      } else {
+        // currying
+        val first = allFieldsTermName.head
+        q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
+      }
+      applyMethod
+    }
+
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
       val apply = getApplyMethodWithCurrying(classDefinition.className, classDefinition.classParamss, classDefinition.classTypeParams)

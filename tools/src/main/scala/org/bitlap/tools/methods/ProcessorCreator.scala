@@ -19,12 +19,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools.method
+package org.bitlap.tools.methods
 
-import org.bitlap.tools.method.impl.ProcessorCreatorMacro
+import org.bitlap.tools.methods.impl.ProcessorCreatorMacro
 
 import java.util.concurrent.Executor
-import scala.language.higherKinds
 
 /**
  * The macro util to generate processor for alipay sofa jraft rpc.
@@ -36,19 +35,19 @@ object ProcessorCreator {
 
   /**
    *
-   * @param service          Instance of the [[Service]]
+   * @param service          Instance of the `Service`
    * @param defaultResp      Default instance of the Response Message
    * @param executor         Instance of the Executor
    * @param processRequest   Function to handle request
    * @param processException Function to handle exception
-   * @tparam RRC     RpcRequestClosure
-   * @tparam RRP     RpcRequestProcessor
-   * @tparam RC      RpcContext
+   * @tparam RRC     `RpcRequestClosure`
+   * @tparam RRP     `RpcRequestProcessor`
+   * @tparam RC      `RpcContext`
    * @tparam Req     Request Message of the protobuf
    * @tparam Resp    Response Message of the protobuf
    * @tparam Service Should be custom class/interface/trait which handle the business logic of Processors
    * @tparam E       Should be subclass of the Executor
-   * @return [[ RRP ]] Instance of the RpcRequestProcessor subclass
+   * @return [[ RRP ]] Instance of the `RpcRequestProcessor` subclass
    */
   def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E <: Executor]
     (

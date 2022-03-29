@@ -29,7 +29,7 @@ package org.bitlap.tools
  */
 package object macros {
 
-  object ErrorMessage {
+  private[macros] object ErrorMessage {
     // common error msg
     final lazy val ONLY_CLASS: String = "Annotation is only supported on class."
     final lazy val ONLY_CASE_CLASS: String = "Annotation is only supported on case class."

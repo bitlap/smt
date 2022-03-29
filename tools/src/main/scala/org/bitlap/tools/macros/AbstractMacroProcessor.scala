@@ -265,34 +265,12 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   /**
-   * We generate apply method with currying, and we have to deal with the first layer of currying alone.
-   *
-   * @param typeName
-   * @param fieldss
-   * @return A apply method with currying.
-   * @example Return a tree, such as `def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)`
-   */
-  def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
-    val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
-    val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-    // not currying
-    val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
-      q"def apply[..$classTypeParams](..${allFieldsTermName.flatten}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
-    } else {
-      // currying
-      val first = allFieldsTermName.head
-      q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
-    }
-    applyMethod
-  }
-
-  /**
    * Only for primitive types, we can get type and map to scala type.
    *
-   * @param jType java type name
+   * @param javaType java type name
    * @return Scala type name
    */
-  def toScalaType(jType: String): String = {
+  def toScalaType(javaType: String): String = {
     val types = Map(
       "java.lang.Integer" -> "Int",
       "java.lang.Long" -> "Long",
@@ -304,7 +282,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       "java.lang.Character" -> "Char",
       "java.lang.String" -> "String"
     )
-    types.getOrElse(jType, jType)
+    types.getOrElse(javaType, javaType)
   }
 
   /**
@@ -337,9 +315,9 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
     def typeName: TypeName = symbol.name.toTypeName
 
-    def symbol: c.universe.Symbol = paramType.typeSymbol
+    def symbol: Symbol = paramType.typeSymbol
 
-    def paramType = c.typecheck(tq"$tpt", c.TYPEmode).tpe
+    def paramType: Type = c.typecheck(tq"$tpt", c.TYPEmode).tpe
   }
 
   /**

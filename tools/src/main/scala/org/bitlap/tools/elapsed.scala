@@ -31,8 +31,8 @@ import scala.concurrent.duration.Duration
  * annotation to record method cost time.
  *
  * @author 梦境迷离
- * @param limit    Time consuming condition to trigger log
- * @param logLevel Log Level
+ * @param limit    Time consuming condition to trigger log.
+ * @param logLevel Log Level.
  * @since 2021/8/7
  * @version 1.0
  */

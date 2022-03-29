@@ -14,6 +14,20 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
 lazy val lastVersionForExamples = "0.4.2"
 
+
+lazy val scalatestVersion = "3.2.11"
+lazy val zioVersion = "1.0.13"
+lazy val zioLoggingVersion = "0.5.14"
+lazy val configVersion = "1.4.2"
+lazy val caffeineVersion = "2.9.3"
+lazy val zioRedisVersion = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
+lazy val zioSchemaVersion = "0.1.8"
+lazy val scalaLoggingVersion = "3.9.4"
+lazy val playJsonVersion = "2.7.4"
+lazy val log4jVersion = "2.17.2"
+lazy val jacksonScalaVersion = "2.13.2"
+lazy val jraftVersion = "1.3.9"
+
 lazy val commonSettings =
   Seq(
     organization := "org.bitlap",
@@ -23,7 +37,7 @@ lazy val commonSettings =
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "org.scalatest" %% "scalatest" % "3.2.11" % Test,
+      "org.scalatest" %% "scalatest" % scalatestVersion % Test,
     ), Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
@@ -45,9 +59,9 @@ lazy val `cacheable-core` = (project in file("cacheable-core"))
     name := "smt-cacheable-core",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % "1.0.13",
-      "dev.zio" %% "zio-streams" % "1.0.13",
-      "dev.zio" %% "zio-logging" % "0.5.14"
+      "dev.zio" %% "zio" % zioVersion, // FIXME we should use compile or provide ???
+      "dev.zio" %% "zio-streams" % zioVersion,
+      "dev.zio" %% "zio-logging" % zioLoggingVersion
     ),
     excludeDependencies ++= Seq(
       InclExclRule("com.google.protobuf")
@@ -62,13 +76,13 @@ lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
     name := "smt-cacheable-caffeine",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.4.2",
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.9.3"
+      "com.typesafe" % "config" % configVersion,
+      "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
     ),
     excludeDependencies ++= Seq(
       InclExclRule("com.google.protobuf")
     )
-  ).dependsOn(`cacheable-core`)
+  ).dependsOn(`cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -78,16 +92,16 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
     name := "smt-cacheable-redis",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-redis" % "0.0.0+381-86c20614-SNAPSHOT", // 实验性质的
-      "com.typesafe" % "config" % "1.4.2",
-      "dev.zio" %% "zio-schema" % "0.1.8",
-      "dev.zio" %% "zio-schema-json" % "0.1.8",
-      "dev.zio" %% "zio-schema-derivation" % "0.1.8" % Test,
+      "dev.zio" %% "zio-redis" % zioRedisVersion,
+      "com.typesafe" % "config" % configVersion,
+      "dev.zio" %% "zio-schema" % zioSchemaVersion,
+      "dev.zio" %% "zio-schema-json" % zioSchemaVersion,
+      "dev.zio" %% "zio-schema-derivation" % zioSchemaVersion % Test,
     ),
     excludeDependencies ++= Seq(
       InclExclRule("com.google.protobuf")
     )
-  ).dependsOn(`cacheable-core`)
+  ).dependsOn(`cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -109,13 +123,13 @@ lazy val tools = (project in file("tools"))
     name := "smt-tools",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-      "com.typesafe.play" %% "play-json" % "2.7.4" % Test,
-      "org.apache.logging.log4j" % "log4j-api" % "2.17.2" % Test,
-      "org.apache.logging.log4j" % "log4j-core" % "2.17.2" % Test,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.2" % Test,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.2" % Test,
-      "com.alipay.sofa" % "jraft-core" % "1.3.9" % Test
+      "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
+      "com.typesafe.play" %% "play-json" % playJsonVersion % Test,
+      "org.apache.logging.log4j" % "log4j-api" % log4jVersion % Test,
+      "org.apache.logging.log4j" % "log4j-core" % log4jVersion % Test,
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion % Test,
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test,
+      "com.alipay.sofa" % "jraft-core" % jraftVersion % Test
     ),
     ProtocConfig / sourceDirectory := {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -152,6 +166,7 @@ lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cache
     )
   )
 
+//FIXME  root doesnot aggregate these examples
 lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
   .settings(libraryDependencies ++= Seq(
     "org.bitlap" %% "smt-tools" % lastVersionForExamples,
