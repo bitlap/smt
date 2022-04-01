@@ -1,3 +1,12 @@
+**如何使用JMH**
+
+1. 插件
+```scala
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
+```
+2. `sbt jmh:compile`
+3. `sbt jmh:run`
+
 **环境**
 
 ```
