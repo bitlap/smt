@@ -60,7 +60,7 @@ object Implicits {
               Utils.debug(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cv]")
                 .unless(ZCaffeine.disabledLog)
             ))
-        ret <- ZStream.fromEffect(if (chunk.isEmpty) ZCaffeine.hSet(key, field, result).map(_ => result) else ZIO.succeed(chunk))
+        ret <- ZStream.fromEffect(if (chunk.isEmpty) ZCaffeine.hSet(key, field, result).as(result) else ZIO.succeed(chunk))
           .tap(result => Utils.debug(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
             .unless(ZCaffeine.disabledLog)
           )
