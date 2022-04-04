@@ -21,9 +21,9 @@
 
 package org.bitlap.cacheable.caffeine
 
-import zio.stm.STM
 import zio.Chunk
 
+import scala.concurrent.Await
 import org.bitlap.cacheable.core._
 import zio.ZIO
 import zio.stream.ZStream
@@ -38,12 +38,12 @@ object Implicits {
 
   implicit def StreamUpdateCache[T]: ZStreamUpdateCache[Any, Throwable, T] = new ZStreamUpdateCache[Any, Throwable, T] {
     override def evict(business: => ZStream[Any, Throwable, T])(identities: List[String]): ZStream[Any, Throwable, T] = {
-      ZStream.fromEffect(STM.atomically {
-        STM.foreach_(identities)(key => ZCaffeine.del(key))
-      }) *> ({
-        // 使用when会导致流变成空，继而使用runHead返回None
-        if (ZCaffeine.disabledLog) ZStream.unit else Utils.debugS(s"Caffeine ZStream update >>> identities:[$identities]")
-      } *> business)
+      for {
+        updateResult <- ZStream.fromIterable(identities).flatMap(key => ZStream.fromEffect(ZCaffeine.del(key))) *> business tap (ur =>
+          Utils.debug(s"Caffeine ZStream update: identities:[$identities], updateResult:[$ur]")
+            .unless(ZCaffeine.disabledLog)
+        )
+      } yield updateResult
     }
   }
 
@@ -51,17 +51,19 @@ object Implicits {
     override def getIfPresent(business: => ZStream[Any, Throwable, T])(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
-      // TODO fix it?
-      lazy val syncResult = zio.Runtime.default.unsafeRun(business.runCollect)
-      val stmResult = STM.atomically {
-        for {
-          chunk <- ZCaffeine.hGet[Chunk[T]](key, field).map(_.getOrElse(Chunk.empty))
-          ret <- if (chunk.isEmpty) ZCaffeine.hSet[Chunk[T]](key, field, syncResult) else STM.succeed(chunk)
-        } yield ret
-      }
+      val syncResultFuture = zio.Runtime.global.unsafeRunToFuture(business.runCollect)
+      lazy val result = Await.result(syncResultFuture, ZCaffeine.calculateResultTimeout)
       for {
-        ret <- ZStream.fromEffect(stmResult)
-        _ <- if (ZCaffeine.disabledLog) ZStream.unit else Utils.debugS(s"Caffeine ZStream getIfPresent >>> identity:[$key],field:[$field],result:[$ret]")
+        chunk <- ZStream.fromEffect(
+          ZCaffeine.hGet[Chunk[T]](key, field).map(_.getOrElse(Chunk.empty))
+            .tap(cv =>
+              Utils.debug(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],cacheValue:[$cv]")
+                .unless(ZCaffeine.disabledLog)
+            ))
+        ret <- ZStream.fromEffect(if (chunk.isEmpty) ZCaffeine.hSet(key, field, result).map(_ => result) else ZIO.succeed(chunk))
+          .tap(result => Utils.debug(s"Caffeine ZStream getIfPresent: identity:[$key],field:[$field],result:[$result]")
+            .unless(ZCaffeine.disabledLog)
+          )
         r <- ZStream.fromIterable(ret)
       } yield r
     }
@@ -69,12 +71,11 @@ object Implicits {
 
   implicit def UpdateCache[T]: ZIOUpdateCache[Any, Throwable, T] = new ZIOUpdateCache[Any, Throwable, T] {
     override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] = {
-      STM.atomically {
-        STM.foreach_(identities)(key => ZCaffeine.del(key))
-      } *> {
-        business.tap(updateResult => Utils.debug(s"Caffeine ZIO update >>> identities:[$identities],updateResult:[$updateResult]")
-          .unless(ZCaffeine.disabledLog))
-      }
+      for {
+        updateResult <- ZIO.foreach_(identities)(key => ZCaffeine.del(key)) *> business tap (updateResult =>
+          Utils.debug(s"Caffeine ZIO update: identities:[$identities], updateResult:[$updateResult]")
+            .unless(ZCaffeine.disabledLog))
+      } yield updateResult
     }
   }
 
@@ -82,15 +83,16 @@ object Implicits {
     override def getIfPresent(business: => ZIO[Any, Throwable, T])(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
       val key = cacheKey(identities)
       val field = cacheField(args)
-      lazy val syncResult = zio.Runtime.default.unsafeRun(business)
-      // TODO fix it?
-      STM.atomically {
-        for {
-          chunk <- ZCaffeine.hGet[T](key, field)
-          ret <- chunk.fold(ZCaffeine.hSet[T](key, field, syncResult))(c => STM.succeed(c))
-        } yield ret
-      }.tap(ret => Utils.debug(s"Caffeine ZIO getIfPresent >>> identity:[$key],field:[$field],result:[$ret]")
-        .unless(ZCaffeine.disabledLog))
+      for {
+        cacheValue <- ZCaffeine.hGet[T](key, field)
+        _ <- Utils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], cacheValue:[$cacheValue]")
+          .unless(ZCaffeine.disabledLog)
+        result <- cacheValue.fold(business.tap(r => ZCaffeine.hSet(key, field, r).as(r)))(value => ZIO.effectTotal(value))
+          .tap(result =>
+            Utils.debug(s"Caffeine ZIO getIfPresent: identity:[$key], field:[$field], result:[$result]")
+              .unless(ZCaffeine.disabledLog)
+          )
+      } yield result
     }
   }
 }

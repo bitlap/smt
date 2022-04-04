@@ -21,17 +21,14 @@
 
 package org.bitlap.cacheable.caffeine
 
-import org.bitlap.cacheable.core.cacheable
+import org.bitlap.cacheable.core.{ cacheEvict, cacheable }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import zio.stream.ZStream
-import zio.{ Task, ZIO }
-import org.bitlap.cacheable.core.cacheEvict
-import zio.stm.STM
-import zio.Chunk
+import zio.{ Chunk, Task, ZIO }
 
-import scala.util.Random
 import java.util
+import scala.util.Random
 
 /**
  *
@@ -98,9 +95,9 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     }
 
     val result = runtime.unsafeRun(for {
-      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(1, "hello")
-      cache <- STM.atomically(ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello"))
+      cache <- ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello")
     } yield method -> cache
     )
     Some(result._1) shouldEqual result._2
@@ -131,7 +128,7 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     }
 
     val result = runtime.unsafeRun(for {
-      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(globalId.toInt).runHead
       update <- updateIOFunction("lisi").runHead
       after <- readIOFunction(globalId.toInt).runHead
@@ -157,7 +154,7 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
     val newId = Random.nextInt().toString
     val result = runtime.unsafeRun(for {
-      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(globalId.toInt).runHead
       update <- updateIOFunction(newId).runHead
       after <- readIOFunction(globalId.toInt).runHead
@@ -176,9 +173,9 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
     println(chunk)
     val result = runtime.unsafeRun(for {
-      _ <- STM.atomically(ZCaffeine.del("CacheableTest-readIOFunction"))
+      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(1, "hello")
-      cache <- STM.atomically(ZCaffeine.hGet[Chunk[String]]("CacheableTest-readIOFunction", "1-hello").map(_.getOrElse(Chunk.empty)))
+      cache <- ZCaffeine.hGet[Chunk[String]]("CacheableTest-readIOFunction", "1-hello").map(_.getOrElse(Chunk.empty))
     } yield method -> cache
     )
     result._1 shouldEqual result._2

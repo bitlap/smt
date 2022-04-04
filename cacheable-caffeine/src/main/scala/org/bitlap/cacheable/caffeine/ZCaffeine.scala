@@ -23,10 +23,10 @@ package org.bitlap.cacheable.caffeine
 
 import com.github.benmanes.caffeine.cache.{ Cache, Caffeine }
 import com.typesafe.config.{ Config, ConfigFactory }
+import org.bitlap.cacheable.core.Utils
 
 import java.util.concurrent.{ ConcurrentHashMap, TimeUnit }
-import zio.stm.{ TRef, ZSTM }
-import zio.stm.USTM
+import scala.concurrent.duration.Duration
 
 /**
  *
@@ -35,66 +35,75 @@ import zio.stm.USTM
  */
 object ZCaffeine {
 
+  import zio.{ Task, ZIO }
+
   private val conf: Config = ConfigFactory.load("reference.conf")
   private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
 
   private[caffeine] lazy val disabledLog: Boolean = custom.getBoolean("caffeine.disabledLog")
+  private[caffeine] lazy val calculateResultTimeout: Duration = Duration(custom.getString("caffeine.calculateResultTimeout"))
 
-  private lazy val maximumSize = custom.getInt("caffeine.maximumSize")
-  private lazy val expireAfterWriteSeconds = custom.getInt("caffeine.expireAfterWriteSeconds")
+  private lazy val maximumSize: Int = custom.getInt("caffeine.maximumSize")
+  private lazy val expireAfterWriteSeconds: Int = custom.getInt("caffeine.expireAfterWriteSeconds")
 
   val hashCache: Cache[String, ConcurrentHashMap[String, Any]] = Caffeine.newBuilder()
     .maximumSize(maximumSize)
     .expireAfterWrite(expireAfterWriteSeconds, TimeUnit.SECONDS)
     .build[String, ConcurrentHashMap[String, Any]]
 
-  private val cacheRef: USTM[TRef[Cache[String, ConcurrentHashMap[String, Any]]]] = TRef.make(hashCache)
-
-  def hGet[T](key: String, field: String): ZSTM[Any, Throwable, Option[T]] = {
-    for {
-      cache <- cacheRef
-      chm <- cache.get
-    } yield {
-      val hashMap = chm.getIfPresent(key)
-      if (hashMap == null || hashMap.isEmpty) {
-        None
-      } else {
-        val fieldValue = hashMap.get(field)
-        if (fieldValue == null || !fieldValue.isInstanceOf[T]) {
+  def hGet[T](key: String, field: String): Task[Option[T]] = {
+    Utils.effectBlocking {
+      key.synchronized {
+        val hashMap = hashCache.getIfPresent(key)
+        if (hashMap == null || hashMap.isEmpty) {
           None
         } else {
-          Some(fieldValue.asInstanceOf[T])
+          val fieldValue = hashMap.get(field)
+          if (fieldValue == null || !fieldValue.isInstanceOf[T]) {
+            None
+          } else {
+            Some(fieldValue.asInstanceOf[T])
+          }
         }
       }
     }
   }
 
-  def del(key: String): ZSTM[Any, Throwable, Unit] = {
-    for {
-      cache <- cacheRef
-      ret <- cache.update { stmCache =>
-        stmCache.invalidate(key)
-        stmCache
+  def hDel(key: String, field: String): Task[Unit] = {
+    Utils.effectBlocking {
+      key.synchronized {
+        val hashMap = hashCache.getIfPresent(key)
+        if (hashMap == null || hashMap.isEmpty) {
+          ()
+        } else {
+          hashMap.remove(field)
+          hashCache.put(key, new ConcurrentHashMap(hashMap))
+        }
       }
-    } yield ret
+    }
   }
 
-  def hSet[T](key: String, field: String, value: Any): ZSTM[Any, Throwable, T] = {
-    for {
-      cache <- cacheRef
-      c <- cache.modify { stmCache =>
-        val hashMap = stmCache.getIfPresent(key)
+  def del(key: String): Task[Unit] = {
+    Utils.effectBlocking {
+      key.synchronized {
+        hashCache.invalidate(key)
+      }
+    }
+  }
+
+  def hSet(key: String, field: String, value: Any): Task[Unit] = {
+    Utils.effectBlocking {
+      key.synchronized {
+        val hashMap = hashCache.getIfPresent(key)
         if (hashMap == null || hashMap.isEmpty) {
           val chm = new ConcurrentHashMap[String, Any]()
           chm.put(field, value)
-          stmCache.put(key, chm)
+          hashCache.put(key, chm)
         } else {
           hashMap.put(field, value)
-          stmCache.put(key, new ConcurrentHashMap(hashMap))
+          hashCache.put(key, new ConcurrentHashMap(hashMap))
         }
-        stmCache -> stmCache
       }
-    } yield c.getIfPresent(key).get(field).asInstanceOf[T]
-
+    }
   }
 }
