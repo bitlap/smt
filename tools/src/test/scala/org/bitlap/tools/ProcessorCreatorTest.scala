@@ -37,7 +37,7 @@ import scala.jdk.CollectionConverters.MapHasAsScala
  */
 class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
 
-  // please exec `sbt compile` to generate java class fof the protobuf
+  // protobuf plugin was removed in test since 0.4.3
   // origin
   "ProcessorCreator1" should "compile ok" in {
     implicit val service = new NetService

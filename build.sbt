@@ -27,6 +27,7 @@ lazy val playJsonVersion = "2.7.4"
 lazy val log4jVersion = "2.17.2"
 lazy val jacksonScalaVersion = "2.13.2"
 lazy val jraftVersion = "1.3.9"
+lazy val protocVersion = "3.19.4"
 
 lazy val commonSettings =
   Seq(
@@ -62,9 +63,6 @@ lazy val `cacheable-core` = (project in file("cacheable-core"))
       "dev.zio" %% "zio" % zioVersion, // FIXME we should use compile or provide ???
       "dev.zio" %% "zio-streams" % zioVersion,
       "dev.zio" %% "zio-logging" % zioLoggingVersion
-    ),
-    excludeDependencies ++= Seq(
-      InclExclRule("com.google.protobuf")
     )
   )
   .settings(paradise())
@@ -78,9 +76,6 @@ lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % configVersion,
       "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
-    ),
-    excludeDependencies ++= Seq(
-      InclExclRule("com.google.protobuf")
     )
   ).dependsOn(`cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
@@ -97,9 +92,6 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
       "dev.zio" %% "zio-schema" % zioSchemaVersion,
       "dev.zio" %% "zio-schema-json" % zioSchemaVersion,
       "dev.zio" %% "zio-schema-derivation" % zioSchemaVersion % Test,
-    ),
-    excludeDependencies ++= Seq(
-      InclExclRule("com.google.protobuf")
     )
   ).dependsOn(`cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
@@ -109,10 +101,7 @@ lazy val `cacheable-benchmark` = (project in file("cacheable-benchmark"))
   .settings(commonSettings)
   .settings(
     name := "smt-cacheable-benchmark",
-    publish / skip := true,
-    excludeDependencies ++= Seq(
-      InclExclRule("com.google.protobuf")
-    )
+    publish / skip := true
   ).dependsOn(`cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
   .settings(paradise())
   .enablePlugins(HeaderPlugin, JmhPlugin)
@@ -129,17 +118,12 @@ lazy val tools = (project in file("tools"))
       "org.apache.logging.log4j" % "log4j-core" % log4jVersion % Test,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion % Test,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test,
-      "com.alipay.sofa" % "jraft-core" % jraftVersion % Test
-    ),
-    ProtocConfig / sourceDirectory := {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n < 13 => new File("tools/src/test/resources") // test only for 2.13
-        case _ => new File("tools/src/test/proto")
-      }
-    }
+      "com.alipay.sofa" % "jraft-core" % jraftVersion % Test,
+      "com.google.protobuf" % "protobuf-java" % protocVersion % Test
+    )
   ).settings(Publishing.publishSettings)
   .settings(paradise())
-  .enablePlugins(HeaderPlugin, ProtocTestPlugin)
+  .enablePlugins(HeaderPlugin)
 
 lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`, `cacheable-benchmark`)
   .settings(
@@ -175,9 +159,6 @@ lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVer
     "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
   )).settings(
   publish / skip := true,
-  excludeDependencies ++= Seq(
-    InclExclRule("com.google.protobuf")
-  ),
   Compile / scalacOptions += "-Ymacro-annotations"
 )
 
@@ -189,9 +170,6 @@ lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVer
     "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
   )).settings(
   publish / skip := true,
-  excludeDependencies ++= Seq(
-    InclExclRule("com.google.protobuf")
-  ),
   paradise()
 )
 
@@ -199,9 +177,6 @@ lazy val `scala2-11` = (project in file("examples/scala2-11")).settings(scalaVer
   .settings(libraryDependencies ++= Seq(
     "org.bitlap" %% "smt-tools" % lastVersionForExamples,
   )).settings(
-  excludeDependencies ++= Seq(
-    InclExclRule("com.google.protobuf")
-  ),
   publish / skip := true,
   paradise()
 )
