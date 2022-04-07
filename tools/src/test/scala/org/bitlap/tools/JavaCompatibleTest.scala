@@ -111,4 +111,16 @@ class JavaCompatibleTest extends AnyFlatSpec with Matchers {
       |    val t = new A()
       |""".stripMargin should compile
   }
+
+  "JavaCompatible9" should "failed when exists private field" in {
+    """
+      | @javaCompatible
+      | case class A(private val a: Int, b: Short)
+      |""".stripMargin shouldNot compile
+
+    """
+      | @javaCompatible
+      | case class B(private[this] val a: Int, b: Short)
+      |""".stripMargin shouldNot compile
+  }
 }

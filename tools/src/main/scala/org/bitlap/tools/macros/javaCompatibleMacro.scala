@@ -39,16 +39,18 @@ object javaCompatibleMacro {
      * We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
     private def getNoArgsContrWithCurrying(annotteeClassParams: List[List[Tree]], annotteeClassDefinitions: Seq[Tree]): Tree = {
-      if (annotteeClassDefinitions.exists(f => !isNotLocalClassMember(f))) {
-        c.info(c.enclosingPosition, s"The params of 'private[this]' exists in class constructor", true)
-      }
       annotteeClassDefinitions.foreach {
         case defDef: DefDef if defDef.name.decodedName.toString == "this" && defDef.vparamss.isEmpty =>
-          c.abort(defDef.pos, "Non-parameter constructor method has already defined, please remove it or not use'@JavaCompatible'")
+          c.abort(defDef.pos, "Non-parameter constructor method has already defined, please remove it or not use'@javaCompatible'")
         case _ =>
       }
 
-      val defaultParameters = annotteeClassParams.map(valDefAccessors).map(params => params.map(param => {
+      val acsVals = annotteeClassParams.map(valDefAccessors)
+      acsVals.foreach(valDefs => valDefs.foreach(valDef => if (valDef.mods.hasFlag(Flag.PRIVATE)) {
+        c.abort(c.enclosingPosition, "`@javaCompatible` can be applied only to non-private fields")
+
+      }))
+      val defaultParameters = acsVals.map(params => params.map(param => {
         param.paramType match {
           case t if t <:< typeOf[Int]     => q"0"
           case t if t <:< typeOf[Byte]    => q"0"
