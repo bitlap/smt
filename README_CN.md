@@ -51,11 +51,11 @@
 
 ## `cacheable-caffeine`
 
-基于zio和caffeine的内存缓存实现，需要`cacheable-core`。
+基于zio和caffeine的内存缓存实现，内部依赖`cacheable-core`。
 
 ## `cacheable-redis`
 
-基于zio和zio-redis的分布式缓存实现，需要`cacheable-core`。
+基于zio和zio-redis的分布式缓存实现，内部依赖`cacheable-core`。
 
 # 文档
 
@@ -77,7 +77,7 @@
 
 ```scala
 // 内部包含的依赖: zio, zio-streams, zio-logging
-"org.bitlap" %% "smt-cacheable-core" % "<VERSION>"
+"org.bitlap" %% "smt-cacheable-core" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
 **使用redis实现的cacheable模块**
@@ -86,8 +86,8 @@
 
 ```scala
 // 分布式缓存, 内部包含的依赖: zio-redis, config, zio-schema, zio-schema-json, 可选的 (zio-schema-derivation用于样例类序列化)
-// 依赖于`smt-cacheable-core`（不支持 Scala2.11.x）
-"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
+// 依赖于`smt-cacheable-core`
+"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
 **使用caffeine实现的cacheable模块**
@@ -95,7 +95,7 @@
 ```scala
 // 本地缓存, 内部包含的依赖: config, caffeine
 // 依赖于`smt-cacheable-core`
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。

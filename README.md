@@ -75,7 +75,7 @@ Add library dependency
 
 ```scala
 // cache API, include dependencies: zio, zio-streams, zio-logging
-"org.bitlap" %% "smt-cacheable-core" % "<VERSION>"
+"org.bitlap" %% "smt-cacheable-core" % "<VERSION>" // not support Scala2.11.x
 ```
 
 **Use `smt-cacheable-redis`** 
@@ -84,8 +84,8 @@ Add library dependency
 
 ```scala
 // distributed cache, include dependencies: zio-redis, config, zio-schema, zio-schema-json, optional (zio-schema-derivation for case class)
-// dependsOn `smt-cacheable-core`（not support Scala2.11.x）
-"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>"
+// dependsOn `smt-cacheable-core`
+"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // not support Scala2.11.x
 ```
 
 **Use `smt-cacheable-caffeine`**
@@ -93,7 +93,7 @@ Add library dependency
 ```scala
 // local cache, include dependencies: config, caffeine
 // dependsOn `smt-cacheable-core`
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>" // not support Scala2.11.x
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
