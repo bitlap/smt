@@ -27,7 +27,7 @@ lazy val playJsonVersion = "2.7.4"
 lazy val log4jVersion = "2.17.2"
 lazy val jacksonScalaVersion = "2.13.2"
 lazy val jraftVersion = "1.3.9"
-lazy val protocVersion = "3.19.4"
+lazy val protocVersion = "3.20.0"
 
 lazy val commonSettings =
   Seq(
