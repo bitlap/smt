@@ -144,10 +144,19 @@ lazy val tools = (project in file("tools"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val root = (project in file(".")).aggregate(tools, `cacheable-core`, `cacheable-redis`, `cacheable-caffeine`, `cacheable-benchmark`)
+lazy val root = (project in file(".")).aggregate(
+  tools,
+  `cacheable-core`,
+  `cacheable-redis`,
+  `cacheable-caffeine`,
+  `cacheable-benchmark`,
+  `csv-core`,
+  `csv-derive`
+)
   .settings(
     crossScalaVersions := Nil,
     publish / skip := true,
+    Compile / compile := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
     headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
     releaseIgnoreUntrackedFiles := true,
     releaseCrossBuild := false, //@see https://www.scala-sbt.org/1.x/docs/Cross-Build.html
