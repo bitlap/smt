@@ -41,7 +41,7 @@ object CsvConverter {
 
   lazy val LINE_SEPARATOR: String = "\n"
 
-  def apply[T](implicit st: => CsvConverter[T]): CsvConverter[T] = st
+  def apply[T](implicit st: CsvConverter[T]): CsvConverter[T] = st
 
   // Primitives
   implicit val stringCSVConverter: CsvConverter[String] = new CsvConverter[String] {
