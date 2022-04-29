@@ -65,6 +65,5 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
         |2,cdf,d,12,2,false,0.1,0.1""".stripMargin
     val dimension = CsvConverter[List[Dimension]].from(line)
     assert(dimension.toString == "Some(List(Dimension(1,Some(cdf),d,12,2,false,0.1,0.2), Dimension(2,Some(cdf),d,12,2,false,0.1,0.1)))")
-
   }
 }

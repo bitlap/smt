@@ -36,7 +36,7 @@ object DeriveToCaseClass {
       import c.universe._
       val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
       if (parameters.size > 1) {
-        c.abort(c.enclosingPosition, "The parameters list in constructor of case cass have currying!")
+        c.abort(c.enclosingPosition, "The constructor of case class has currying!")
       }
       lazy val columns = q"$line.split($columnSeparator)"
       val params = parameters.flatten
@@ -44,6 +44,9 @@ object DeriveToCaseClass {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       val types = params.zip(0 until paramsSize).map(f => c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
       val index = (0 until paramsSize).toList.map(i => q"$columns($i)")
+      if (index.size != types.size) {
+        c.abort(c.enclosingPosition, "The column num of CSV file is different from that in case class constructor!")
+      }
       val fields = (index zip types).map { f =>
         if (f._2 <:< typeOf[Option[_]]) {
           val genericType = c.typecheck(q"${f._2}", c.TYPEmode).tpe.typeArgs.head
@@ -59,7 +62,7 @@ object DeriveToCaseClass {
             case t if t <:< typeOf[Float] =>
               q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0F)"
             case t if t <:< typeOf[Char] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse('0')"
+              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse('?')"
             case t if t <:< typeOf[Byte] =>
               q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0)"
             case t if t <:< typeOf[Short] =>

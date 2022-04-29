@@ -55,4 +55,13 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
 
   }
 
+  "DeriveCsvConverter4" should "ok when using custom columnSeparator" in {
+    val line =
+      """1 22
+        |2 0.1""".stripMargin
+    val dimension = CsvConverter[List[Dimension2]].from(line)
+    assert(dimension.toString == "Some(List(Dimension2(1,Some(22)), Dimension2(2,Some(0.1))))")
+
+  }
+
 }
