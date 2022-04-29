@@ -123,7 +123,7 @@ lazy val `csv-derive` = (project in file("csv-derive"))
   ).settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
-  .dependsOn(`csv-core`)
+  .dependsOn(`csv-core` % "compile->compile;test->test")
 
 lazy val tools = (project in file("tools"))
   .settings(commonSettings)

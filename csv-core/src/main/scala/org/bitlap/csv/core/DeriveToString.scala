@@ -29,22 +29,41 @@ import scala.reflect.macros.blackbox
  */
 object DeriveToString {
 
-  def apply[T <: Product](t: T): String = macro Macro.macroImpl[T]
+  def apply[T <: Product](t: T, columnSeparator: String): String = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
-    def macroImpl[T <: Product: c.WeakTypeTag](t: c.Expr[T]): c.Expr[String] = {
+    def macroImpl[T <: Product: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[String]): c.Expr[String] = {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       import c.universe._
+      val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
+      if (parameters.size > 1) {
+        c.abort(c.enclosingPosition, "The constructor of case class has currying!")
+      }
+      val params = parameters.flatten
+      val paramsSize = params.size
+      val names = params.map(p => p.name.decodedName.toString)
+      val indexByName = (i: Int) => TermName(names(i))
+      val indexTypes = params.zip(0 until paramsSize).map(f => f._2 -> c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
+      val fieldsToString = indexTypes.map {
+        idxType =>
+          if (idxType._2 <:< typeOf[Option[_]]) {
+            val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+            q"""CsvConverter[${genericType.typeSymbol.name.toTypeName}].to { 
+                  if (${TermName("t")}.${indexByName(idxType._1)}.isEmpty) "" else ${TermName("t")}.${indexByName(idxType._1)}.get
+                }"""
+          } else {
+            q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].to(${TermName("t")}.${indexByName(idxType._1)})"
+          }
+      }
+      val separator = q"$columnSeparator"
       val tree =
         q"""
         val fields = ${TermName(clazzName.decodedName.toString)}.unapply($t).orNull
-        val fieldsStr = if (null == fields) fields.toString() else ""
-        fieldsStr.replace("(", "").replace(")", "")
+        if (null == fields) "" else $fieldsToString.mkString($separator)
        """
 
       printTree[String](c)(force = true, tree)
     }.asInstanceOf[c.Expr[String]]
   }
-
 }

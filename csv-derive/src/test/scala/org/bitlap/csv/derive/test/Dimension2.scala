@@ -19,8 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv.derive.test
 
+import org.bitlap.csv.core.CsvConverter
 import org.bitlap.csv.derive.DeriveCsvConverter
 
 /**
@@ -31,6 +32,7 @@ import org.bitlap.csv.derive.DeriveCsvConverter
 case class Dimension2(key: String, value: Option[String])
 
 object Dimension2 {
+
   implicit val dimensionCsvConverter: CsvConverter[Dimension2] = DeriveCsvConverter.gen[Dimension2](" ")
 }
 

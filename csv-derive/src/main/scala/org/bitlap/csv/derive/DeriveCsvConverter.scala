@@ -22,6 +22,7 @@
 package org.bitlap.csv.derive
 
 import org.bitlap.csv.core.CsvConverter
+
 import scala.reflect.macros.blackbox
 import org.bitlap.csv.core.AbstractMacroProcessor
 
@@ -45,8 +46,8 @@ object DeriveCsvConverter {
       val tree =
         q"""
         new CsvConverter[$typeName] {
-            override def from(line: String): Option[$typeName] = _root_.org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator)
-            override def to(t: $typeName): String = _root_.org.bitlap.csv.core.DeriveToString[$typeName](t)
+            override def from(line: String): Option[$typeName] = org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator)
+            override def to(t: $typeName): String = org.bitlap.csv.core.DeriveToString[$typeName](t, $columnSeparator)
         }
        """
       printTree[CC](c)(force = true, tree).asInstanceOf[c.Expr[CC]]
@@ -58,5 +59,4 @@ object DeriveCsvConverter {
       macroImplWithColumnSeparator[CC](c.Expr[String](q"$columnSeparator"))
     }
   }
-
 }

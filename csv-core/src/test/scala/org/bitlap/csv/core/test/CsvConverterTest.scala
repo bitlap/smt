@@ -19,10 +19,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv.core.test
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.bitlap.csv.core.CsvConverter
 
 /**
  *
@@ -36,6 +37,10 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     val dimension = CsvConverter[Dimension].from(line)
     assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
 
+    val csv = CsvConverter[Dimension].to(dimension.orNull)
+    println(csv)
+    assert(csv == line)
+
   }
 
   "CsvConverter2" should "ok when csv column empty" in {
@@ -44,6 +49,10 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     val dimension = CsvConverter[Dimension].from(line)
     println(dimension.toString)
     assert(dimension.toString == "Some(Dimension(abc,None,d,12,2,false,0.1,0.23333))")
+    val csv = CsvConverter[Dimension].to(dimension.orNull)
+    println(csv)
+    assert(csv == line)
+
   }
 
   "CsvConverter3" should "failed when case class currying" in {
@@ -65,5 +74,19 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
         |2,cdf,d,12,2,false,0.1,0.1""".stripMargin
     val dimension = CsvConverter[List[Dimension]].from(line)
     assert(dimension.toString == "Some(List(Dimension(1,Some(cdf),d,12,2,false,0.1,0.2), Dimension(2,Some(cdf),d,12,2,false,0.1,0.1)))")
+    val csv = CsvConverter[List[Dimension]].to(dimension.orNull)
+    println(csv)
+    assert(csv == line)
+
+  }
+
+  "CsvConverter5" should "ok when input empty" in {
+    val empty1 = CsvConverter[List[Dimension]].to(Nil)
+    println(empty1)
+    assert(empty1 == "")
+
+    val empty2 = CsvConverter[List[Dimension]].to(null)
+    println(empty2)
+    assert(empty2 == "")
   }
 }

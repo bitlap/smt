@@ -19,8 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv.derive.test
 
+import org.bitlap.csv.core.CsvConverter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -35,7 +36,9 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
     val line = "abc,cdf,d,12,2,false,0.1,0.23333"
     val dimension = CsvConverter[Dimension].from(line)
     assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
-
+    val csv = CsvConverter[Dimension].to(dimension.orNull)
+    println(csv)
+    assert(csv == line)
   }
 
   "DeriveCsvConverter2" should "ok when csv column empty" in {
@@ -61,6 +64,9 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
         |2 0.1""".stripMargin
     val dimension = CsvConverter[List[Dimension2]].from(line)
     assert(dimension.toString == "Some(List(Dimension2(1,Some(22)), Dimension2(2,Some(0.1))))")
+    val csv = CsvConverter[List[Dimension2]].to(dimension.orNull)
+    println(csv)
+    assert(csv == line)
 
   }
 

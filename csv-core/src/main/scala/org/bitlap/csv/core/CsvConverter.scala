@@ -104,6 +104,8 @@ object CsvConverter {
   implicit def listCsvConverter[A <: Product](implicit ec: CsvConverter[A]): CsvConverter[List[A]] = new CsvConverter[List[A]] {
     def from(s: String): Option[List[A]] = listCsvLinesConverter[A](s.split(LINE_SEPARATOR).toList)(ec)
 
-    def to(l: List[A]): String = l.map(ec.to).mkString(LINE_SEPARATOR)
+    def to(l: List[A]): String = {
+      if (l == null) "" else l.map(ec.to).mkString(LINE_SEPARATOR)
+    }
   }
 }

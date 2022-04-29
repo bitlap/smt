@@ -42,35 +42,35 @@ object DeriveToCaseClass {
       val params = parameters.flatten
       val paramsSize = params.size
       val clazzName = c.weakTypeOf[T].typeSymbol.name
-      val types = params.zip(0 until paramsSize).map(f => c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
-      val index = (0 until paramsSize).toList.map(i => q"$columns($i)")
-      if (index.size != types.size) {
+      val types = params.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
+      val indexColumns = (0 until paramsSize).toList.map(i => q"$columns($i)")
+      if (indexColumns.size != types.size) {
         c.abort(c.enclosingPosition, "The column num of CSV file is different from that in case class constructor!")
       }
-      val fields = (index zip types).map { f =>
-        if (f._2 <:< typeOf[Option[_]]) {
-          val genericType = c.typecheck(q"${f._2}", c.TYPEmode).tpe.typeArgs.head
-          q"CsvConverter[${genericType.typeSymbol.name.toTypeName}].from(${f._1})"
+      val fields = (indexColumns zip types).map { idxType =>
+        if (idxType._2 <:< typeOf[Option[_]]) {
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          q"CsvConverter[${genericType.typeSymbol.name.toTypeName}].from(${idxType._1})"
         } else {
-          f._2 match {
+          idxType._2 match {
             case t if t <:< typeOf[Int] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0)"
             case t if t <:< typeOf[String] =>
-              q"""CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse("")"""
+              q"""CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse("")"""
             case t if t <:< typeOf[Double] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0D)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0D)"
             case t if t <:< typeOf[Float] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0F)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0F)"
             case t if t <:< typeOf[Char] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse('?')"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse('?')"
             case t if t <:< typeOf[Byte] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0)"
             case t if t <:< typeOf[Short] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0)"
             case t if t <:< typeOf[Boolean] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(false)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(false)"
             case t if t <:< typeOf[Long] =>
-              q"CsvConverter[${TypeName(f._2.typeSymbol.name.decodedName.toString)}].from(${f._1}).getOrElse(0L)"
+              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0L)"
           }
         }
 

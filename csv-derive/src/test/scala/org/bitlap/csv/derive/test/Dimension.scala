@@ -19,7 +19,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv.derive.test
+
+import org.bitlap.csv.core.CsvConverter
+import org.bitlap.csv.derive.DeriveCsvConverter
 
 /**
  *
@@ -30,9 +33,6 @@ case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Sh
 
 object Dimension {
 
-  implicit def dimensionCsvConverter: CsvConverter[Dimension] = new CsvConverter[Dimension] {
-    override def from(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ",")
-    override def to(t: Dimension): String = DeriveToString[Dimension](t)
-  }
+  implicit val dimensionCsvConverter: CsvConverter[Dimension] = DeriveCsvConverter.gen[Dimension]
 
 }
