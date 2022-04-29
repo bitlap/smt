@@ -106,6 +106,25 @@ lazy val `cacheable-benchmark` = (project in file("cacheable-benchmark"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin, JmhPlugin)
 
+lazy val `csv-core` = (project in file("csv-core"))
+  .settings(commonSettings)
+  .settings(
+    name := "smt-csv-core",
+    crossScalaVersions := List(scala213, scala212, scala211),
+  ).settings(Publishing.publishSettings)
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
+lazy val `csv-derive` = (project in file("csv-derive"))
+  .settings(commonSettings)
+  .settings(
+    name := "smt-csv-derive",
+    crossScalaVersions := List(scala213, scala212, scala211),
+  ).settings(Publishing.publishSettings)
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+  .dependsOn(`csv-core`)
+
 lazy val tools = (project in file("tools"))
   .settings(commonSettings)
   .settings(

@@ -31,6 +31,7 @@ import java.util.concurrent.Executor
  * @author 梦境迷离
  * @version 1.0,2021/12/6
  */
+@deprecated
 object ProcessorCreator {
 
   /**
