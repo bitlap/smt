@@ -33,30 +33,30 @@ import org.bitlap.csv.core.AbstractMacroProcessor
  */
 object DeriveCsvConverter {
 
-  def gen[CC](columnLimit: Int): CsvConverter[CC] = macro Macro.macroImpl[CC]
+  def gen[CC]: CsvConverter[CC] = macro Macro.macroImpl[CC]
 
-  def gen[CC](columnLimit: Int, columnSeparator: String): CsvConverter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
+  def gen[CC](columnSeparator: String): CsvConverter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
-    def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnLimit: c.Expr[Int], columnSeparator: c.Expr[String]): c.Expr[CC] = {
+    def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnSeparator: c.Expr[String]): c.Expr[CC] = {
       import c.universe._
       val clazzName = c.weakTypeOf[CC].typeSymbol.name
       val typeName = TypeName(clazzName.decodedName.toString)
       val tree =
         q"""
         new CsvConverter[$typeName] {
-            override def from(line: String): Option[$typeName] = org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator, $columnLimit)
+            override def from(line: String): Option[$typeName] = org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator)
             override def to(t: $typeName): String = org.bitlap.csv.core.DeriveToString[$typeName](t, $columnSeparator)
         }
        """
       printTree[CC](c)(force = true, tree).asInstanceOf[c.Expr[CC]]
     }
 
-    def macroImpl[CC: c.WeakTypeTag](columnLimit: c.Expr[Int]): c.Expr[CC] = {
+    def macroImpl[CC: c.WeakTypeTag]: c.Expr[CC] = {
       import c.universe._
       val columnSeparator = ","
-      macroImplWithColumnSeparator[CC](columnLimit, c.Expr[String](q"$columnSeparator"))
+      macroImplWithColumnSeparator[CC](c.Expr[String](q"$columnSeparator"))
     }
   }
 }

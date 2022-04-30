@@ -33,6 +33,6 @@ case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Sh
 
 object Dimension {
 
-  implicit val dimensionCsvConverter: CsvConverter[Dimension] = DeriveCsvConverter.gen[Dimension](8)
+  implicit val dimensionCsvConverter: CsvConverter[Dimension] = DeriveCsvConverter.gen[Dimension]
 
 }
