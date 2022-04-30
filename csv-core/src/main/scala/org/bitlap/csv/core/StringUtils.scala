@@ -3,7 +3,8 @@ package org.bitlap.csv.core
 import scala.collection.mutable.ListBuffer
 
 /**
- *
+ * split csv column value by columnSeparator.
+ * 
  * @author 梦境迷离
  * @version 1.0,2022/4/30
  */
@@ -18,6 +19,7 @@ object StringUtils {
       if (chars(cidx) != columnSeparator) {
         columnBuffer.append(chars(cidx))
       } else {
+        // todo 向前搜索和向后搜索
         if (chars(cidx - 1) == '\"' && chars(cidx + 1) == '\"') {
           columnBuffer.append(chars(cidx))
         } else {
