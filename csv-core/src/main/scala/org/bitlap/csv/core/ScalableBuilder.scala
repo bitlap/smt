@@ -19,25 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
-
-import org.bitlap.csv.core.Converter
+package org.bitlap.csv.core
+import org.bitlap.csv.core.macros.DeriveScalableBuilder
 
 /**
+ * Builder to create a custom Csv Decoder.
  *
  * @author 梦境迷离
- * @version 1.0,2022/4/29
+ * @version 1.0,2022/4/30
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+private[core] class ScalableBuilder[T] {
 
-object Dimension extends App {
+  def setField[SF, TF](scalaField: T ⇒ SF, value: String ⇒ SF): ScalableBuilder[T] = macro DeriveScalableBuilder.setFieldImpl[T, SF, TF]
 
-  implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
+  def build(line: String, columnSeparator: Char): Scalable[T] = macro DeriveScalableBuilder.buildImpl[T]
 
-    import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
+}
 
-    override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ',')
+object ScalableBuilder {
 
-    override def toCsvString(t: Dimension): String = DeriveToString[Dimension](t, ',')
-  }
+  def apply[T]: ScalableBuilder[T] = macro DeriveScalableBuilder.applyImpl[T]
+
 }

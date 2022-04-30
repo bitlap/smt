@@ -20,28 +20,22 @@
  */
 
 package org.bitlap.csv.core
-
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import scala.reflect.macros.blackbox
+import org.bitlap.csv.core.macros.DeriveCsvableBuilder
 
 /**
+ * Builder to create a custom Csv Encoder.
  *
  * @author 梦境迷离
- * @since 2021/7/24
- * @version 1.0
+ * @version 1.0,2022/4/30
  */
-abstract class AbstractMacroProcessor(val c: blackbox.Context) {
+private[core] class CsvableBuilder[T] {
 
-  def printTree[T: c.WeakTypeTag](c: blackbox.Context)(force: Boolean, resTree: c.Tree): c.Expr[T] = {
-    c.info(
-      c.enclosingPosition,
-      s"\n###### Time: ${
-        ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
-      } " +
-        s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
-      force = force
-    )
-    c.Expr[T](resTree)
-  }
+  def build(columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
+
+}
+
+object CsvableBuilder {
+
+  def apply[T]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
+
 }

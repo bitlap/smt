@@ -19,25 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
-
-import org.bitlap.csv.core.Converter
+package org.bitlap.csv.core.macros
+import scala.collection.mutable
 
 /**
  *
  * @author 梦境迷离
- * @version 1.0,2022/4/29
+ * @version 1.0,2022/5/1
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+object MacroCache {
 
-object Dimension extends App {
+  private var builderCount = 0
+  private var identityCount = 0
 
-  implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
-
-    import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
-
-    override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ',')
-
-    override def toCsvString(t: Dimension): String = DeriveToString[Dimension](t, ',')
+  def getBuilderId: Int = builderCount.synchronized {
+    builderCount += 1; builderCount
   }
+  def getIdentityId: Int = identityCount.synchronized {
+    identityCount += 1; identityCount
+  }
+
+  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
 }

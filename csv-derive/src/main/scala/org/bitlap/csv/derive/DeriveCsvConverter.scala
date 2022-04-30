@@ -21,10 +21,10 @@
 
 package org.bitlap.csv.derive
 
-import org.bitlap.csv.core.CsvConverter
+import org.bitlap.csv.core.Converter
+import org.bitlap.csv.core.macros.AbstractMacroProcessor
 
 import scala.reflect.macros.blackbox
-import org.bitlap.csv.core.AbstractMacroProcessor
 
 /**
  *
@@ -33,9 +33,9 @@ import org.bitlap.csv.core.AbstractMacroProcessor
  */
 object DeriveCsvConverter {
 
-  def gen[CC]: CsvConverter[CC] = macro Macro.macroImpl[CC]
+  def gen[CC]: Converter[CC] = macro Macro.macroImpl[CC]
 
-  def gen[CC](columnSeparator: Char): CsvConverter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
+  def gen[CC](columnSeparator: Char): Converter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
@@ -45,12 +45,12 @@ object DeriveCsvConverter {
       val typeName = TypeName(clazzName.decodedName.toString)
       val tree =
         q"""
-        new CsvConverter[$typeName] {
-            override def from(line: String): Option[$typeName] = org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator)
-            override def to(t: $typeName): String = org.bitlap.csv.core.DeriveToString[$typeName](t, $columnSeparator)
+        new Converter[$typeName] {
+            override def toScala(line: String): Option[$typeName] = org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator)
+            override def toCsvString(t: $typeName): String = org.bitlap.csv.core.DeriveToString[$typeName](t, $columnSeparator)
         }
        """
-      printTree[CC](c)(force = true, tree).asInstanceOf[c.Expr[CC]]
+      printTree[CC](force = true, tree)
     }
 
     def macroImpl[CC: c.WeakTypeTag]: c.Expr[CC] = {

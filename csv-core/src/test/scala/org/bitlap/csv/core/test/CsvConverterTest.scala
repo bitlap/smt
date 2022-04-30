@@ -23,7 +23,7 @@ package org.bitlap.csv.core.test
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.csv.core.CsvConverter
+import org.bitlap.csv.core.Converter
 
 /**
  *
@@ -34,10 +34,10 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
 
   "CsvConverter1" should "ok" in {
     val line = "abc,cdf,d,12,2,false,0.1,0.23333"
-    val dimension = CsvConverter[Dimension].from(line)
+    val dimension = Converter[Dimension].toScala(line)
     assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
 
-    val csv = CsvConverter[Dimension].to(dimension.orNull)
+    val csv = Converter[Dimension].toCsvString(dimension.orNull)
     println(csv)
     assert(csv == line)
 
@@ -46,10 +46,10 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
   "CsvConverter2" should "ok when csv column empty" in {
     val line =
       "abc,,d,12,2,false,0.1,0.23333"
-    val dimension = CsvConverter[Dimension].from(line)
+    val dimension = Converter[Dimension].toScala(line)
     println(dimension.toString)
     assert(dimension.toString == "Some(Dimension(abc,None,d,12,2,false,0.1,0.23333))")
-    val csv = CsvConverter[Dimension].to(dimension.orNull)
+    val csv = Converter[Dimension].toCsvString(dimension.orNull)
     println(csv)
     assert(csv == line)
 
@@ -60,8 +60,8 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
       | case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float)( h: Double)
       |    object Dimension {
       |      implicit def dimensionCsvConverter: CsvConverter[Dimension] = new CsvConverter[Dimension] {
-      |        override def from(line: String): Option[Dimension] = Option(DeriveCaseClassBuilder[Dimension](line, ","))
-      |        override def to(t: Dimension): String = DeriveStringBuilder[Dimension](t)
+      |        override def toScala(line: String): Option[Dimension] = Option(DeriveCaseClassBuilder[Dimension](line, ","))
+      |        override def toCsvString(t: Dimension): String = DeriveStringBuilder[Dimension](t)
       |      }
       |
       |    }
@@ -72,27 +72,27 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     val line =
       """1,cdf,d,12,2,false,0.1,0.2
         |2,cdf,d,12,2,false,0.1,0.1""".stripMargin
-    val dimension = CsvConverter[List[Dimension]].from(line)
+    val dimension = Converter[List[Dimension]].toScala(line)
     assert(dimension.toString == "Some(List(Dimension(1,Some(cdf),d,12,2,false,0.1,0.2), Dimension(2,Some(cdf),d,12,2,false,0.1,0.1)))")
-    val csv = CsvConverter[List[Dimension]].to(dimension.orNull)
+    val csv = Converter[List[Dimension]].toCsvString(dimension.orNull)
     println(csv)
     assert(csv == line)
 
   }
 
   "CsvConverter5" should "ok when input empty" in {
-    val empty1 = CsvConverter[List[Dimension]].to(Nil)
+    val empty1 = Converter[List[Dimension]].toCsvString(Nil)
     println(empty1)
     assert(empty1 == "")
 
-    val empty2 = CsvConverter[List[Dimension]].to(null)
+    val empty2 = Converter[List[Dimension]].toCsvString(null)
     println(empty2)
     assert(empty2 == "")
   }
 
   "CsvConverter6" should "ok when using json value" in {
-    val line = """abc,{"a":"b","c":"d"},d,12,2,false,0.1,0.23333"""
-    val dimension = CsvConverter[Dimension].from(line)
+    val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
+    val dimension = Converter[Dimension].toScala(line)
     println(dimension)
     assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
   }

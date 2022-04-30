@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.derive.test
 
-import org.bitlap.csv.core.CsvConverter
+import org.bitlap.csv.core.Converter
 import org.bitlap.csv.derive.DeriveCsvConverter
 
 /**
@@ -33,6 +33,6 @@ case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Sh
 
 object Dimension {
 
-  implicit val dimensionCsvConverter: CsvConverter[Dimension] = DeriveCsvConverter.gen[Dimension]
+  implicit val dimensionCsvConverter: Converter[Dimension] = DeriveCsvConverter.gen[Dimension]
 
 }

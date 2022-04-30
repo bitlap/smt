@@ -19,8 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
-
+package org.bitlap.csv.core.macros
 import scala.reflect.macros.blackbox
 
 /**
@@ -37,52 +36,39 @@ object DeriveToCaseClass {
       columnSeparator: c.Expr[Char]
     ): c.Expr[Option[T]] = {
       import c.universe._
-      val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
-      if (parameters.size > 1) {
-        c.abort(c.enclosingPosition, "The constructor of case class has currying!")
-      }
-      lazy val columns = q"_root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)"
-      val params = parameters.flatten
-      val paramsSize = params.size
       val clazzName = c.weakTypeOf[T].typeSymbol.name
-      val types = params.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
-      val indexColumns = (0 until paramsSize).toList.map(i => q"$columns($i)")
-      if (indexColumns.size != types.size) {
-        c.abort(c.enclosingPosition, "The column num of CSV file is different from that in case class constructor!")
-      }
-      val fields = (indexColumns zip types).map { idxType =>
+      val fields = checkCaseClassReturnConstructorParams[T](line, columnSeparator).map { idxType =>
         if (idxType._2 <:< typeOf[Option[_]]) {
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-          q"CsvConverter[${genericType.typeSymbol.name.toTypeName}].from(${idxType._1})"
+          q"Converter[${genericType.typeSymbol.name.toTypeName}].toScala(${idxType._1})"
         } else {
           idxType._2 match {
             case t if t =:= typeOf[Int] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0)"
             case t if t =:= typeOf[String] =>
-              q"""CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse("")"""
+              q"""Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse("")"""
             case t if t =:= typeOf[Float] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0F)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0F)"
             case t if t =:= typeOf[Double] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0D)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0D)"
             case t if t =:= typeOf[Char] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse('?')"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse('?')"
             case t if t =:= typeOf[Byte] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0)"
             case t if t =:= typeOf[Short] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0)"
             case t if t =:= typeOf[Boolean] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(false)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(false)"
             case t if t =:= typeOf[Long] =>
-              q"CsvConverter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].from(${idxType._1}).getOrElse(0L)"
+              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0L)"
           }
         }
-
       }
       val tree =
         q"""
        Option(${TermName(clazzName.decodedName.toString)}(..$fields))
      """
-      printTree[T](c)(force = true, tree)
+      printTree[T](force = true, tree)
 
     }.asInstanceOf[c.Expr[Option[T]]]
 

@@ -34,7 +34,7 @@ class StringUtilsTest extends AnyFlatSpec with Matchers {
 
   "StringUtilsTest1" should "ok" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
-    val csv = StringUtils.splitColumns2(line, ',')
+    val csv = StringUtils.splitColumns(line, ',')
     println(csv)
     assert(csv.size == 8)
   }

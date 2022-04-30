@@ -19,25 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
-
-import org.bitlap.csv.core.Converter
+package org.bitlap.csv.core.macros
+import scala.reflect.macros.blackbox
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+object DeriveToString {
 
-object Dimension extends App {
+  def apply[T <: Product](t: T, columnSeparator: Char): String = macro Macro.macroImpl[T]
 
-  implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
+  class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
-    import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
+    import c.universe._
 
-    override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ',')
+    def macroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
+      super.stringMacroImpl[T](t, columnSeparator, TermName("Converter"))
+    }
 
-    override def toCsvString(t: Dimension): String = DeriveToString[Dimension](t, ',')
   }
+
 }
