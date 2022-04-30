@@ -21,20 +21,21 @@
 
 package org.bitlap.csv.core.test
 
-import org.bitlap.csv.core.{ CsvConverter, DeriveToCaseClass, DeriveToString }
+import org.bitlap.csv.core.StringUtils
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  *
  * @author 梦境迷离
- * @version 1.0,2022/4/29
+ * @version 1.0,2022/4/30
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+class StringUtilsTest extends AnyFlatSpec with Matchers {
 
-object Dimension extends App {
-
-  implicit def dimensionCsvConverter: CsvConverter[Dimension] = new CsvConverter[Dimension] {
-    override def from(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ',')
-
-    override def to(t: Dimension): String = DeriveToString[Dimension](t, ',')
+  "StringUtilsTest1" should "ok" in {
+    val line = """abc,{"a":"b","c":"d"},d,12,2,false,0.1,0.23333"""
+    val csv = StringUtils.splitColumns(line, ',')
+    println(csv)
+    assert(csv.size == 8)
   }
 }
