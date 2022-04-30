@@ -32,10 +32,10 @@ object DeriveToCaseClass {
   def apply[T <: Product](line: String, columnSeparator: Char): Option[T] = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
-    def macroImpl[T <: Product : c.WeakTypeTag](
-                                                 line: c.Expr[String],
-                                                 columnSeparator: c.Expr[Char]
-                                               ): c.Expr[Option[T]] = {
+    def macroImpl[T <: Product: c.WeakTypeTag](
+      line:            c.Expr[String],
+      columnSeparator: c.Expr[Char]
+    ): c.Expr[Option[T]] = {
       import c.universe._
       val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
       if (parameters.size > 1) {
