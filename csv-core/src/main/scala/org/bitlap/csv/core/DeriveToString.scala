@@ -29,11 +29,11 @@ import scala.reflect.macros.blackbox
  */
 object DeriveToString {
 
-  def apply[T <: Product](t: T, columnSeparator: String): String = macro Macro.macroImpl[T]
+  def apply[T <: Product](t: T, columnSeparator: Char): String = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
-    def macroImpl[T <: Product: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[String]): c.Expr[String] = {
+    def macroImpl[T <: Product: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       import c.universe._
       val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
@@ -60,7 +60,7 @@ object DeriveToString {
       val tree =
         q"""
         val fields = ${TermName(clazzName.decodedName.toString)}.unapply($t).orNull
-        if (null == fields) "" else $fieldsToString.mkString($separator)
+        if (null == fields) "" else $fieldsToString.mkString($separator.toString)
        """
 
       printTree[String](c)(force = true, tree)

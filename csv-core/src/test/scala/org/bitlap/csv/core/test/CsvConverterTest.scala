@@ -89,4 +89,11 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     println(empty2)
     assert(empty2 == "")
   }
+
+  "CsvConverter6" should "ok when using json value" in {
+    val line = """abc,{"a":"b","c":"d"},d,12,2,false,0.1,0.23333"""
+    val dimension = CsvConverter[Dimension].from(line)
+    println(dimension)
+    assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
+  }
 }

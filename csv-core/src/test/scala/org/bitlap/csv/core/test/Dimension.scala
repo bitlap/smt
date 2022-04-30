@@ -20,7 +20,9 @@
  */
 
 package org.bitlap.csv.core.test
+
 import org.bitlap.csv.core.{ CsvConverter, DeriveToCaseClass, DeriveToString }
+import scala.collection.mutable.ListBuffer
 
 /**
  *
@@ -29,11 +31,47 @@ import org.bitlap.csv.core.{ CsvConverter, DeriveToCaseClass, DeriveToString }
  */
 case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
 
-object Dimension {
+object Dimension extends App {
 
   implicit def dimensionCsvConverter: CsvConverter[Dimension] = new CsvConverter[Dimension] {
-    override def from(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ",")
-    override def to(t: Dimension): String = DeriveToString[Dimension](t, ",")
+    override def from(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ',')
+
+    override def to(t: Dimension): String = DeriveToString[Dimension](t, ',')
   }
+
+  val line = """abc,{"a":"b","c":"d"},d,12,2,false,0.1,0.23333"""
+
+  def splitColumns(line: String, columnSeparator: Char): List[String] = {
+    val listBuffer = ListBuffer[String]()
+    val columnBuffer = ListBuffer[Char]()
+    val chars = line.toCharArray
+    for (cidx <- 0 until chars.length) {
+      if (chars(cidx) != columnSeparator) {
+        columnBuffer.append(chars(cidx))
+      } else {
+        if (chars(cidx - 1) == '\"' && chars(cidx + 1) == '\"') {
+          columnBuffer.append(chars(cidx))
+        } else {
+          listBuffer.append(columnBuffer.mkString)
+          columnBuffer.clear()
+        }
+      }
+    }
+    if (columnBuffer.nonEmpty) {
+      listBuffer.append(columnBuffer.mkString)
+      columnBuffer.clear()
+    }
+    listBuffer.result()
+  }
+
+  val s = splitColumns(line, ',')
+  println(s(0))
+  println(s(1))
+  println(s(2))
+  println(s(3))
+  println(s(4))
+  println(s(5))
+  println(s(6))
+  println(s(7))
 
 }
