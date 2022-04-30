@@ -35,11 +35,11 @@ object DeriveCsvConverter {
 
   def gen[CC]: CsvConverter[CC] = macro Macro.macroImpl[CC]
 
-  def gen[CC](columnSeparator: String): CsvConverter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
+  def gen[CC](columnSeparator: Char): CsvConverter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
-    def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnSeparator: c.Expr[String]): c.Expr[CC] = {
+    def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[CC] = {
       import c.universe._
       val clazzName = c.weakTypeOf[CC].typeSymbol.name
       val typeName = TypeName(clazzName.decodedName.toString)
@@ -55,8 +55,8 @@ object DeriveCsvConverter {
 
     def macroImpl[CC: c.WeakTypeTag]: c.Expr[CC] = {
       import c.universe._
-      val columnSeparator = ","
-      macroImplWithColumnSeparator[CC](c.Expr[String](q"$columnSeparator"))
+      val columnSeparator = ','
+      macroImplWithColumnSeparator[CC](c.Expr[Char](q"$columnSeparator"))
     }
   }
 }
