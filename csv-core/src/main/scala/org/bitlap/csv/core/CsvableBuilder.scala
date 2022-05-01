@@ -51,10 +51,15 @@ private[core] class CsvableBuilder[T] {
    */
   def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
 
+  /**
+   * Make columnSeparator assign to `,` as default value
+   */
+  def build(t: T): Csvable[T] = macro DeriveCsvableBuilder.buildDefaultImpl[T]
+
 }
 
 object CsvableBuilder {
 
-  def apply[T]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
+  def apply[T <: Product]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
 
 }
