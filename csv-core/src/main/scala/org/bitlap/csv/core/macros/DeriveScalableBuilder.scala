@@ -74,11 +74,11 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
       expr.tree match {
         case buildFunction: Function ⇒
           val functionName = TermName(builderFunctionPrefix + key)
-          key -> q"lazy  val $functionName: _root_.scala.Function1[String, ${buildFunction.tpe.typeArgs.last}] = $buildFunction"
+          key -> q"lazy  val $functionName: ${buildFunction.tpe} = $buildFunction"
       }
     }.unzip
     val innerVarTermName = TermName("_columns")
-    // NOTE: preTrees must be at the same level as Scalable 
+    // NOTE: preTrees must be at the same level as Scalable
     val tree =
       q"""
          ..$preTrees
@@ -103,38 +103,61 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
       val columnValues = idxType._1._2
       val fieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idx))}.apply($columnValues)"
-      if (idxType._2 <:< typeOf[Option[_]]) {
-        val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-        if (customTrees.contains(fieldNames(idx))) {
-          q"${customFunction()}.asInstanceOf[Option[$genericType]]"
-        } else {
-          q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
-        }
-      } else {
-        if (customTrees.contains(fieldNames(idx))) {
-          q"${customFunction()}.asInstanceOf[$fieldTypeName]"
-        } else {
-          idxType._2 match {
-            case t if t =:= typeOf[Int] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
-            case t if t =:= typeOf[String] =>
-              q"""$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse("")"""
-            case t if t =:= typeOf[Float] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Float](0.asInstanceOf[Float])"
-            case t if t =:= typeOf[Double] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Double](0D)"
-            case t if t =:= typeOf[Char] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse('?')"
-            case t if t =:= typeOf[Byte] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
-            case t if t =:= typeOf[Short] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
-            case t if t =:= typeOf[Boolean] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(false)"
-            case t if t =:= typeOf[Long] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
+      idxType._2 match {
+        case tp if tp <:< typeOf[List[_]] =>
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          if (customTrees.contains(fieldNames(idx))) {
+            q"${customFunction()}.asInstanceOf[List[$genericType]]"
+          } else {
+            c.abort(
+              c.enclosingPosition,
+              s"Missing usage `setField` for parsing ${fieldNames(idx)} to convert a `List` type , you have to define a custom way by using `setField` method!"
+            )
+            // q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
           }
-        }
+        case tp if tp <:< typeOf[Seq[_]] =>
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          if (customTrees.contains(fieldNames(idx))) {
+            q"${customFunction()}.asInstanceOf[Seq[$genericType]]"
+          } else {
+            c.abort(
+              c.enclosingPosition,
+              s"Missing usage `setField` for parsing ${fieldNames(idx)} to convert a `Seq` type , you have to define a custom way by using `setField` method!"
+            )
+            // q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
+          }
+        case tp if tp <:< typeOf[Option[_]] =>
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          if (customTrees.contains(fieldNames(idx))) {
+            q"${customFunction()}.asInstanceOf[Option[$genericType]]"
+          } else {
+            q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
+          }
+        case _ =>
+          if (customTrees.contains(fieldNames(idx))) {
+            q"${customFunction()}.asInstanceOf[$fieldTypeName]"
+          } else {
+            idxType._2 match {
+              case t if t =:= typeOf[Int] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
+              case t if t =:= typeOf[String] =>
+                q"""$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse("")"""
+              case t if t =:= typeOf[Float] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Float](0.asInstanceOf[Float])"
+              case t if t =:= typeOf[Double] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Double](0D)"
+              case t if t =:= typeOf[Char] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse('?')"
+              case t if t =:= typeOf[Byte] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
+              case t if t =:= typeOf[Short] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
+              case t if t =:= typeOf[Boolean] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(false)"
+              case t if t =:= typeOf[Long] =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
+            }
+          }
       }
     }
 

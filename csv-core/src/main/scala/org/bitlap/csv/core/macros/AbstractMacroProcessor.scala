@@ -24,7 +24,6 @@ package org.bitlap.csv.core.macros
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.macros.blackbox
-import scala.collection.mutable
 
 /**
  * @author 梦境迷离
@@ -66,29 +65,6 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       force = force
     )
     c.Expr[T](resTree)
-  }
-
-  private[macros] def getClassInstance[T: c.WeakTypeTag](className: TypeName, superClass: TypeName): c.universe.Tree = {
-    val caseClazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
-    c.weakTypeOf[T] match {
-      case t if t <:< typeOf[List[_]] =>
-        val genericType = c.typecheck(q"${c.weakTypeOf[T]}", c.TYPEmode).tpe.typeArgs.head
-        q"""
-          class $className extends $superClass[List[$genericType]]
-          new $className
-        """
-      case t if t <:< typeOf[mutable.Seq[_]] =>
-        val genericType = c.typecheck(q"${c.weakTypeOf[T]}", c.TYPEmode).tpe.typeArgs.head
-        q"""
-          class $className extends $superClass[Seq[$genericType]]
-          new $className  
-        """
-      case _ =>
-        q"""
-          class $className extends $superClass[$caseClazzName]
-          new $className
-        """
-    }
   }
 
   private[macros] def resolveParameters[T: c.WeakTypeTag]: List[List[Symbol]] =

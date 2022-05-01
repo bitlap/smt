@@ -31,9 +31,24 @@ import org.bitlap.csv.core.macros.DeriveCsvableBuilder
  */
 private[core] class CsvableBuilder[T] {
 
+  /**
+   * Convert this CSV column string to any Scala types.
+   *
+   * @param scalaField The field in scala case class.
+   * @param value      This function specifies how you want to convert this field to a CSV string.
+   * @tparam SF The field type, generally, it is not necessary to specify, but it is safer if specify.
+   * @return
+   */
   def setField[SF](scalaField: T ⇒ SF, value: SF => String): CsvableBuilder[T] =
     macro DeriveCsvableBuilder.setFieldImpl[T, SF]
 
+  /**
+   * Create a custom builder for converting this scala value to CSV line string.
+   *
+   * @param t               The value of Scala case class.
+   * @param columnSeparator The separator for CSV column value.
+   * @return
+   */
   def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
 
 }

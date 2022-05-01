@@ -30,6 +30,15 @@ import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
  */
 case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
 
+// do not have a implicit val in companion Object
+case class Dimension2(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+
+case class Metric(time: Long, entity: Int, dimensions: List[Dimension3], metricName: String, metricValue: Int)
+
+case class Metric2(time: Long, entity: Int, dimensions: Seq[Dimension3], metricName: String, metricValue: Int)
+
+case class Dimension3(key: String, value: String)
+
 object Dimension {
 
   implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
