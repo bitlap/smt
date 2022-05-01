@@ -154,4 +154,12 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     println(scala)
     assert(scala.get == e)
   }
+
+  "CustomConverterBuilder9" should "fail if case class has currying" in {
+    """
+      |case class Test(i:Int)(j:String)
+      |    val t = Test(1)("hello")
+      |    CsvableBuilder[Test].build(t).toCsvString
+      |""".stripMargin shouldNot compile
+  }
 }

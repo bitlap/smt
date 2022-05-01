@@ -22,7 +22,7 @@ Learn Scala macro and abstract syntax tree.
 # Environment
 
 - Compile passed in Java 8、11
-- Compile passed in Scala 2.11.12、2.12.14、2.13.6
+- Compile passed in Scala 2.11.12、2.12.14、2.13.8
 
 # Document
 
