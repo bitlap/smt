@@ -26,6 +26,10 @@ import org.bitlap.csv.core.{ Scalable, ScalableBuilder }
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
 
+/**
+ * @author 梦境迷离
+ * @version 1.0,2022/4/29
+ */
 class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
@@ -84,7 +88,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
          ..$preTrees
          new $packageName.Scalable[$clazzName] {
             final lazy private val $innerVarTermName = _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
-            ..${scalableBody[T](clazzName, innerVarTermName, preTrees.toList)}
+            ..${scalableBody[T](clazzName, innerVarTermName)}
          }
       """
     printTree[Scalable[T]](force = true, tree)
@@ -92,8 +96,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
 
   private def scalableBody[T: c.WeakTypeTag](
     clazzName: TypeName,
-    innerVarTermName: TermName,
-    preTrees: List[Tree]
+    innerVarTermName: TermName
   ): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val params = getCaseClassParams[T]()

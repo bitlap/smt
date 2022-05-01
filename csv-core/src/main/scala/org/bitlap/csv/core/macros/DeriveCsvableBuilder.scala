@@ -26,6 +26,10 @@ import org.bitlap.csv.core.{ Csvable, CsvableBuilder }
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
 
+/**
+ * @author 梦境迷离
+ * @version 1.0,2022/4/29
+ */
 class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
