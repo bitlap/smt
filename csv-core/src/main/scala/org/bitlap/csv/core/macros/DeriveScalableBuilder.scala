@@ -56,6 +56,9 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   def buildImpl[T: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Scalable[T]] =
     deriveScalableImpl[T](line, columnSeparator)
 
+  def buildDefaultImpl[T: c.WeakTypeTag](line: c.Expr[String]): c.Expr[Scalable[T]] =
+    deriveScalableImpl[T](line, c.Expr[Char](q"','"))
+
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: c.Expr[ScalableBuilder[T]] = {
     val className = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
     val caseClazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
@@ -114,7 +117,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
           } else {
             c.abort(
               c.enclosingPosition,
-              s"Missing usage `setField` for parsing ${fieldNames(idx)} to convert a `List` type , you have to define a custom way by using `setField` method!"
+              s"Missing usage `setField` for parsing `$clazzName.${fieldNames(idx)}` as a `List` , you have to define a custom way by using `setField` method!"
             )
             // q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
           }
@@ -125,7 +128,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
           } else {
             c.abort(
               c.enclosingPosition,
-              s"Missing usage `setField` for parsing ${fieldNames(idx)} to convert a `Seq` type , you have to define a custom way by using `setField` method!"
+              s"Missing usage `setField` for parsing `$clazzName.${fieldNames(idx)}` as a `Seq` , you have to define a custom way by using `setField` method!"
             )
             // q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
           }

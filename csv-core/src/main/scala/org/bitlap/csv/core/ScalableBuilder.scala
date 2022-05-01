@@ -51,10 +51,15 @@ private[core] class ScalableBuilder[T] {
    */
   def build(line: String, columnSeparator: Char): Scalable[T] = macro DeriveScalableBuilder.buildImpl[T]
 
+  /**
+   * Make columnSeparator assign to `,` as default value
+   */
+  def build(line: String): Scalable[T] = macro DeriveScalableBuilder.buildDefaultImpl[T]
+
 }
 
 object ScalableBuilder {
 
-  def apply[T]: ScalableBuilder[T] = macro DeriveScalableBuilder.applyImpl[T]
+  def apply[T <: Product]: ScalableBuilder[T] = macro DeriveScalableBuilder.applyImpl[T]
 
 }

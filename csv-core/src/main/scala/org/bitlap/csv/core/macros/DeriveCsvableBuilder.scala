@@ -54,6 +54,9 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   def applyImpl[T: c.WeakTypeTag]: c.Expr[CsvableBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
+  def buildDefaultImpl[T: c.WeakTypeTag](t: c.Expr[T]): c.Expr[Csvable[T]] =
+    deriveCsvableImpl[T](t, c.Expr[Char](q"','"))
+
   def buildImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] =
     deriveCsvableImpl[T](t, columnSeparator)
 
@@ -101,25 +104,44 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     val fieldsToString = indexTypes.map { idxType =>
       val customFunction = () =>
         q"${TermName(builderFunctionPrefix + fieldNames(idxType._1))}.apply($innerVarTermName.${indexByName(idxType._1)})"
-      if (idxType._2 <:< typeOf[Option[_]]) {
-        val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-        if (customTrees.contains(fieldNames(idxType._1))) {
-          customFunction()
-        } else {
-          q"""
+      idxType._2 match {
+        case t if t <:< typeOf[List[_]] =>
+          if (customTrees.contains(fieldNames(idxType._1))) {
+            q"${customFunction()}"
+          } else {
+            c.abort(
+              c.enclosingPosition,
+              s"Missing usage `setField` for converting `$clazzName.${fieldNames(idxType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+            )
+          }
+        case t if t <:< typeOf[Seq[_]] =>
+          if (customTrees.contains(fieldNames(idxType._1))) {
+            q"${customFunction()}"
+          } else {
+            c.abort(
+              c.enclosingPosition,
+              s"Missing usage `setField` for converting `$clazzName.${fieldNames(idxType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+            )
+          }
+        case t if t <:< typeOf[Option[_]] =>
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          if (customTrees.contains(fieldNames(idxType._1))) {
+            customFunction()
+          } else {
+            q"""
               $packageName.Csvable[${genericType.typeSymbol.name.toTypeName}]._toCsvString {
                 if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(
-            idxType._1
-          )}.get
+              idxType._1
+            )}.get
               }
             """
-        }
-      } else {
-        if (customTrees.contains(fieldNames(idxType._1))) {
-          customFunction()
-        } else {
-          q"$packageName.Csvable[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(idxType._1)})"
-        }
+          }
+        case _ =>
+          if (customTrees.contains(fieldNames(idxType._1))) {
+            customFunction()
+          } else {
+            q"$packageName.Csvable[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+          }
       }
     }
     val separator = q"$columnSeparator"

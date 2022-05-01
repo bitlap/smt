@@ -118,4 +118,40 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     )
 
   }
+
+  private val csv = """100,1,"{""city"":""北京"",""os"":""Mac""}",vv,1"""
+  private val metric = Metric(1, 2, Nil, "name", 2)
+  private val metric2 = Metric2(1, 2, Nil, "name", 2)
+
+  "CustomConverterBuilder6" should "fail when find List or Seq but without using setFiled" in {
+    """
+      |ScalableBuilder[Metric2].build(csv, ',').toScala
+      |""".stripMargin shouldNot compile
+
+    """
+      |CsvableBuilder[Metric2].build(metric, ',').toCsvString
+      |""".stripMargin shouldNot compile
+
+  }
+
+  "CustomConverterBuilder7" should "fail when find List or Seq but without using setFiled" in {
+    """
+      |ScalableBuilder[Metric2].build(csv, ',').toScala
+      |""".stripMargin shouldNot compile
+
+    """
+      |CsvableBuilder[Metric2].build(metric2, ',').toCsvString
+      |""".stripMargin shouldNot compile
+  }
+
+  "CustomConverterBuilder8" should "ok when not pass columnSeparator" in {
+    val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
+    val csv = CsvableBuilder[Dimension2].build(e).toCsvString
+    println(csv)
+    assert(csv == "1,hello,c,1,1,false,0.1,0.2")
+
+    val scala = ScalableBuilder[Dimension2].build(csv).toScala
+    println(scala)
+    assert(scala.get == e)
+  }
 }
