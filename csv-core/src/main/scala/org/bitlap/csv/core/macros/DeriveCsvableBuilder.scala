@@ -36,7 +36,10 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   private val builderFunctionPrefix = "csvableBuilderFunction$"
 
-  def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](scalaField: c.Expr[T ⇒ SF], value: c.Expr[SF => String]): c.Expr[CsvableBuilder[T]] = {
+  def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
+    scalaField: c.Expr[T ⇒ SF],
+    value: c.Expr[SF => String]
+  ): c.Expr[CsvableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
@@ -44,13 +47,11 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     printTree[CsvableBuilder[T]](force = true, tree)
   }
 
-  def applyImpl[T: c.WeakTypeTag]: c.Expr[CsvableBuilder[T]] = {
+  def applyImpl[T: c.WeakTypeTag]: c.Expr[CsvableBuilder[T]] =
     deriveBuilderApplyImpl[T]
-  }
 
-  def buildImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
+  def buildImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] =
     deriveCsvableImpl[T](t, columnSeparator)
-  }
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: c.Expr[CsvableBuilder[T]] = {
     val className = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
@@ -66,13 +67,12 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   private def deriveCsvableImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val (_, preTrees) = customTrees.collect {
-      case (key, expr: Expr[Tree]@unchecked) ⇒
-        expr.tree match {
-          case buildFunction: Function ⇒
-            val functionName = TermName(builderFunctionPrefix + key)
-            key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
-        }
+    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) ⇒
+      expr.tree match {
+        case buildFunction: Function ⇒
+          val functionName = TermName(builderFunctionPrefix + key)
+          key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
+      }
     }.unzip
     val innerVarTermName = TermName("_t")
     val tree =
@@ -86,31 +86,37 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     printTree[Csvable[T]](force = false, tree)
   }
 
-  private def CsvableBody[T: c.WeakTypeTag](columnSeparator: c.Expr[Char], innerVarTermName: TermName, customTrees: mutable.Map[String, Any]): c.Expr[Csvable[T]] = {
+  private def CsvableBody[T: c.WeakTypeTag](
+    columnSeparator: c.Expr[Char],
+    innerVarTermName: TermName,
+    customTrees: mutable.Map[String, Any]
+  ): c.Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
     val (fieldNames, indexTypes) = zipAllCaseClassParams
     val indexByName = (i: Int) => TermName(fieldNames(i))
-    val fieldsToString = indexTypes.map {
-      idxType =>
-        val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idxType._1))}.apply($innerVarTermName.${indexByName(idxType._1)})"
-        if (idxType._2 <:< typeOf[Option[_]]) {
-          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-          if (customTrees.contains(fieldNames(idxType._1))) {
-            customFunction()
-          } else {
-            q"""
+    val fieldsToString = indexTypes.map { idxType =>
+      val customFunction = () =>
+        q"${TermName(builderFunctionPrefix + fieldNames(idxType._1))}.apply($innerVarTermName.${indexByName(idxType._1)})"
+      if (idxType._2 <:< typeOf[Option[_]]) {
+        val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+        if (customTrees.contains(fieldNames(idxType._1))) {
+          customFunction()
+        } else {
+          q"""
               $packageName.Csvable[${genericType.typeSymbol.name.toTypeName}]._toCsvString {
-                if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(idxType._1)}.get
+                if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(
+            idxType._1
+          )}.get
               }
             """
-          }
-        } else {
-          if (customTrees.contains(fieldNames(idxType._1))) {
-            customFunction()
-          } else {
-            q"$packageName.Csvable[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(idxType._1)})"
-          }
         }
+      } else {
+        if (customTrees.contains(fieldNames(idxType._1))) {
+          customFunction()
+        } else {
+          q"$packageName.Csvable[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+        }
+      }
     }
     val separator = q"$columnSeparator"
     val tree =

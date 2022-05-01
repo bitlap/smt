@@ -26,14 +26,12 @@ import org.bitlap.tools.logs.LogType.LogType
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/3/29
  */
 package object logs {
 
   /**
-   *
    * @author 梦境迷离
    * @version 1.0,2022/3/29
    */
@@ -45,7 +43,6 @@ package object logs {
   }
 
   /**
-   *
    * @author 梦境迷离
    * @param classNameStr The class Name.
    * @param isClass      Is it a class?

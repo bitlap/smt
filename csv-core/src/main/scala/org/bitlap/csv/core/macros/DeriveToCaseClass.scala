@@ -37,40 +37,41 @@ object DeriveToCaseClass {
     private val packageName = q"_root_.org.bitlap.csv.core"
 
     def macroImpl[T <: Product: c.WeakTypeTag](
-      line:            c.Expr[String],
+      line: c.Expr[String],
       columnSeparator: c.Expr[Char]
     ): c.Expr[Option[T]] = {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName = TermName("_columns")
-      val fields = (columns: TermName) => checkCaseClassZipParams[T](columns).map { idxType =>
-        val columnValues = idxType._1._2
-        if (idxType._2 <:< typeOf[Option[_]]) {
-          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-          q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
-        } else {
-          val caseClassFileTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
-          idxType._2 match {
-            case t if t =:= typeOf[Int] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
-            case t if t =:= typeOf[String] =>
-              q"""$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse("")"""
-            case t if t =:= typeOf[Float] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0F)"
-            case t if t =:= typeOf[Double] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0D)"
-            case t if t =:= typeOf[Char] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse('?')"
-            case t if t =:= typeOf[Byte] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
-            case t if t =:= typeOf[Short] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
-            case t if t =:= typeOf[Boolean] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(false)"
-            case t if t =:= typeOf[Long] =>
-              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0L)"
+      val fields = (columns: TermName) =>
+        checkCaseClassZipParams[T](columns).map { idxType =>
+          val columnValues = idxType._1._2
+          if (idxType._2 <:< typeOf[Option[_]]) {
+            val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+            q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
+          } else {
+            val caseClassFileTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
+            idxType._2 match {
+              case t if t =:= typeOf[Int] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
+              case t if t =:= typeOf[String] =>
+                q"""$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse("")"""
+              case t if t =:= typeOf[Float] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0F)"
+              case t if t =:= typeOf[Double] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0D)"
+              case t if t =:= typeOf[Char] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse('?')"
+              case t if t =:= typeOf[Byte] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
+              case t if t =:= typeOf[Short] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
+              case t if t =:= typeOf[Boolean] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(false)"
+              case t if t =:= typeOf[Long] =>
+                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0L)"
+            }
           }
         }
-      }
       val tree =
         q"""
            lazy val $innerVarTermName = _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)

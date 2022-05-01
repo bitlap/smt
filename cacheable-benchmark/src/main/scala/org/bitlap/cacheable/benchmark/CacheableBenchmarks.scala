@@ -51,40 +51,34 @@ class CacheableBenchmarks extends BenchmarkRuntime {
   var limitRandNum: Int = _
 
   @Benchmark
-  def benchmarkRedisCache(): Unit = {
+  def benchmarkRedisCache(): Unit =
     execute[String](cacheableRedis(Random.nextInt(limitRandNum), Random.nextInt(limitRandNum) + ""))
-  }
 
   @Benchmark
-  def benchmarkCaffeineCache(): Unit = {
+  def benchmarkCaffeineCache(): Unit =
     execute[String](cacheableCaffeine(Random.nextInt(limitRandNum), Random.nextInt(limitRandNum) + ""))
-  }
 
   @Benchmark
-  def benchmarkNoCache(): Unit = {
+  def benchmarkNoCache(): Unit =
     execute[String](unCacheable(Random.nextInt(limitRandNum), Random.nextInt(limitRandNum) + ""))
-  }
 
   @cacheable(local = false) // use RedisExecutor.live, not RedisExecutor.local
-  @inline def cacheableRedis(id: Int, key: String): ZIO[Any, Throwable, String] = {
+  @inline def cacheableRedis(id: Int, key: String): ZIO[Any, Throwable, String] =
     ZIO.effect {
       Try(Thread.sleep(5)).getOrElse(()) // Simulate a JDBC request
       Random.nextInt() + ""
     }
-  }
 
   @cacheable(local = true)
-  @inline def cacheableCaffeine(id: Int, key: String): ZIO[Any, Throwable, String] = {
+  @inline def cacheableCaffeine(id: Int, key: String): ZIO[Any, Throwable, String] =
     ZIO.effect {
       Try(Thread.sleep(5)).getOrElse(())
       Random.nextInt() + ""
     }
-  }
 
-  @inline def unCacheable(id: Int, key: String): ZIO[Any, Throwable, String] = {
+  @inline def unCacheable(id: Int, key: String): ZIO[Any, Throwable, String] =
     ZIO.effect {
       Try(Thread.sleep(5)).getOrElse(())
       Random.nextInt() + ""
     }
-  }
 }

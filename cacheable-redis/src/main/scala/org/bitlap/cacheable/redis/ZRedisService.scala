@@ -40,7 +40,6 @@ trait ZRedisService {
   def del(key: String): ZIO[ZRedisCacheService, RedisError, Long]
 
   /**
-   *
    * @param key
    * @param field
    * @param value
@@ -49,7 +48,6 @@ trait ZRedisService {
   def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long]
 
   /**
-   *
    * @param key
    * @param field
    * @return Option[T]
@@ -57,7 +55,6 @@ trait ZRedisService {
   def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]]
 
   /**
-   *
    * @param key
    * @tparam T
    * @return
@@ -70,12 +67,18 @@ object ZRedisService {
 
   lazy val zioRedisLayer: Layer[RedisError.IOError, ZRedisCacheService] = ZRedisConfiguration.redisLayer
 
-  def del(key: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer): IO[RedisError, Long] =
+  def del(key: String)(implicit
+    layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer
+  ): IO[RedisError, Long] =
     ZIO.serviceWith[ZRedisService](_.del(key)).provideLayer(layer)
 
-  def hSet[T: Schema](key: String, field: String, value: T)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer): IO[RedisError, Long] =
+  def hSet[T: Schema](key: String, field: String, value: T)(implicit
+    layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer
+  ): IO[RedisError, Long] =
     ZIO.serviceWith[ZRedisService](_.hSet[T](key, field, value)).provideLayer(layer)
 
-  def hGet[T: Schema](key: String, field: String)(implicit layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer): IO[RedisError, Option[T]] =
+  def hGet[T: Schema](key: String, field: String)(implicit
+    layer: Layer[RedisError.IOError, ZRedisCacheService] = zioRedisLayer
+  ): IO[RedisError, Option[T]] =
     ZIO.serviceWith[ZRedisService](_.hGet[T](key, field)).provideLayer(layer)
 }

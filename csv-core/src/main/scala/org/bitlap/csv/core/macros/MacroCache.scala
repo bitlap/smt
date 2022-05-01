@@ -23,7 +23,6 @@ package org.bitlap.csv.core.macros
 import scala.collection.mutable
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/5/1
  */

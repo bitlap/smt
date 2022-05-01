@@ -29,29 +29,31 @@ import java.util.concurrent.{ ConcurrentHashMap, TimeUnit }
 import scala.concurrent.duration.Duration
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/3/21
  */
 object ZCaffeine {
 
-  import zio.{ Task, ZIO }
+  import zio.Task
 
   private val conf: Config = ConfigFactory.load("reference.conf")
   private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
 
   private[caffeine] lazy val disabledLog: Boolean = custom.getBoolean("caffeine.disabledLog")
-  private[caffeine] lazy val calculateResultTimeout: Duration = Duration(custom.getString("caffeine.calculateResultTimeout"))
+  private[caffeine] lazy val calculateResultTimeout: Duration = Duration(
+    custom.getString("caffeine.calculateResultTimeout")
+  )
 
   private lazy val maximumSize: Int = custom.getInt("caffeine.maximumSize")
   private lazy val expireAfterWriteSeconds: Int = custom.getInt("caffeine.expireAfterWriteSeconds")
 
-  val hashCache: Cache[String, ConcurrentHashMap[String, Any]] = Caffeine.newBuilder()
+  val hashCache: Cache[String, ConcurrentHashMap[String, Any]] = Caffeine
+    .newBuilder()
     .maximumSize(maximumSize)
     .expireAfterWrite(expireAfterWriteSeconds, TimeUnit.SECONDS)
     .build[String, ConcurrentHashMap[String, Any]]
 
-  def hGet[T](key: String, field: String): Task[Option[T]] = {
+  def hGet[T](key: String, field: String): Task[Option[T]] =
     Utils.effectBlocking {
       key.synchronized {
         val hashMap = hashCache.getIfPresent(key)
@@ -67,9 +69,8 @@ object ZCaffeine {
         }
       }
     }
-  }
 
-  def hDel(key: String, field: String): Task[Unit] = {
+  def hDel(key: String, field: String): Task[Unit] =
     Utils.effectBlocking {
       key.synchronized {
         val hashMap = hashCache.getIfPresent(key)
@@ -81,17 +82,15 @@ object ZCaffeine {
         }
       }
     }
-  }
 
-  def del(key: String): Task[Unit] = {
+  def del(key: String): Task[Unit] =
     Utils.effectBlocking {
       key.synchronized {
         hashCache.invalidate(key)
       }
     }
-  }
 
-  def hSet(key: String, field: String, value: Any): Task[Unit] = {
+  def hSet(key: String, field: String, value: Any): Task[Unit] =
     Utils.effectBlocking {
       key.synchronized {
         val hashMap = hashCache.getIfPresent(key)
@@ -105,5 +104,4 @@ object ZCaffeine {
         }
       }
     }
-  }
 }

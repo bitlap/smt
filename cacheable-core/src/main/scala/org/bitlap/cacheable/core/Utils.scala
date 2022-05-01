@@ -50,7 +50,6 @@ object Utils {
   def debugS(msg: => String): UStream[Unit] =
     ZStream.fromEffect(debug(msg))
 
-  def effectBlocking[T](action: => T): ZIO[Any, Throwable, T] = {
+  def effectBlocking[T](action: => T): ZIO[Any, Throwable, T] =
     ZIO.serviceWith[Blocking.Service](_.effectBlocking(action)).provideLayer(Blocking.live)
-  }
 }

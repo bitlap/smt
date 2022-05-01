@@ -24,7 +24,6 @@ package org.bitlap.tools.macros
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/7
  * @version 1.0
@@ -38,21 +37,22 @@ object constructorMacro {
     private val extractArgs: Seq[String] = {
       c.prefix.tree match {
         case q"new constructor(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
-        case q"new constructor($excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
-        case q"new constructor()" => Seq.empty[String]
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+        case q"new constructor($excludeFields)"               => evalTree(excludeFields.asInstanceOf[Tree])
+        case q"new constructor()"                             => Seq.empty[String]
+        case _                                                => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
     }
 
-    private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] = {
-      getClassMemberValDefs(annotteeClassDefinitions).filter(v => v.mods.hasFlag(Flag.MUTABLE) &&
-        !extractArgs.contains(v.name.decodedName.toString))
-    }
+    private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] =
+      getClassMemberValDefs(annotteeClassDefinitions).filter(v =>
+        v.mods.hasFlag(Flag.MUTABLE) &&
+          !extractArgs.contains(v.name.decodedName.toString)
+      )
 
     /**
      * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
      */
-    private def getMemberVarDefTermNameWithType(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] = {
+    private def getMemberVarDefTermNameWithType(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] =
       getMutableValDefAndExcludeFields(annotteeClassDefinitions).map { v =>
         if (v.tpt.isEmpty) { // val i = 1, tpt is `<type ?>`
           // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
@@ -61,16 +61,21 @@ object constructorMacro {
           q"${v.name}: ${v.tpt}"
         }
       }
-    }
 
     /**
      * We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
-    private def getThisMethodWithCurrying(annotteeClassParams: List[List[Tree]], annotteeClassDefinitions: Seq[Tree]): Tree = {
+    private def getThisMethodWithCurrying(
+      annotteeClassParams: List[List[Tree]],
+      annotteeClassDefinitions: Seq[Tree]
+    ): Tree = {
       val classInternalFieldsWithType = getMemberVarDefTermNameWithType(annotteeClassDefinitions)
 
       if (classInternalFieldsWithType.isEmpty) {
-        c.abort(c.enclosingPosition, s"${ErrorMessage.ONLY_CLASS} and the internal fields (declare as 'var') should not be Empty.")
+        c.abort(
+          c.enclosingPosition,
+          s"${ErrorMessage.ONLY_CLASS} and the internal fields (declare as 'var') should not be Empty."
+        )
       }
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
       val annotteeClassFieldNames = getMutableValDefAndExcludeFields(annotteeClassDefinitions).map(_.name)
@@ -98,11 +103,9 @@ object constructorMacro {
     }
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val resTree = appendClassBody(
-        classDecl,
-        classInfo => List(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
-      c.Expr(
-        q"""
+      val resTree =
+        appendClassBody(classDecl, classInfo => List(getThisMethodWithCurrying(classInfo.classParamss, classInfo.body)))
+      c.Expr(q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
           $resTree
          """)

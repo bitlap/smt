@@ -23,12 +23,11 @@ package org.bitlap.tools.macros
 
 import org.bitlap.tools.logs.LogType._
 import org.bitlap.tools.logs.{ LogArgument, LogType }
-import org.bitlap.tools.{ PACKAGE, logs }
+import org.bitlap.tools.{ logs, PACKAGE }
 
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/7
  * @version 1.0
@@ -50,13 +49,12 @@ object logMacro {
       case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
-    private def getLogType(logType: Tree): LogType = {
+    private def getLogType(logType: Tree): LogType =
       if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
         evalTree(logType)
       } else {
         LogType.getLogType(logType.toString())
       }
-    }
 
     private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {
       val buildArg = (name: Name) => LogArgument(name.toTermName.decodedName.toString, isClass = true)
@@ -90,8 +88,9 @@ object logMacro {
            """
         case (_: ModuleDef) :: _ =>
           extractArgs match {
-            case ScalaLoggingLazy | ScalaLoggingStrict => appendImplDefSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
-            case _                                     => prependImplDefBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
+            case ScalaLoggingLazy | ScalaLoggingStrict =>
+              appendImplDefSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
+            case _ => prependImplDefBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
           }
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).

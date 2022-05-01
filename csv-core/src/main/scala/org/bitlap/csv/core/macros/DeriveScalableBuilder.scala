@@ -35,7 +35,10 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   private val annoBuilderPrefix = "_AnonScalableBuilder$"
   private val builderFunctionPrefix = "_scalableBuilderFunction$"
 
-  def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](scalaField: c.Expr[T ⇒ SF], value: c.Expr[String ⇒ SF]): c.Expr[ScalableBuilder[T]] = {
+  def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
+    scalaField: c.Expr[T ⇒ SF],
+    value: c.Expr[String ⇒ SF]
+  ): c.Expr[ScalableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
@@ -43,13 +46,11 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     printTree[ScalableBuilder[T]](force = true, tree)
   }
 
-  def applyImpl[T: c.WeakTypeTag]: c.Expr[ScalableBuilder[T]] = {
+  def applyImpl[T: c.WeakTypeTag]: c.Expr[ScalableBuilder[T]] =
     deriveBuilderApplyImpl[T]
-  }
 
-  def buildImpl[T: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Scalable[T]] = {
+  def buildImpl[T: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Scalable[T]] =
     deriveScalableImpl[T](line, columnSeparator)
-  }
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: c.Expr[ScalableBuilder[T]] = {
     val className = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
@@ -63,18 +64,21 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
 
   }
 
-  private def deriveScalableImpl[T: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Scalable[T]] = {
+  private def deriveScalableImpl[T: c.WeakTypeTag](
+    line: c.Expr[String],
+    columnSeparator: c.Expr[Char]
+  ): c.Expr[Scalable[T]] = {
     val clazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val (_, preTrees) = customTrees.collect {
-      case (key, expr: Expr[Tree]@unchecked) ⇒
-        expr.tree match {
-          case buildFunction: Function ⇒
-            val functionName = TermName(builderFunctionPrefix + key)
-            key -> q"lazy  val $functionName: _root_.scala.Function1[String, ${buildFunction.tpe.typeArgs.last}] = $buildFunction"
-        }
+    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) ⇒
+      expr.tree match {
+        case buildFunction: Function ⇒
+          val functionName = TermName(builderFunctionPrefix + key)
+          key -> q"lazy  val $functionName: _root_.scala.Function1[String, ${buildFunction.tpe.typeArgs.last}] = $buildFunction"
+      }
     }.unzip
     val innerVarTermName = TermName("_columns")
+    // NOTE: preTrees must be at the same level as Scalable 
     val tree =
       q"""
          ..$preTrees
@@ -86,7 +90,11 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     printTree[Scalable[T]](force = true, tree)
   }
 
-  private def scalableBody[T: c.WeakTypeTag](clazzName: TypeName, innerVarTermName: TermName, preTrees: List[Tree]): Tree = {
+  private def scalableBody[T: c.WeakTypeTag](
+    clazzName: TypeName,
+    innerVarTermName: TermName,
+    preTrees: List[Tree]
+  ): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val params = getCaseClassParams[T]()
     val fieldNames = params.map(_.name.decodedName.toString)

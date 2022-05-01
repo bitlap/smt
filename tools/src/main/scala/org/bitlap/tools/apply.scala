@@ -23,7 +23,7 @@ package org.bitlap.tools
 
 import org.bitlap.tools.macros.applyMacro
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * annotation to generate apply method for primary construction of ordinary classes.

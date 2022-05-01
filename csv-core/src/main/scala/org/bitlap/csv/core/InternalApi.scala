@@ -24,8 +24,7 @@ package org.bitlap.csv.core
 import scala.annotation.StaticAnnotation
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/5/1
  */
-case class InternalApi() extends StaticAnnotation 
+case class InternalApi() extends StaticAnnotation

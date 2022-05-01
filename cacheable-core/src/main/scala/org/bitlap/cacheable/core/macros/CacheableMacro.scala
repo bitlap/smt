@@ -41,15 +41,15 @@ object CacheableMacro {
 
     protected val local: Boolean = {
       c.prefix.tree match {
-        case q"new cacheable(local=$local)" => c.eval(c.Expr[Boolean](c.untypecheck(local.asInstanceOf[Tree].duplicate)))
-        case q"new cacheable($local)"       => c.eval(c.Expr[Boolean](c.untypecheck(local.asInstanceOf[Tree].duplicate)))
-        case q"new cacheable()"             => true
+        case q"new cacheable(local=$local)" =>
+          c.eval(c.Expr[Boolean](c.untypecheck(local.asInstanceOf[Tree].duplicate)))
+        case q"new cacheable($local)" => c.eval(c.Expr[Boolean](c.untypecheck(local.asInstanceOf[Tree].duplicate)))
+        case q"new cacheable()"       => true
       }
     }
 
-    private def getParamsName(vparamss: List[List[ValDef]]): List[List[TermName]] = {
+    private def getParamsName(vparamss: List[List[ValDef]]): List[List[TermName]] =
       vparamss.map(_.map(_.name))
-    }
 
     def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {
@@ -59,9 +59,14 @@ object CacheableMacro {
           }
           val tp = c.typecheck(tq"$tpt", c.TYPEmode).tpe
           if (!(tp <:< typeOf[zio.ZIO[_, _, _]]) && !(tp <:< typeOf[zio.stream.ZStream[_, _, _]])) {
-            c.abort(c.enclosingPosition, s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!")
+            c.abort(
+              c.enclosingPosition,
+              s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!"
+            )
           }
-          val importExpr = if (local) q"import _root_.org.bitlap.cacheable.caffeine.Implicits._" else q"import _root_.org.bitlap.cacheable.redis.Implicits._"
+          val importExpr =
+            if (local) q"import _root_.org.bitlap.cacheable.caffeine.Implicits._"
+            else q"import _root_.org.bitlap.cacheable.redis.Implicits._"
           val newBody =
             q"""
              val $resultValName = ${defDef.rhs}

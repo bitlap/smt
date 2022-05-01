@@ -26,7 +26,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/6/28
  * @version 1.0
@@ -181,7 +180,6 @@ class LogTest extends AnyFlatSpec with Matchers {
     @log(logType = org.bitlap.tools.logs.LogType.Slf4j) class TestLog2() {
       log.info("")
     }
-    import org.bitlap.tools.logs.LogType.JLog
     @log(logType = JLog) class TestLog3() {
       log.info("")
     }
@@ -199,7 +197,6 @@ class LogTest extends AnyFlatSpec with Matchers {
       |    }
       |""".stripMargin should compile
 
-    import org.bitlap.tools.logs.LogType
     @log(logType = LogType.ScalaLoggingLazy)
     class TestClass2(val i: Int = 0, var j: Int) {
       log.info("hello world")
@@ -230,7 +227,6 @@ class LogTest extends AnyFlatSpec with Matchers {
       |    }
       |""".stripMargin should compile
 
-    import org.bitlap.tools.logs.LogType
     @log(logType = LogType.ScalaLoggingStrict)
     class TestClass2(val i: Int = 0, var j: Int) extends Serializable {
       log.info("hello world")

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory
  */
 trait ScalaStrictLogging {
 
-  protected val log: com.typesafe.scalalogging.Logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(getClass.getName))
+  protected val log: com.typesafe.scalalogging.Logger =
+    com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(getClass.getName))
 
 }

@@ -30,7 +30,6 @@ import zio.stream.ZStream
 import scala.util.Random
 
 /**
- *
  * @author 梦境迷离
  * @since 2022/3/19
  * @version 1.0
@@ -51,21 +50,18 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   "cacheEvict1" should "ok" in {
     @cacheEvict(local = false, values = List("readStreamFunction1"))
-    def updateStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
+    def updateStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] =
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
-    }
 
     @cacheEvict(local = false, values = List("readStreamFunction1"))
-    def updateAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] = {
+    def updateAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] =
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
-    }
   }
 
   "cacheEvict2" should "ok" in {
     @cacheEvict(local = false, values = List("readStreamFunction1"))
-    def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
   }
 
   "cacheEvict3" should "String cannot compile" in {
@@ -97,14 +93,12 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   "cacheEvict6" should "expected annotation pattern" in {
     @cacheEvict(local = false, values = List("readStreamFunction1"))
-    def updateFunction1(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction1(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
 
     @cacheEvict(local = false, values = List("readStreamFunction1"))
-    def updateFunction2(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction2(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
   }
 
   "cacheEvict7" should "unexpected annotation pattern" in {

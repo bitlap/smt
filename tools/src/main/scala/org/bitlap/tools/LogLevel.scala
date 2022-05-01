@@ -37,10 +37,10 @@ object LogLevel extends Enumeration {
     // TODO not good way
     val tpe1 = s"$PACKAGE.elapsed.$shortType" //LogLevel.INFO
     val tpe2 = s"$PACKAGE.elapsed.LogLevel.$shortType" // INFO
-    val v = LogLevel.values.find(p => {
+    val v = LogLevel.values.find { p =>
       s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe1 ||
-        s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe2 || s"$PACKAGE.elapsed.LogLevel.${p.toString}" == shortType
-    }).get.toString
+      s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe2 || s"$PACKAGE.elapsed.LogLevel.${p.toString}" == shortType
+    }.get.toString
     LogLevel.withName(v)
   }
 }

@@ -24,7 +24,6 @@ package org.bitlap.tools.macros
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/7
  * @version 1.0
@@ -35,13 +34,12 @@ object jsonMacro {
 
     import c.universe._
 
-    private def jsonFormatter(className: TypeName, fields: List[Tree]): Tree = {
+    private def jsonFormatter(className: TypeName, fields: List[Tree]): Tree =
       fields.length match {
         case 0 => c.abort(c.enclosingPosition, "Cannot create json formatter for case class with no fields")
         case _ =>
           q"implicit val jsonAnnotationFormat = play.api.libs.json.Json.format[$className]"
       }
-    }
 
     override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
       super.checkAnnottees(annottees)
@@ -56,8 +54,7 @@ object jsonMacro {
       val format = jsonFormatter(classDefinition.className, classDefinition.classParamss.flatten)
       val compDecl = appendModuleBody(compDeclOpt, List(format), classDefinition.className)
       // Return both the class and companion object declarations
-      c.Expr(
-        q"""
+      c.Expr(q"""
         $classDecl
         $compDecl
       """)

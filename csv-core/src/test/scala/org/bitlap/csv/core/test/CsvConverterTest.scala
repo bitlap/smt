@@ -26,7 +26,6 @@ import org.scalatest.matchers.should.Matchers
 import org.bitlap.csv.core.Converter
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
@@ -71,7 +70,9 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
       """1,cdf,d,12,2,false,0.1,0.2
         |2,cdf,d,12,2,false,0.1,0.1""".stripMargin
     val dimension = Converter[List[Dimension]].toScala(line)
-    assert(dimension.toString == "Some(List(Dimension(1,Some(cdf),d,12,2,false,0.1,0.2), Dimension(2,Some(cdf),d,12,2,false,0.1,0.1)))")
+    assert(
+      dimension.toString == "Some(List(Dimension(1,Some(cdf),d,12,2,false,0.1,0.2), Dimension(2,Some(cdf),d,12,2,false,0.1,0.1)))"
+    )
     val csv = Converter[List[Dimension]].toCsvString(dimension.orNull)
     println(csv)
     assert(csv == line)

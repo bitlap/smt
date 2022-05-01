@@ -45,22 +45,21 @@ object elapsedMacro {
     private lazy val start: c.universe.TermName = TermName("$elapsedBegin")
     private lazy val valDef: c.universe.TermName = TermName("$elapsed")
 
-    private def getLogLevel(logLevel: Tree): LogLevel = {
+    private def getLogLevel(logLevel: Tree): LogLevel =
       if (logLevel.children.exists(t => t.toString().contains(PACKAGE))) {
         evalTree(logLevel)
       } else {
         LogLevel.getLogLevel(logLevel.toString())
       }
-    }
 
     private val extractArgumentsDetail: (Duration, LogLevel) = c.prefix.tree match {
-      case q"new elapsed(limit=$limit, logLevel=$logLevel)" => (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
+      case q"new elapsed(limit=$limit, logLevel=$logLevel)" =>
+        (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
-    private def getStartExpr: c.universe.Tree = {
+    private def getStartExpr: c.universe.Tree =
       q"""val $start = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime())"""
-    }
 
     private def getLog(methodName: TermName, logBy: Tree): c.universe.Tree = {
       // CI will fail when use lambda.
@@ -97,15 +96,15 @@ object elapsedMacro {
       mapToMethodDef(defDef, defDefMap.apply(defDef))
     }
 
-    private def getNewMethodWithFuture(defDef: DefDef): DefDef = {
-      mapToNewMethod(defDef, defDef => {
-        q"""
+    private def getNewMethodWithFuture(defDef: DefDef): DefDef =
+      mapToNewMethod(
+        defDef,
+        defDef => q"""
           $getStartExpr
           val resFuture = ${defDef.rhs}
           resFuture.map { res => ..${getPrintlnLog(defDef.name)} ; res }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
         """
-      })
-    }
+      )
 
     // There may be a half-way exit, rather than the one whose last expression is exit.
     // Unreliable function!!!
@@ -149,14 +148,14 @@ object elapsedMacro {
     //      }.toList
     //    }
 
-    private def getNewMethod(defDef: DefDef): DefDef = {
-      mapToNewMethod(defDef, defDef => {
-        q"""
+    private def getNewMethod(defDef: DefDef): DefDef =
+      mapToNewMethod(
+        defDef,
+        defDef => q"""
           $getStartExpr
           ${Try(defDef.rhs, Nil, getPrintlnLog(defDef.name))}
         """
-      })
-    }
+      )
 
     override def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {

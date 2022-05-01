@@ -22,7 +22,6 @@
 package org.bitlap.tools.methods.impl
 
 /**
- *
  * @author 梦境迷离
  * @since 2022/3/17
  * @version 1.0

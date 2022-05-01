@@ -40,6 +40,5 @@ trait Csvable[T] {
 object Csvable extends CsvableImplicits {
 
   def apply[T](implicit st: Csvable[T]): Csvable[T] = st
-  
-}
 
+}

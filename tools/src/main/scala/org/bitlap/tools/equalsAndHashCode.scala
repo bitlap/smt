@@ -23,7 +23,7 @@ package org.bitlap.tools
 
 import org.bitlap.tools.macros.equalsAndHashCodeMacro.EqualsAndHashCodeProcessor
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * annotation to generate equals and hashcode method for classes.

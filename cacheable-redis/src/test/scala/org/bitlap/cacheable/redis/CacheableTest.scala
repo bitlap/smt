@@ -31,7 +31,6 @@ import zio.Chunk
 import scala.util.Random
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/8/7
  * @version 1.0
@@ -43,40 +42,35 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
   "cacheable1" should "ok" in {
     @cacheable(local = false)
-    def readStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] = {
+    def readStreamFunction1(id: Int, key: String): ZStream[Any, Throwable, String] =
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
-    }
   }
 
   "cacheable2" should "expected annotation pattern" in {
     @cacheable(false)
-    def readFunction2(id: Int, key: String): Task[String] = {
+    def readFunction2(id: Int, key: String): Task[String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
   }
 
   "cacheable3" should "ok when return type is case class" in {
     @cacheable(local = false)
-    def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+    def readEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] =
       ZIO.effect(CacheValue(Random.nextInt() + ""))
-    }
   }
 
   "cacheable4" should "zstream operation is ok with redis" in {
     val chunk = Chunk(Random.nextInt().toString, Random.nextInt().toString, Random.nextInt().toString)
 
     @cacheable(local = false)
-    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] =
       ZStream.fromIterable(chunk)
-    }
 
     println(chunk)
     val result = runtime.unsafeRun(for {
       _ <- ZRedisService.del("CacheableTest-readStreamFunction")
       method <- readStreamFunction(1, "hello").runCollect
       cache <- ZRedisService.hGet[Chunk[String]]("CacheableTest-readStreamFunction", "1-hello")
-    } yield method -> cache.getOrElse(Chunk.empty)
-    )
+    } yield method -> cache.getOrElse(Chunk.empty))
     result._1 shouldEqual result._2
   }
 
@@ -84,15 +78,13 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     val cacheValue = CacheValue(Random.nextInt().toString)
 
     @cacheable(local = false)
-    def readEntityStreamFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] = {
+    def readEntityStreamFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] =
       ZStream.fromEffect(ZIO.effect(cacheValue))
-    }
 
     val result = runtime.unsafeRun(for {
       _ <- ZRedisService.del("CacheableTest-readEntityStreamFunction")
       method <- readEntityStreamFunction(1, "hello").runHead
-    } yield method
-    )
+    } yield method)
 
     result shouldEqual Some(cacheValue)
   }
@@ -101,16 +93,14 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     val cacheValue = CacheValue(Random.nextInt().toString)
 
     @cacheable(local = false)
-    def readEntityIOFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+    def readEntityIOFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] =
       ZIO.effect(cacheValue)
-    }
 
     val result = runtime.unsafeRun(for {
       _ <- ZRedisService.del("CacheableTest-readEntityIOFunction")
       method <- readEntityIOFunction(1, "hello")
       cache <- ZRedisService.hGet[CacheValue]("CacheableTest-readEntityIOFunction", "1-hello")
-    } yield Some(method) -> cache
-    )
+    } yield Some(method) -> cache)
 
     result._1 shouldEqual result._2
 

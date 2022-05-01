@@ -24,7 +24,6 @@ package org.bitlap.tools.macros
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/7
  * @version 1.0
@@ -37,13 +36,12 @@ object toStringMacro {
 
     import c.universe._
 
-    private def extractTree(aa: Tree, bb: Tree, cc: Tree): (Boolean, Boolean, Boolean) = {
+    private def extractTree(aa: Tree, bb: Tree, cc: Tree): (Boolean, Boolean, Boolean) =
       (
         evalTree[Boolean](aa),
         evalTree[Boolean](bb),
         evalTree[Boolean](cc)
       )
-    }
 
     private val extractArgumentsDetail: (Boolean, Boolean, Boolean) = c.prefix.tree match {
       case q"new toString(includeInternalFields=$aa, includeFieldNames=$bb, callSuper=$cc)" =>
@@ -68,20 +66,20 @@ object toStringMacro {
         extractArgumentsDetail._3
       )
       val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(argument, classDecl)))
-      c.Expr(
-        q"""
+      c.Expr(q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
           $resTree
          """)
     }
 
-    private def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree = {
+    private def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree =
       // Print one field as <name of the field>+"="+fieldName
       if (argument.includeFieldNames) {
         lastParam.fold(q"$field") { lp =>
           field match {
             case v: ValDef =>
-              if (v.name.toTermName.decodedName.toString != lp) q"""${v.name.toTermName.decodedName.toString}+${"="}+this.${v.name}+${", "}"""
+              if (v.name.toTermName.decodedName.toString != lp)
+                q"""${v.name.toTermName.decodedName.toString}+${"="}+this.${v.name}+${", "}"""
               else q"""${v.name.toTermName.decodedName.toString}+${"="}+this.${v.name}"""
             case _ => q"$field"
           }
@@ -89,12 +87,12 @@ object toStringMacro {
       } else {
         lastParam.fold(q"$field") { lp =>
           field match {
-            case v: ValDef => if (v.name.toTermName.decodedName.toString != lp) q"""${v.name}+${", "}""" else q"""${v.name}"""
-            case _         => if (field.toString() != lp) q"""$field+${", "}""" else q"""$field"""
+            case v: ValDef =>
+              if (v.name.toTermName.decodedName.toString != lp) q"""${v.name}+${", "}""" else q"""${v.name}"""
+            case _ => if (field.toString() != lp) q"""$field+${", "}""" else q"""$field"""
           }
         }
       }
-    }
 
     private def getToStringTemplate(argument: Argument, classDecl: ClassDef): Tree = {
       // For a given class definition, separate the components of the class
@@ -119,7 +117,8 @@ object toStringMacro {
       }
       val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(argument, lastParam, acc)}")
       //scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
-      val toString = q"""override def toString: String = ${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
+      val toString =
+        q"""override def toString: String = ${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
 
       // Have super class ?
       if (argument.callSuper && classDefinition.superClasses.nonEmpty) {
@@ -127,11 +126,11 @@ object toStringMacro {
           case tree: Tree => Some(tree) // TODO type check better
           case _          => None
         }
-        superClassDef.fold(toString)(_ => {
+        superClassDef.fold(toString) { _ =>
           val superClass = q"${"super="}"
-          q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", " else ""}+$paramsWithName + ${")"}).s(super.toString)"
+          q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", "
+          else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
-        )
       } else {
         toString
       }

@@ -24,7 +24,6 @@ package org.bitlap.tools.macros
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/7
  * @version 1.0
@@ -43,7 +42,11 @@ object applyMacro {
      * @return A apply method with currying.
      * @example Return a tree, such as `def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)`
      */
-    private def getApplyMethodWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree]): Tree = {
+    private def getApplyMethodWithCurrying(
+      typeName: TypeName,
+      fieldss: List[List[Tree]],
+      classTypeParams: List[Tree]
+    ): Tree = {
       val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
       // not currying
@@ -59,10 +62,13 @@ object applyMacro {
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
-      val apply = getApplyMethodWithCurrying(classDefinition.className, classDefinition.classParamss, classDefinition.classTypeParams)
+      val apply = getApplyMethodWithCurrying(
+        classDefinition.className,
+        classDefinition.classParamss,
+        classDefinition.classTypeParams
+      )
       val compDecl = appendModuleBody(compDeclOpt, List(apply), classDefinition.className)
-      c.Expr(
-        q"""
+      c.Expr(q"""
             $classDecl
             $compDecl
           """)

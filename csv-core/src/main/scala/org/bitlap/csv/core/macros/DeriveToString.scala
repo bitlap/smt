@@ -42,17 +42,18 @@ object DeriveToString {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName = TermName("_t")
       val indexByName = (i: Int) => TermName(names(i))
-      val fieldsToString = indexTypes.map {
-        idxType =>
-          if (idxType._2 <:< typeOf[Option[_]]) {
-            val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-            q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
-                  if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(idxType._1)}.get
+      val fieldsToString = indexTypes.map { idxType =>
+        if (idxType._2 <:< typeOf[Option[_]]) {
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
+                  if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(
+            idxType._1
+          )}.get
                 }
                 """
-          } else {
-            q"$packageName.Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
-          }
+        } else {
+          q"$packageName.Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+        }
       }
       val separator = q"$columnSeparator"
       val tree =

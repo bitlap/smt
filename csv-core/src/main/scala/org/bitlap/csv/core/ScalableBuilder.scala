@@ -31,7 +31,8 @@ import org.bitlap.csv.core.macros.DeriveScalableBuilder
  */
 private[core] class ScalableBuilder[T] {
 
-  def setField[SF](scalaField: T ⇒ SF, value: String ⇒ SF): ScalableBuilder[T] = macro DeriveScalableBuilder.setFieldImpl[T, SF]
+  def setField[SF](scalaField: T ⇒ SF, value: String ⇒ SF): ScalableBuilder[T] =
+    macro DeriveScalableBuilder.setFieldImpl[T, SF]
 
   def build(line: String, columnSeparator: Char): Scalable[T] = macro DeriveScalableBuilder.buildImpl[T]
 

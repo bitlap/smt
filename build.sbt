@@ -14,7 +14,6 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
 lazy val lastVersionForExamples = "0.4.2"
 
-
 lazy val scalatestVersion = "3.2.11"
 lazy val zioVersion = "1.0.13"
 lazy val zioLoggingVersion = "0.5.14"
@@ -38,11 +37,12 @@ lazy val commonSettings =
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "org.scalatest" %% "scalatest" % scalatestVersion % Test,
-    ), Compile / scalacOptions ++= {
+      "org.scalatest" %% "scalatest" % scalatestVersion % Test
+    ),
+    Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n <= 12 => Nil
-        case _ => List("-Ymacro-annotations" /*, "-Ymacro-debug-verbose"*/)
+        case _                       => List("-Ymacro-annotations", "-Ywarn-unused" /*, "-Ymacro-debug-verbose"*/ )
       }
     } ++ Seq("-language:experimental.macros"),
     Compile / compile := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
@@ -55,7 +55,8 @@ lazy val commonSettings =
   )
 
 lazy val `cacheable-core` = (project in file("cacheable-core"))
-  .settings(commonSettings).settings(Publishing.publishSettings)
+  .settings(commonSettings)
+  .settings(Publishing.publishSettings)
   .settings(
     name := "smt-cacheable-core",
     crossScalaVersions := List(scala213, scala212),
@@ -69,7 +70,8 @@ lazy val `cacheable-core` = (project in file("cacheable-core"))
   .enablePlugins(HeaderPlugin)
 
 lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
-  .settings(commonSettings).settings(Publishing.publishSettings)
+  .settings(commonSettings)
+  .settings(Publishing.publishSettings)
   .settings(
     name := "smt-cacheable-caffeine",
     crossScalaVersions := List(scala213, scala212),
@@ -77,12 +79,14 @@ lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
       "com.typesafe" % "config" % configVersion,
       "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
     )
-  ).dependsOn(`cacheable-core` % "compile->compile;test->test")
+  )
+  .dependsOn(`cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
 lazy val `cacheable-redis` = (project in file("cacheable-redis"))
-  .settings(commonSettings).settings(Publishing.publishSettings)
+  .settings(commonSettings)
+  .settings(Publishing.publishSettings)
   .settings(
     name := "smt-cacheable-redis",
     crossScalaVersions := List(scala213, scala212),
@@ -91,9 +95,10 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
       "com.typesafe" % "config" % configVersion,
       "dev.zio" %% "zio-schema" % zioSchemaVersion,
       "dev.zio" %% "zio-schema-json" % zioSchemaVersion,
-      "dev.zio" %% "zio-schema-derivation" % zioSchemaVersion % Test,
+      "dev.zio" %% "zio-schema-derivation" % zioSchemaVersion % Test
     )
-  ).dependsOn(`cacheable-core` % "compile->compile;test->test")
+  )
+  .dependsOn(`cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -102,7 +107,8 @@ lazy val `cacheable-benchmark` = (project in file("cacheable-benchmark"))
   .settings(
     name := "smt-cacheable-benchmark",
     publish / skip := true
-  ).dependsOn(`cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
+  )
+  .dependsOn(`cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
   .settings(paradise())
   .enablePlugins(HeaderPlugin, JmhPlugin)
 
@@ -110,8 +116,9 @@ lazy val `csv-core` = (project in file("csv-core"))
   .settings(commonSettings)
   .settings(
     name := "smt-csv-core",
-    crossScalaVersions := List(scala213, scala212, scala211),
-  ).settings(Publishing.publishSettings)
+    crossScalaVersions := List(scala213, scala212, scala211)
+  )
+  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -119,8 +126,9 @@ lazy val `csv-derive` = (project in file("csv-derive"))
   .settings(commonSettings)
   .settings(
     name := "smt-csv-derive",
-    crossScalaVersions := List(scala213, scala212, scala211),
-  ).settings(Publishing.publishSettings)
+    crossScalaVersions := List(scala213, scala212, scala211)
+  )
+  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
   .dependsOn(`csv-core` % "compile->compile;test->test")
@@ -140,19 +148,21 @@ lazy val tools = (project in file("tools"))
       "com.alipay.sofa" % "jraft-core" % jraftVersion % Test,
       "com.google.protobuf" % "protobuf-java" % protocVersion % Test
     )
-  ).settings(Publishing.publishSettings)
+  )
+  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val root = (project in file(".")).aggregate(
-  tools,
-  `cacheable-core`,
-  `cacheable-redis`,
-  `cacheable-caffeine`,
-  `cacheable-benchmark`,
-  `csv-core`,
-  `csv-derive`
-)
+lazy val root = (project in file("."))
+  .aggregate(
+    tools,
+    `cacheable-core`,
+    `cacheable-redis`,
+    `cacheable-caffeine`,
+    `cacheable-benchmark`,
+    `csv-core`,
+    `csv-derive`
+  )
   .settings(
     commands ++= Commands.value,
     crossScalaVersions := Nil,
@@ -179,39 +189,50 @@ lazy val root = (project in file(".")).aggregate(
   )
 
 //FIXME  root doesnot aggregate these examples
-lazy val `scala2-13` = (project in file("examples/scala2-13")).settings(scalaVersion := scala213)
-  .settings(libraryDependencies ++= Seq(
-    "org.bitlap" %% "smt-tools" % lastVersionForExamples,
-    "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
-    "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
-    "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
-  )).settings(
-  publish / skip := true,
-  Compile / scalacOptions += "-Ymacro-annotations"
-)
+lazy val `scala2-13` = (project in file("examples/scala2-13"))
+  .settings(scalaVersion := scala213)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.bitlap" %% "smt-tools" % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
+    )
+  )
+  .settings(
+    publish / skip := true,
+    Compile / scalacOptions += "-Ymacro-annotations"
+  )
 
-lazy val `scala2-12` = (project in file("examples/scala2-12")).settings(scalaVersion := scala212)
-  .settings(libraryDependencies ++= Seq(
-    "org.bitlap" %% "smt-tools" % lastVersionForExamples,
-    "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
-    "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
-    "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
-  )).settings(
-  publish / skip := true,
-  paradise()
-)
+lazy val `scala2-12` = (project in file("examples/scala2-12"))
+  .settings(scalaVersion := scala212)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.bitlap" %% "smt-tools" % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
+    )
+  )
+  .settings(
+    publish / skip := true,
+    paradise()
+  )
 
-lazy val `scala2-11` = (project in file("examples/scala2-11")).settings(scalaVersion := scala211)
-  .settings(libraryDependencies ++= Seq(
-    "org.bitlap" %% "smt-tools" % lastVersionForExamples,
-  )).settings(
-  publish / skip := true,
-  paradise()
-)
+lazy val `scala2-11` = (project in file("examples/scala2-11"))
+  .settings(scalaVersion := scala211)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.bitlap" %% "smt-tools" % lastVersionForExamples
+    )
+  )
+  .settings(
+    publish / skip := true,
+    paradise()
+  )
 
-def paradise(): Def.Setting[Seq[ModuleID]] = {
+def paradise(): Def.Setting[Seq[ModuleID]] =
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, n)) if n < 13 => Some("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-    case _ => None
+    case _                      => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
-}

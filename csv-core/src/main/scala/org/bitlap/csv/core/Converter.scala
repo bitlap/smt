@@ -92,20 +92,20 @@ object Converter {
     def toCsvString(i: Boolean): String = i.toString
   }
 
-  @inline private[this] def listCsvLinesConverter[A](l: List[String])(implicit ec: Converter[A]): Option[List[A]] = l match {
-    case Nil => Some(Nil)
-    case Cons(s, ss) =>
-      for {
-        x <- ec.toScala(s)
-        xs <- listCsvLinesConverter(ss)(ec)
-      } yield Cons(x, xs)
-  }
+  @inline private[this] def listCsvLinesConverter[A](l: List[String])(implicit ec: Converter[A]): Option[List[A]] =
+    l match {
+      case Nil => Some(Nil)
+      case Cons(s, ss) =>
+        for {
+          x <- ec.toScala(s)
+          xs <- listCsvLinesConverter(ss)(ec)
+        } yield Cons(x, xs)
+    }
 
   implicit def listCsvConverter[A <: Product](implicit ec: Converter[A]): Converter[List[A]] = new Converter[List[A]] {
     def toScala(line: String): Option[List[A]] = listCsvLinesConverter[A](line.split(LINE_SEPARATOR).toList)(ec)
 
-    def toCsvString(l: List[A]): String = {
+    def toCsvString(l: List[A]): String =
       if (l == null) "" else l.map(ec.toCsvString).mkString(LINE_SEPARATOR)
-    }
   }
 }

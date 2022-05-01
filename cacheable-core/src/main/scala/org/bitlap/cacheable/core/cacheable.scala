@@ -23,7 +23,7 @@ package org.bitlap.cacheable.core
 
 import org.bitlap.cacheable.core.macros.CacheableMacro.CacheableProcessor
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * A distributed cache for zio.

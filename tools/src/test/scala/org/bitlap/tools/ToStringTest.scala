@@ -25,7 +25,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/6/13
  * @version 1.0
@@ -154,7 +153,9 @@ class ToStringTest extends AnyFlatSpec with Matchers {
     }
     val s = TestClass(1, 2, TestClass(1, 2, TestClass(1, 3, null))).toString
     println(s)
-    assert(s == "TestClass(i=1, j=2, k=TestClass(i=1, j=2, k=TestClass(i=1, j=3, k=null, y=0, z=hello, x=world), y=0, z=hello, x=world), y=0, z=hello, x=world)")
+    assert(
+      s == "TestClass(i=1, j=2, k=TestClass(i=1, j=2, k=TestClass(i=1, j=3, k=null, y=0, z=hello, x=world), y=0, z=hello, x=world), y=0, z=hello, x=world)"
+    )
   }
 
   "toString11" should "class with name and code block contains method" in {

@@ -23,7 +23,7 @@ package org.bitlap.tools
 
 import org.bitlap.tools.macros.jacksonEnumMacro
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * annotation to generate equals and hashcode method for classes.

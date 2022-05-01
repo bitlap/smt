@@ -79,21 +79,39 @@ object CacheEvictMacro {
           }
           val tp = c.typecheck(tq"$tpt", c.TYPEmode).tpe
           if (!(tp <:< typeOf[zio.ZIO[_, _, _]]) && !(tp <:< typeOf[zio.stream.ZStream[_, _, _]])) {
-            c.abort(c.enclosingPosition, s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!")
+            c.abort(
+              c.enclosingPosition,
+              s"The return type of the method not support type: `${tp.typeSymbol.name.toString}`!"
+            )
           }
           val enclosingClassName = getEnclosingClassName
-          parameters._2.toSet[String].foreach(defName => {
+          parameters._2.toSet[String].foreach { defName =>
             if (findDefDefInEnclosingClass(TermName(defName)).isEmpty) {
-              c.abort(c.enclosingPosition, s"The specified method: `$defName` does not exist in enclosing class: `$enclosingClassName`!")
+              c.abort(
+                c.enclosingPosition,
+                s"The specified method: `$defName` does not exist in enclosing class: `$enclosingClassName`!"
+              )
             }
-          })
+          }
           val identities = if (parameters._2.isEmpty) {
-            getDefDefInEnclosingClass.map(_.decodedName.toString).filter(_ != "<init>").map(p => enclosingClassName + "-" + p)
+            getDefDefInEnclosingClass
+              .map(_.decodedName.toString)
+              .filter(_ != "<init>")
+              .map(p => enclosingClassName + "-" + p)
           } else {
             parameters._2.toSet.map(p => enclosingClassName + "-" + p)
           }
-          val importExpr = if (parameters._1) q"import _root_.org.bitlap.cacheable.caffeine.Implicits._" else q"import _root_.org.bitlap.cacheable.redis.Implicits._"
-          c.info(c.enclosingPosition, s"""These methods will remove from cache: $identities, key prefix is: $enclosingClassName, mode is: ${if (parameters._1) "local" else "redis"}""", true)
+          val importExpr =
+            if (parameters._1) q"import _root_.org.bitlap.cacheable.caffeine.Implicits._"
+            else q"import _root_.org.bitlap.cacheable.redis.Implicits._"
+          c.info(
+            c.enclosingPosition,
+            s"""These methods will remove from cache: $identities, key prefix is: $enclosingClassName, mode is: ${if (
+              parameters._1
+            ) "local"
+            else "redis"}""",
+            true
+          )
           val newBody =
             q"""
              val $resultValName = ${defDef.rhs}

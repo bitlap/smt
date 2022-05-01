@@ -23,7 +23,7 @@ package org.bitlap.tools
 
 import org.bitlap.tools.macros.toStringMacro
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * annotation to generate toString for classes.
@@ -37,9 +37,9 @@ import scala.annotation.{ StaticAnnotation, compileTimeOnly }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class toString(
-    includeInternalFields: Boolean = true,
-    includeFieldNames:     Boolean = true,
-    callSuper:             Boolean = false
+  includeInternalFields: Boolean = true,
+  includeFieldNames: Boolean = true,
+  callSuper: Boolean = false
 ) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro toStringMacro.ToStringProcessor.impl
 }

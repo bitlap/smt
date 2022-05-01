@@ -25,7 +25,6 @@ import org.bitlap.csv.core.Converter
 import org.bitlap.csv.derive.DeriveCsvConverter
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
@@ -35,4 +34,3 @@ object Dimension2 {
 
   implicit val dimensionCsvConverter: Converter[Dimension2] = DeriveCsvConverter.gen[Dimension2](' ')
 }
-

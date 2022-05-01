@@ -27,7 +27,6 @@ import org.scalatest.matchers.should.Matchers
 import org.bitlap.csv.core.CsvableBuilder
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
@@ -45,7 +44,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
   "CustomConverterBuilder2" should "ok when using json value" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
     val dimension1 = ScalableBuilder[Dimension]
-      .setField(_.c, f => 12L)
+      .setField(_.c, _ => 12L)
       .build(line, ',')
       .toScala
 
@@ -53,7 +52,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     assert(dimension1.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
 
     val csv = CsvableBuilder[Dimension]
-      .setField[Char](_.d, f => "????????")
+      .setField[Char](_.d, _ => "????????")
       .setField[Option[String]](_.value, js => s"\"${js.get.replace("\"", "\"\"")}\"")
       .build(dimension1.get, ',')
       .toCsvString
@@ -65,13 +64,13 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
   "CustomConverterBuilder3" should "ok when using json value" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
     val d = ScalableBuilder[Dimension]
-      .setField(_.value, s => None)
+      .setField(_.value, _ => None)
       .build(line, ',')
       .toScala
     assert(d.toString == "Some(Dimension(abc,None,d,12,2,false,0.1,0.23333))")
 
     val d2 = ScalableBuilder[Dimension]
-      .setField(_.value, s => None)
+      .setField(_.value, _ => None)
       .build("""abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333""", ',')
       .toScala
     assert(d2.toString == "Some(Dimension(abc,None,d,12,2,false,0.1,0.23333))")
@@ -85,9 +84,10 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
   }
 
   "CustomConverterBuilder4" should "ok when using toCsvString" in {
-    val e = Dimension("1", Some("hello"), 'c', 1L, 1, false, 0.1F, 0.2)
+    val e = Dimension("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
     val dimension1 = CsvableBuilder[Dimension]
-      .build(e, ',').toCsvString
+      .build(e, ',')
+      .toCsvString
     assert(dimension1 == "1,hello,c,1,1,false,0.1,0.2")
 
     val dimension2 = CsvableBuilder[Dimension]
@@ -98,24 +98,25 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
 
     val dimension3 = CsvableBuilder[Dimension]
       .setField[Option[String]](_.value, _ => "hello world")
-      .build(Dimension("1", Some("hello"), 'c', 1L, 1, false, 0.1F, 0.2), ',')
+      .build(Dimension("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2), ',')
       .toCsvString
     assert(dimension3 == "1,hello world,c,1,1,false,0.1,0.2")
   }
 
-
   "CustomConverterBuilder5" should "ok when using list" in {
     val es = List(
-      Dimension("1", Some("hello"), 'c', 1L, 1, true, 0.1F, 0.2),
-      Dimension("2", Some("hello bitlap"), 'c', 1L, 1, false, 0.1F, 0.2)
+      Dimension("1", Some("hello"), 'c', 1L, 1, true, 0.1f, 0.2),
+      Dimension("2", Some("hello bitlap"), 'c', 1L, 1, false, 0.1f, 0.2)
     )
 
     val dimension1 = es.map(e => CsvableBuilder[Dimension].build(e, ',').toCsvString)
     assert(dimension1 == List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2"))
-    
+
     val csv = List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2")
     val scala = csv.map(f => ScalableBuilder[Dimension].build(f, ',').toScala)
-    assert(scala.toString() == "List(Some(Dimension(1,Some(hello),c,1,1,true,0.1,0.2)), Some(Dimension(2,Some(hello bitlap),c,1,1,false,0.1,0.2)))")
+    assert(
+      scala.toString() == "List(Some(Dimension(1,Some(hello),c,1,1,true,0.1,0.2)), Some(Dimension(2,Some(hello bitlap),c,1,1,false,0.1,0.2)))"
+    )
 
   }
 }

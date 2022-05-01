@@ -25,8 +25,8 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.macros.blackbox
 import scala.collection.mutable
+
 /**
- * 
  * @author 梦境迷离
  * @since 2021/7/24
  * @version 1.0
@@ -36,8 +36,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   import c.universe._
 
   private[macros] def checkCaseClassZipParams[T: c.WeakTypeTag](
-                                                                 columns: TermName,
-                                                               ): List[((Int, Tree), Type)] = {
+    columns: TermName
+  ): List[((Int, Tree), Type)] = {
     val idxColumn = (i: Int) => q"${columns}(${i})"
     val params = getCaseClassParams[T]()
     val paramsSize = params.size
@@ -61,7 +61,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def printTree[T: c.WeakTypeTag](force: Boolean, resTree: c.Tree): c.Expr[T] = {
     c.info(
       c.enclosingPosition,
-      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
+      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
+        .toString() + "\n###### Expanded macro end ######\n",
       force = force
     )
     c.Expr[T](resTree)
@@ -89,14 +90,12 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         """
     }
   }
-  
-  private[macros] def resolveParameters[T: c.WeakTypeTag]: List[List[Symbol]] = {
-    c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
-  }
 
-  private[macros] def resolveClazzTypeName[T: c.WeakTypeTag]: c.universe.TypeName = {
+  private[macros] def resolveParameters[T: c.WeakTypeTag]: List[List[Symbol]] =
+    c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
+
+  private[macros] def resolveClazzTypeName[T: c.WeakTypeTag]: c.universe.TypeName =
     TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
-  }
 
   private[macros] def zipAllCaseClassParams[T: c.WeakTypeTag]: (List[String], List[(Int, Type)]) = {
     val parameters = resolveParameters[T]
@@ -109,7 +108,6 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     names -> params.zip(0 until paramsSize).map(f => f._2 -> c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
   }
 
-  private[macros] def getBuilderId(annoBuilderPrefix: String): Int = {
+  private[macros] def getBuilderId(annoBuilderPrefix: String): Int =
     c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt
-  }
 }

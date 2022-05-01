@@ -37,17 +37,16 @@ object StringUtils {
     val chars = line.toCharArray
 
     var idx = 0
-    while (idx < chars.length) {
+    while (idx < chars.length)
       chars(idx) match {
-        case c if c == columnSeparator => {
+        case c if c == columnSeparator =>
           listBuffer.append(columnBuffer.mkString)
           columnBuffer.clear()
           idx += 1
-        }
-        case '\"' => {
+        case '\"' =>
           idx += 1
           var isTail = false
-          while (idx < chars.length && !isTail) {
+          while (idx < chars.length && !isTail)
             if (chars(idx) == '\"' && idx + 1 < chars.length && chars(idx + 1) == '\"') {
               columnBuffer.append('\"')
               idx += 2
@@ -58,14 +57,10 @@ object StringUtils {
               columnBuffer.append(chars(idx))
               idx += 1
             }
-          }
-        }
-        case c => {
+        case c =>
           columnBuffer.append(c)
           idx += 1
-        }
       }
-    }
     if (columnBuffer.nonEmpty) {
       listBuffer.append(columnBuffer.mkString)
       columnBuffer.clear()
