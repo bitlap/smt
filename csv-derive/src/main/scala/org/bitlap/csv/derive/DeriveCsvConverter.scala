@@ -46,8 +46,8 @@ object DeriveCsvConverter {
       val tree =
         q"""
         new Converter[$typeName] {
-            override def toScala(line: String): Option[$typeName] = org.bitlap.csv.core.DeriveToCaseClass[$typeName](line, $columnSeparator)
-            override def toCsvString(t: $typeName): String = org.bitlap.csv.core.DeriveToString[$typeName](t, $columnSeparator)
+            override def toScala(line: String): Option[$typeName] = org.bitlap.csv.core.macros.DeriveToCaseClass[$typeName](line, $columnSeparator)
+            override def toCsvString(t: $typeName): String = org.bitlap.csv.core.macros.DeriveToString[$typeName](t, $columnSeparator)
         }
        """
       printTree[CC](force = true, tree)
