@@ -39,7 +39,7 @@ private[core] class CsvableBuilder[T] {
    * @tparam SF The field type, generally, it is not necessary to specify, but it is safer if specify.
    * @return
    */
-  def setField[SF](scalaField: T ⇒ SF, value: SF => String): CsvableBuilder[T] =
+  def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
     macro DeriveCsvableBuilder.setFieldImpl[T, SF]
 
   /**

@@ -39,7 +39,7 @@ private[core] class ScalableBuilder[T] {
    * @tparam SF The field type, generally, it is not necessary to specify, but it is safer if specify.
    * @return
    */
-  def setField[SF](scalaField: T ⇒ SF, value: String ⇒ SF): ScalableBuilder[T] =
+  def setField[SF](scalaField: T => SF, value: String => SF): ScalableBuilder[T] =
     macro DeriveScalableBuilder.setFieldImpl[T, SF]
 
   /**

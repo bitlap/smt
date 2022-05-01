@@ -51,21 +51,21 @@ object ProcessorCreator {
    */
   def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E <: Executor](
     defaultResp: Resp,
-    processRequest: (Service, RRC, Req) ⇒ Resp,
-    processException: (Service, RC, Exception) ⇒ Resp
+    processRequest: (Service, RRC, Req) => Resp,
+    processException: (Service, RC, Exception) => Resp
   )(implicit service: Service, executor: E): RRP[Req] =
     macro ProcessorCreatorMacro.SimpleImpl[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E]
 
   def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service](
-    processRequest: (Service, RRC, Req) ⇒ Resp,
-    processException: (Service, RC, Exception) ⇒ Resp
+    processRequest: (Service, RRC, Req) => Resp,
+    processException: (Service, RC, Exception) => Resp
   )(implicit service: Service): RRP[Req] =
     macro ProcessorCreatorMacro.WithoutExecutorAndDefaultResp[RRC, RRP[_ <: Req], RC, Req, Resp, Service]
 
   /**
    * Having two identical type parameters will cause the compiler to recognize error and change the order of generics to avoid.
    */
-  def apply[Service, RRC, RRP[_ <: Req], RC, Req, Resp](processRequest: (Service, RRC, Req) ⇒ Resp)(
-    processException: (Service, RC, Exception) ⇒ Resp
+  def apply[Service, RRC, RRP[_ <: Req], RC, Req, Resp](processRequest: (Service, RRC, Req) => Resp)(
+    processException: (Service, RC, Exception) => Resp
   ): RRP[Req] = macro ProcessorCreatorMacro.OnlyWithFunctionalParameters[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
 }

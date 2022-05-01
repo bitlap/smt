@@ -40,8 +40,8 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   private val builderFunctionPrefix = "_ScalableBuilderFunction$"
 
   def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
-    scalaField: c.Expr[T ⇒ SF],
-    value: c.Expr[String ⇒ SF]
+    scalaField: c.Expr[T => SF],
+    value: c.Expr[String => SF]
   ): c.Expr[ScalableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId = getBuilderId(annoBuilderPrefix)
@@ -77,9 +77,9 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   ): c.Expr[Scalable[T]] = {
     val clazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) ⇒
+    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
       expr.tree match {
-        case buildFunction: Function ⇒
+        case buildFunction: Function =>
           val functionName = TermName(builderFunctionPrefix + key)
           key -> q"lazy  val $functionName: ${buildFunction.tpe} = $buildFunction"
       }

@@ -41,7 +41,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   private val builderFunctionPrefix = "_CsvableBuilderFunction$"
 
   def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
-    scalaField: c.Expr[T ⇒ SF],
+    scalaField: c.Expr[T => SF],
     value: c.Expr[SF => String]
   ): c.Expr[CsvableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
@@ -74,9 +74,9 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   private def deriveCsvableImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) ⇒
+    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
       expr.tree match {
-        case buildFunction: Function ⇒
+        case buildFunction: Function =>
           val functionName = TermName(builderFunctionPrefix + key)
           key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
       }

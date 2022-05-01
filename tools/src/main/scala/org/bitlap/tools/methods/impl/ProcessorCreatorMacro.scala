@@ -43,8 +43,8 @@ object ProcessorCreatorMacro {
     E: c.WeakTypeTag
   ](c: blackbox.Context)(
     defaultResp: c.Expr[Req],
-    processRequest: c.Expr[(Service, RRC, Req) ⇒ Req],
-    processException: c.Expr[(Service, RC, Exception) ⇒ Req]
+    processRequest: c.Expr[(Service, RRC, Req) => Req],
+    processException: c.Expr[(Service, RC, Exception) => Req]
   )(service: c.Expr[Service], executor: c.Expr[E]): c.Expr[RRP] = { // parameters in order, parameter names differ will compile error
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)(needCheckService = false)
@@ -93,8 +93,8 @@ object ProcessorCreatorMacro {
     Resp: c.WeakTypeTag,
     Service: c.WeakTypeTag
   ](c: blackbox.Context)(
-    processRequest: c.Expr[(Service, RRC, Req) ⇒ Req],
-    processException: c.Expr[(Service, RC, Exception) ⇒ Req]
+    processRequest: c.Expr[(Service, RRC, Req) => Req],
+    processException: c.Expr[(Service, RC, Exception) => Req]
   )(service: c.Expr[Service]): c.Expr[RRP] = {
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)(needCheckService = false)
@@ -144,8 +144,8 @@ object ProcessorCreatorMacro {
     RC: c.WeakTypeTag,
     Req: c.WeakTypeTag,
     Resp: c.WeakTypeTag
-  ](c: blackbox.Context)(processRequest: c.Expr[(Service, RRC, Req) ⇒ Req])(
-    processException: c.Expr[(Service, RC, Exception) ⇒ Req]
+  ](c: blackbox.Context)(processRequest: c.Expr[(Service, RRC, Req) => Req])(
+    processException: c.Expr[(Service, RC, Exception) => Req]
   ): c.Expr[RRP] = {
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)(needCheckService = true)
