@@ -14,8 +14,8 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
 lazy val lastVersionForExamples = "0.4.2"
 
-lazy val scalatestVersion = "3.2.11"
-lazy val zioVersion = "1.0.13"
+lazy val scalatestVersion = "3.2.12"
+lazy val zioVersion = "1.0.14"
 lazy val zioLoggingVersion = "0.5.14"
 lazy val configVersion = "1.4.2"
 lazy val caffeineVersion = "2.9.3"
@@ -26,7 +26,7 @@ lazy val playJsonVersion = "2.7.4"
 lazy val log4jVersion = "2.17.2"
 lazy val jacksonScalaVersion = "2.13.2"
 lazy val jraftVersion = "1.3.9"
-lazy val protocVersion = "3.19.4"
+lazy val protocVersion = "3.20.1"
 
 lazy val commonSettings =
   Seq(
