@@ -33,7 +33,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   private val packageName = q"_root_.org.bitlap.csv.core"
 
   private val annoBuilderPrefix = "_AnonScalableBuilder$"
-  private val builderFunctionPrefix = "_scalableBuilderFunction$"
+  private val builderFunctionPrefix = "_ScalableBuilderFunction$"
 
   def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
     scalaField: c.Expr[T ⇒ SF],

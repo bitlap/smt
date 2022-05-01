@@ -32,9 +32,9 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   private val packageName = q"_root_.org.bitlap.csv.core"
 
-  private val annoBuilderPrefix = "AnonCsvableBuilder$"
+  private val annoBuilderPrefix = "_AnonCsvableBuilder$"
 
-  private val builderFunctionPrefix = "csvableBuilderFunction$"
+  private val builderFunctionPrefix = "_CsvableBuilderFunction$"
 
   def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
     scalaField: c.Expr[T ⇒ SF],
