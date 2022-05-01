@@ -33,8 +33,8 @@ Learn Scala macro and abstract syntax tree.
 ## csv-core
 
 - `Converter` A basic CSV converter
-- `CsvableBuilder` Support for converting Scala `case class` to CSV in a custom way.
-- `ScalableBuilder` Support for converting CSV to Scala `case class` in a custom way.
+- `CsvableBuilder` Support for converting Scala`case class`to one CSV line in a custom way.
+- `ScalableBuilder` Support for converting one CSV line to Scala`case class`in a custom way.
 - Zero dependency, type-safe
 
 ```scala
@@ -43,7 +43,7 @@ Learn Scala macro and abstract syntax tree.
 
 ## csv-derive
 
-- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例
+- `DeriveCsvConverter` Automatically derive`Converter`instances for Scala`case class`
 
 ```scala
 "org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.4.4 
