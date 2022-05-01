@@ -21,24 +21,44 @@
 
 package org.bitlap.csv.core
 
-import org.bitlap.csv.core.macros.DeriveCsvableBuilder
-
 /**
- * Builder to create a custom Csv Encoder.
  *
  * @author 梦境迷离
- * @version 1.0,2022/4/30
+ * @version 1.0,2022/5/1
  */
-private[core] class CsvableBuilder[T] {
+trait CsvableImplicits {
 
-  def setField[SF](scalaField: T ⇒ SF, value: SF => String): CsvableBuilder[T] = macro DeriveCsvableBuilder.setFieldImpl[T, SF]
+  lazy val LINE_SEPARATOR: String = "\n"
 
-  def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
+  implicit val stringCSVCsvable: Csvable[String] = new Csvable[String] {
+    override def _toCsvString(s: String): String = s
+  }
 
-}
+  implicit val intCsvCsvable: Csvable[Int] = new Csvable[Int] {
+    override def _toCsvString(i: Int): String = i.toString
+  }
 
-object CsvableBuilder {
+  implicit val charCsvCsvable: Csvable[Char] = new Csvable[Char] {
+    override def _toCsvString(t: Char): String = t.toString
+  }
 
-  def apply[T]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
+  implicit val longCsvCsvable: Csvable[Long] = new Csvable[Long] {
+    override def _toCsvString(i: Long): String = i.toString
+  }
 
+  implicit val shortCsvCsvable: Csvable[Short] = new Csvable[Short] {
+    override def _toCsvString(i: Short): String = i.toString
+  }
+
+  implicit val doubleCsvCsvable: Csvable[Double] = new Csvable[Double] {
+    override def _toCsvString(i: Double): String = i.toString
+  }
+
+  implicit val floatCsvCsvable: Csvable[Float] = new Csvable[Float] {
+    override def _toCsvString(i: Float): String = i.toString
+  }
+
+  implicit val booleanCsvCsvable: Csvable[Boolean] = new Csvable[Boolean] {
+    override def _toCsvString(i: Boolean): String = i.toString
+  }
 }

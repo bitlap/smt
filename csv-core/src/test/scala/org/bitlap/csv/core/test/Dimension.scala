@@ -22,6 +22,7 @@
 package org.bitlap.csv.core.test
 
 import org.bitlap.csv.core.Converter
+import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
 
 /**
  *
@@ -30,11 +31,9 @@ import org.bitlap.csv.core.Converter
  */
 case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
 
-object Dimension extends App {
+object Dimension {
 
   implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
-
-    import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
 
     override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line, ',')
 

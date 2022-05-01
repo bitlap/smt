@@ -20,6 +20,7 @@
  */
 
 package org.bitlap.csv.core.macros
+
 import scala.reflect.macros.blackbox
 
 /**
@@ -34,8 +35,33 @@ object DeriveToString {
 
     import c.universe._
 
+    private val packageName = q"_root_.org.bitlap.csv.core"
+
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
-      super.stringMacroImpl[T](t, columnSeparator, TermName("Converter"))
+      val (names, indexTypes) = super.zipAllCaseClassParams[T]
+      val clazzName = c.weakTypeOf[T].typeSymbol.name
+      val innerVarTermName = TermName("_t")
+      val indexByName = (i: Int) => TermName(names(i))
+      val fieldsToString = indexTypes.map {
+        idxType =>
+          if (idxType._2 <:< typeOf[Option[_]]) {
+            val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+            q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
+                  if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(idxType._1)}.get
+                }
+                """
+          } else {
+            q"$packageName.Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+          }
+      }
+      val separator = q"$columnSeparator"
+      val tree =
+        q"""
+        val $innerVarTermName = $t    
+        val fields = ${TermName(clazzName.decodedName.toString)}.unapply($innerVarTermName).orNull
+        if (null == fields) "" else $fieldsToString.mkString($separator.toString)
+       """
+      printTree[String](force = false, tree)
     }
 
   }

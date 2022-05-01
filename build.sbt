@@ -154,6 +154,7 @@ lazy val root = (project in file(".")).aggregate(
   `csv-derive`
 )
   .settings(
+    commands ++= Commands.value,
     crossScalaVersions := Nil,
     publish / skip := true,
     headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),

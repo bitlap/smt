@@ -23,6 +23,7 @@ package org.bitlap.csv.core.macros
 
 import org.bitlap.csv.core.{ Csvable, CsvableBuilder }
 
+import scala.collection.mutable
 import scala.reflect.macros.whitebox
 
 class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
@@ -33,12 +34,22 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   private val annoBuilderPrefix = "AnonCsvableBuilder$"
 
+  private val builderFunctionPrefix = "csvableBuilderFunction$"
+
+  def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](scalaField: c.Expr[T ⇒ SF], value: c.Expr[SF => String]): c.Expr[CsvableBuilder[T]] = {
+    val Function(_, Select(_, termName)) = scalaField.tree
+    val builderId = getBuilderId(annoBuilderPrefix)
+    MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
+    val tree = q"new ${c.prefix.actualType}"
+    printTree[CsvableBuilder[T]](force = true, tree)
+  }
+
   def applyImpl[T: c.WeakTypeTag]: c.Expr[CsvableBuilder[T]] = {
     deriveBuilderApplyImpl[T]
   }
 
-  def buildImpl[T: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
-    deriveCsvableImpl[T](columnSeparator)
+  def buildImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
+    deriveCsvableImpl[T](t, columnSeparator)
   }
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: c.Expr[CsvableBuilder[T]] = {
@@ -46,21 +57,70 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     val caseClazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
     val tree =
       q"""
-       class $className extends $packageName.CsvableBuilder[$caseClazzName]
-       new $className
-     """
+        class $className extends $packageName.CsvableBuilder[$caseClazzName]
+        new $className
+      """
     printTree[CsvableBuilder[T]](force = true, tree)
   }
 
-  private def deriveCsvableImpl[T: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
-    val clazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
-    val packTermName = TermName("org.bitlap.csv.core.Csvable")
+  private def deriveCsvableImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
+    val clazzName = resolveClazzTypeName[T]
+    val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    val (_, preTrees) = customTrees.collect {
+      case (key, expr: Expr[Tree]@unchecked) ⇒
+        expr.tree match {
+          case buildFunction: Function ⇒
+            val functionName = TermName(builderFunctionPrefix + key)
+            key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
+        }
+    }.unzip
+    val innerVarTermName = TermName("_t")
     val tree =
       q"""
-       new $packageName.Csvable[$clazzName] {
-          override def toCsvString(t: $clazzName): String = ${stringMacroImpl[T](c.Expr(q"${TermName("t")}"), columnSeparator, packTermName)}
-       }
-    """
-    printTree[Csvable[T]](force = true, tree)
+         ..$preTrees
+         new $packageName.Csvable[$clazzName] {
+            lazy val $innerVarTermName = $t
+            ..${CsvableBody[T](columnSeparator, innerVarTermName, customTrees)}
+         }
+      """
+    printTree[Csvable[T]](force = false, tree)
   }
+
+  private def CsvableBody[T: c.WeakTypeTag](columnSeparator: c.Expr[Char], innerVarTermName: TermName, customTrees: mutable.Map[String, Any]): c.Expr[Csvable[T]] = {
+    val clazzName = resolveClazzTypeName[T]
+    val (fieldNames, indexTypes) = zipAllCaseClassParams
+    val indexByName = (i: Int) => TermName(fieldNames(i))
+    val fieldsToString = indexTypes.map {
+      idxType =>
+        val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idxType._1))}.apply($innerVarTermName.${indexByName(idxType._1)})"
+        if (idxType._2 <:< typeOf[Option[_]]) {
+          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+          if (customTrees.contains(fieldNames(idxType._1))) {
+            customFunction()
+          } else {
+            q"""
+              $packageName.Csvable[${genericType.typeSymbol.name.toTypeName}]._toCsvString {
+                if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(idxType._1)}.get
+              }
+            """
+          }
+        } else {
+          if (customTrees.contains(fieldNames(idxType._1))) {
+            customFunction()
+          } else {
+            q"$packageName.Csvable[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+          }
+        }
+    }
+    val separator = q"$columnSeparator"
+    val tree =
+      q"""
+         override def toCsvString: String = {
+            val fields = ${clazzName.toTermName}.unapply(_t).orNull
+            if (null == fields) "" else $fieldsToString.mkString($separator.toString)
+         }
+      """
+    printTree[Csvable[T]](force = false, tree)
+  }
+
 }

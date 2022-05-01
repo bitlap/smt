@@ -21,10 +21,8 @@
 
 package org.bitlap.csv.core
 
-import scala.collection.immutable.{ :: => Cons }
-
 /**
- * Csv decoder.
+ * a Custom Csv decoder.
  *
  * @author 梦境迷离
  * @since 2022/04/30
@@ -32,80 +30,14 @@ import scala.collection.immutable.{ :: => Cons }
  */
 trait Scalable[T] {
 
+  @InternalApi
   private[core] def _toScala(line: String): Option[T] = None
 
-  def toScala: Option[T]
+  def toScala: Option[T] = None
 }
 
-object Scalable {
-
-  lazy val LINE_SEPARATOR: String = "\n"
+object Scalable extends ScalableImplicits {
 
   def apply[T](implicit st: Scalable[T]): Scalable[T] = st
-
-  // Primitives
-  implicit val stringCSVConverter: Scalable[String] = new Scalable[String] {
-    override def _toScala(line: String): Option[String] = if (line.isEmpty) None else Some(line)
-
-    override def toScala: Option[String] = None
-  }
-
-  implicit val intCsvConverter: Scalable[Int] = new Scalable[Int] {
-    override def _toScala(line: String): Option[Int] = Option(line.toInt)
-
-    override def toScala: Option[Int] = None
-
-  }
-
-  implicit val charCsvConverter: Scalable[Char] = new Scalable[Char] {
-    override def _toScala(line: String): Option[Char] = if (line.isEmpty) None else Some(line.charAt(0))
-
-    override def toScala: Option[Char] = None
-  }
-
-  implicit val longCsvConverter: Scalable[Long] = new Scalable[Long] {
-    override def _toScala(line: String): Option[Long] = Option(line.toLong)
-
-    override def toScala: Option[Long] = None
-  }
-
-  implicit val shortCsvConverter: Scalable[Short] = new Scalable[Short] {
-    override def _toScala(line: String): Option[Short] = Option(line.toShort)
-
-    override def toScala: Option[Short] = None
-  }
-
-  implicit val doubleCsvConverter: Scalable[Double] = new Scalable[Double] {
-    override def _toScala(line: String): Option[Double] = Option(line.toDouble)
-
-    override def toScala: Option[Double] = None
-  }
-
-  implicit val floatCsvConverter: Scalable[Float] = new Scalable[Float] {
-    override def _toScala(line: String): Option[Float] = Option(line.toFloat)
-
-    override def toScala: Option[Float] = None
-  }
-
-  implicit val booleanCsvConverter: Scalable[Boolean] = new Scalable[Boolean] {
-    override def _toScala(line: String): Option[Boolean] = Option(line.toBoolean)
-
-    override def toScala: Option[Boolean] = None
-  }
-
-  @inline private[this] def listCsvLinesConverter[A](l: List[String])(implicit ec: Scalable[A]): Option[List[A]] = l match {
-    case Nil => Some(Nil)
-    case Cons(s, ss) =>
-      for {
-        x <- ec._toScala(s)
-        xs <- listCsvLinesConverter(ss)(ec)
-      } yield Cons(x, xs)
-  }
-
-  implicit def listCsvConverter[A <: Product](implicit ec: Scalable[A]): Scalable[List[A]] = new Scalable[List[A]] {
-    override def _toScala(line: String): Option[List[A]] = listCsvLinesConverter[A](line.split(LINE_SEPARATOR).toList)(ec)
-
-    override def toScala: Option[List[A]] = None
-  }
 
 }

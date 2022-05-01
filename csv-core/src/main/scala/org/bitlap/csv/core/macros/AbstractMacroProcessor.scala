@@ -24,9 +24,9 @@ package org.bitlap.csv.core.macros
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.macros.blackbox
-
+import scala.collection.mutable
 /**
- *
+ * 
  * @author 梦境迷离
  * @since 2021/7/24
  * @version 1.0
@@ -35,16 +35,14 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   import c.universe._
 
-  def checkCaseClassReturnConstructorParams[T: c.WeakTypeTag](
-    line:            c.Expr[String],
-    columnSeparator: c.Expr[Char]
-  ): List[(Tree, Type)] = {
-    lazy val columns = q"_root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)"
-    val idxColumn = (i: Int) => q"$columns($i)"
+  private[macros] def checkCaseClassZipParams[T: c.WeakTypeTag](
+                                                                 columns: TermName,
+                                                               ): List[((Int, Tree), Type)] = {
+    val idxColumn = (i: Int) => q"${columns}(${i})"
     val params = getCaseClassParams[T]()
     val paramsSize = params.size
     val types = params.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
-    val indexColumns = (0 until paramsSize).toList.map(i => idxColumn(i))
+    val indexColumns = (0 until paramsSize).toList.map(i => i -> idxColumn(i))
     if (indexColumns.size != types.size) {
       c.abort(c.enclosingPosition, "The column num of CSV file is different from that in case class constructor!")
     }
@@ -52,8 +50,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     indexColumns zip types
   }
 
-  def getCaseClassParams[T: c.WeakTypeTag](): List[Symbol] = {
-    val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
+  private[macros] def getCaseClassParams[T: c.WeakTypeTag](): List[Symbol] = {
+    val parameters = resolveParameters[T]
     if (parameters.size > 1) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
     }
@@ -63,44 +61,55 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def printTree[T: c.WeakTypeTag](force: Boolean, resTree: c.Tree): c.Expr[T] = {
     c.info(
       c.enclosingPosition,
-      s"\n###### Time: ${
-        ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
-      } " +
-        s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
+      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
       force = force
     )
     c.Expr[T](resTree)
   }
 
-  def stringMacroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char], termName: TermName): c.Expr[String] = {
-    val clazzName = c.weakTypeOf[T].typeSymbol.name
-    val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
+  private[macros] def getClassInstance[T: c.WeakTypeTag](className: TypeName, superClass: TypeName): c.universe.Tree = {
+    val caseClazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
+    c.weakTypeOf[T] match {
+      case t if t <:< typeOf[List[_]] =>
+        val genericType = c.typecheck(q"${c.weakTypeOf[T]}", c.TYPEmode).tpe.typeArgs.head
+        q"""
+          class $className extends $superClass[List[$genericType]]
+          new $className
+        """
+      case t if t <:< typeOf[mutable.Seq[_]] =>
+        val genericType = c.typecheck(q"${c.weakTypeOf[T]}", c.TYPEmode).tpe.typeArgs.head
+        q"""
+          class $className extends $superClass[Seq[$genericType]]
+          new $className  
+        """
+      case _ =>
+        q"""
+          class $className extends $superClass[$caseClazzName]
+          new $className
+        """
+    }
+  }
+  
+  private[macros] def resolveParameters[T: c.WeakTypeTag]: List[List[Symbol]] = {
+    c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
+  }
+
+  private[macros] def resolveClazzTypeName[T: c.WeakTypeTag]: c.universe.TypeName = {
+    TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
+  }
+
+  private[macros] def zipAllCaseClassParams[T: c.WeakTypeTag]: (List[String], List[(Int, Type)]) = {
+    val parameters = resolveParameters[T]
     if (parameters.size > 1) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
     }
     val params = parameters.flatten
     val paramsSize = params.size
     val names = params.map(p => p.name.decodedName.toString)
-    val indexByName = (i: Int) => TermName(names(i))
-    val indexTypes = params.zip(0 until paramsSize).map(f => f._2 -> c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
-    val fieldsToString = indexTypes.map {
-      idxType =>
-        if (idxType._2 <:< typeOf[Option[_]]) {
-          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-          q"""$termName[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
-                  if (${TermName("t")}.${indexByName(idxType._1)}.isEmpty) "" else ${TermName("t")}.${indexByName(idxType._1)}.get
-                }"""
-        } else {
-          q"$termName[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString(${TermName("t")}.${indexByName(idxType._1)})"
-        }
-    }
-    val separator = q"$columnSeparator"
-    val tree =
-      q"""
-        val fields = ${TermName(clazzName.decodedName.toString)}.unapply($t).orNull
-        if (null == fields) "" else $fieldsToString.mkString($separator.toString)
-       """
+    names -> params.zip(0 until paramsSize).map(f => f._2 -> c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
+  }
 
-    printTree[String](force = true, tree)
+  private[macros] def getBuilderId(annoBuilderPrefix: String): Int = {
+    c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt
   }
 }

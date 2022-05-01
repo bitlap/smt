@@ -22,7 +22,7 @@
 package org.bitlap.csv.core
 
 /**
- * Csv encoder.
+ * a Custom Csv encoder.
  *
  * @author 梦境迷离
  * @since 2022/04/27
@@ -30,35 +30,16 @@ package org.bitlap.csv.core
  */
 trait Csvable[T] {
 
-  def toCsvString(t: T): String
+  @InternalApi
+  private[core] def _toCsvString(t: T): String = ""
+
+  def toCsvString: String = ""
 
 }
 
-object Csvable {
-
-  lazy val LINE_SEPARATOR: String = "\n"
+object Csvable extends CsvableImplicits {
 
   def apply[T](implicit st: Csvable[T]): Csvable[T] = st
-
-  // Primitives
-  implicit val stringCSVConverter: Csvable[String] = (s: String) => s
-
-  implicit val intCsvConverter: Csvable[Int] = (i: Int) => i.toString
-
-  implicit val charCsvConverter: Csvable[Char] = (t: Char) => t.toString
-
-  implicit val longCsvConverter: Csvable[Long] = (i: Long) => i.toString
-
-  implicit val shortCsvConverter: Csvable[Short] = (i: Short) => i.toString
-
-  implicit val doubleCsvConverter: Csvable[Double] = (i: Double) => i.toString
-
-  implicit val floatCsvConverter: Csvable[Float] = (i: Float) => i.toString
-
-  implicit val booleanCsvConverter: Csvable[Boolean] = (i: Boolean) => i.toString
-
-  implicit def listCsvConverter[A <: Product](implicit ec: Csvable[A]): Csvable[List[A]] = (l: List[A]) => {
-    if (l == null) "" else l.map(ec.toCsvString).mkString(LINE_SEPARATOR)
-  }
+  
 }
 

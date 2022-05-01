@@ -21,24 +21,11 @@
 
 package org.bitlap.csv.core
 
-import org.bitlap.csv.core.macros.DeriveCsvableBuilder
+import scala.annotation.StaticAnnotation
 
 /**
- * Builder to create a custom Csv Encoder.
  *
  * @author 梦境迷离
- * @version 1.0,2022/4/30
+ * @version 1.0,2022/5/1
  */
-private[core] class CsvableBuilder[T] {
-
-  def setField[SF](scalaField: T ⇒ SF, value: SF => String): CsvableBuilder[T] = macro DeriveCsvableBuilder.setFieldImpl[T, SF]
-
-  def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
-
-}
-
-object CsvableBuilder {
-
-  def apply[T]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
-
-}
+case class InternalApi() extends StaticAnnotation 

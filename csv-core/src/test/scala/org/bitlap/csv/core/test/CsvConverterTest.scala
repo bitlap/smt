@@ -36,11 +36,9 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     val line = "abc,cdf,d,12,2,false,0.1,0.23333"
     val dimension = Converter[Dimension].toScala(line)
     assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
-
     val csv = Converter[Dimension].toCsvString(dimension.orNull)
     println(csv)
     assert(csv == line)
-
   }
 
   "CsvConverter2" should "ok when csv column empty" in {

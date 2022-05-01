@@ -20,6 +20,7 @@
  */
 
 package org.bitlap.csv.core.macros
+
 import scala.reflect.macros.blackbox
 
 /**
@@ -31,44 +32,51 @@ object DeriveToCaseClass {
   def apply[T <: Product](line: String, columnSeparator: Char): Option[T] = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
+    import c.universe._
+
+    private val packageName = q"_root_.org.bitlap.csv.core"
+
     def macroImpl[T <: Product: c.WeakTypeTag](
       line:            c.Expr[String],
       columnSeparator: c.Expr[Char]
     ): c.Expr[Option[T]] = {
-      import c.universe._
       val clazzName = c.weakTypeOf[T].typeSymbol.name
-      val fields = checkCaseClassReturnConstructorParams[T](line, columnSeparator).map { idxType =>
+      val innerVarTermName = TermName("_columns")
+      val fields = (columns: TermName) => checkCaseClassZipParams[T](columns).map { idxType =>
+        val columnValues = idxType._1._2
         if (idxType._2 <:< typeOf[Option[_]]) {
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-          q"Converter[${genericType.typeSymbol.name.toTypeName}].toScala(${idxType._1})"
+          q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
         } else {
+          val caseClassFileTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
           idxType._2 match {
             case t if t =:= typeOf[Int] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
             case t if t =:= typeOf[String] =>
-              q"""Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse("")"""
+              q"""$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse("")"""
             case t if t =:= typeOf[Float] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0F)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0F)"
             case t if t =:= typeOf[Double] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0D)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0D)"
             case t if t =:= typeOf[Char] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse('?')"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse('?')"
             case t if t =:= typeOf[Byte] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
             case t if t =:= typeOf[Short] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
             case t if t =:= typeOf[Boolean] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(false)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(false)"
             case t if t =:= typeOf[Long] =>
-              q"Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toScala(${idxType._1}).getOrElse(0L)"
+              q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0L)"
           }
         }
       }
       val tree =
         q"""
-       Option(${TermName(clazzName.decodedName.toString)}(..$fields))
-     """
-      printTree[T](force = true, tree)
+           lazy val $innerVarTermName = _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
+           Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerVarTermName)}))
+           """
+      printTree[T](force = false, tree)
 
     }.asInstanceOf[c.Expr[Option[T]]]
 
