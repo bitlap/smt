@@ -81,7 +81,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
       expr.tree match {
         case buildFunction: Function =>
           val functionName = TermName(builderFunctionPrefix + key)
-          key -> q"lazy  val $functionName: ${buildFunction.tpe} = $buildFunction"
+          key -> q"lazy val $functionName: ${buildFunction.tpe} = $buildFunction"
       }
     }.unzip
     val innerVarTermName = TermName("_columns")

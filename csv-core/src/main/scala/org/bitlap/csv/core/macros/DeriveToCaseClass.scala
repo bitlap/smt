@@ -49,26 +49,26 @@ object DeriveToCaseClass {
             val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
             q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
           } else {
-            val caseClassFileTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
+            val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
             idxType._2 match {
               case t if t =:= typeOf[Int] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
               case t if t =:= typeOf[String] =>
-                q"""$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse("")"""
+                q"""$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse("")"""
               case t if t =:= typeOf[Float] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0F)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0F)"
               case t if t =:= typeOf[Double] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0D)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0D)"
               case t if t =:= typeOf[Char] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse('?')"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse('?')"
               case t if t =:= typeOf[Byte] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
               case t if t =:= typeOf[Short] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
               case t if t =:= typeOf[Boolean] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(false)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(false)"
               case t if t =:= typeOf[Long] =>
-                q"$packageName.Converter[$caseClassFileTypeName].toScala($columnValues).getOrElse(0L)"
+                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
             }
           }
         }
