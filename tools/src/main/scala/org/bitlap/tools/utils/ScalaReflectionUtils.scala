@@ -35,10 +35,11 @@ class ScalaReflectionUtils[T: WeakTypeTag] {
 
   def createInstance(args: AnyRef*)(ctor: Int = 0): T = {
     val tt = weakTypeTag[T]
-    currentMirror.reflectClass(tt.tpe.typeSymbol.asClass).reflectConstructor(
-      tt.tpe.members.filter(m =>
-        m.isMethod && m.asMethod.isConstructor
-      ).iterator.toSeq(ctor).asMethod
-    )(args: _*).asInstanceOf[T]
+    currentMirror
+      .reflectClass(tt.tpe.typeSymbol.asClass)
+      .reflectConstructor(
+        tt.tpe.members.filter(m => m.isMethod && m.asMethod.isConstructor).iterator.toSeq(ctor).asMethod
+      )(args: _*)
+      .asInstanceOf[T]
   }
 }

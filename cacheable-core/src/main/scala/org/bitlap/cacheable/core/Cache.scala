@@ -70,20 +70,24 @@ trait Cache[Z] {
 
 object Cache {
 
-  def apply[R, E, T](business: => ZStream[R, E, T])(identities: List[String], args: List[_])(implicit streamCache: ZStreamCache[R, E, T]): ZStream[R, E, T] = {
+  def apply[R, E, T](business: => ZStream[R, E, T])(identities: List[String], args: List[_])(implicit
+    streamCache: ZStreamCache[R, E, T]
+  ): ZStream[R, E, T] =
     streamCache.getIfPresent(business)(identities, args)
-  }
 
-  def apply[R, E, T](business: => ZIO[R, E, T])(identities: List[String], args: List[_])(implicit cache: ZIOCache[R, E, T]): ZIO[R, E, T] = {
+  def apply[R, E, T](business: => ZIO[R, E, T])(identities: List[String], args: List[_])(implicit
+    cache: ZIOCache[R, E, T]
+  ): ZIO[R, E, T] =
     cache.getIfPresent(business)(identities, args)
-  }
 
-  def evict[R, E, T](business: => ZStream[R, E, T])(identities: List[String])(implicit streamCache: ZStreamUpdateCache[R, E, T]): ZStream[R, E, T] = {
+  def evict[R, E, T](business: => ZStream[R, E, T])(identities: List[String])(implicit
+    streamCache: ZStreamUpdateCache[R, E, T]
+  ): ZStream[R, E, T] =
     streamCache.evict(business)(identities)
-  }
 
-  def evict[R, E, T](business: => ZIO[R, E, T])(identities: List[String])(implicit cache: ZIOUpdateCache[R, E, T]): ZIO[R, E, T] = {
+  def evict[R, E, T](business: => ZIO[R, E, T])(identities: List[String])(implicit
+    cache: ZIOUpdateCache[R, E, T]
+  ): ZIO[R, E, T] =
     cache.evict(business)(identities)
-  }
 
 }

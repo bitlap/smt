@@ -23,7 +23,7 @@ package org.bitlap.tools
 
 import org.bitlap.tools.macros.constructorMacro
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * annotation to generate secondary constructor method for classes.

@@ -24,7 +24,6 @@ package org.bitlap.tools.macros
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/11/23
  * @version 1.0
@@ -38,31 +37,43 @@ object javaCompatibleMacro {
     /**
      * We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
-    private def getNoArgsContrWithCurrying(annotteeClassParams: List[List[Tree]], annotteeClassDefinitions: Seq[Tree]): Tree = {
+    private def getNoArgsContrWithCurrying(
+      annotteeClassParams: List[List[Tree]],
+      annotteeClassDefinitions: Seq[Tree]
+    ): Tree = {
       annotteeClassDefinitions.foreach {
         case defDef: DefDef if defDef.name.decodedName.toString == "this" && defDef.vparamss.isEmpty =>
-          c.abort(defDef.pos, "Non-parameter constructor method has already defined, please remove it or not use'@javaCompatible'")
+          c.abort(
+            defDef.pos,
+            "Non-parameter constructor method has already defined, please remove it or not use'@javaCompatible'"
+          )
         case _ =>
       }
 
       val acsVals = annotteeClassParams.map(valDefAccessors)
-      acsVals.foreach(valDefs => valDefs.foreach(valDef => if (valDef.mods.hasFlag(Flag.PRIVATE)) {
-        c.abort(c.enclosingPosition, "`@javaCompatible` can be applied only to non-private fields")
+      acsVals.foreach(valDefs =>
+        valDefs.foreach(valDef =>
+          if (valDef.mods.hasFlag(Flag.PRIVATE)) {
+            c.abort(c.enclosingPosition, "`@javaCompatible` can be applied only to non-private fields")
 
-      }))
-      val defaultParameters = acsVals.map(params => params.map(param => {
-        param.paramType match {
-          case t if t <:< typeOf[Int]     => q"0"
-          case t if t <:< typeOf[Byte]    => q"0"
-          case t if t <:< typeOf[Double]  => q"0D"
-          case t if t <:< typeOf[Float]   => q"0F"
-          case t if t <:< typeOf[Short]   => q"0"
-          case t if t <:< typeOf[Long]    => q"0L"
-          case t if t <:< typeOf[Char]    => q"63.toChar" // default char is ?
-          case t if t <:< typeOf[Boolean] => q"false"
-          case _                          => q"null"
+          }
+        )
+      )
+      val defaultParameters = acsVals.map(params =>
+        params.map { param =>
+          param.paramType match {
+            case t if t <:< typeOf[Int]     => q"0"
+            case t if t <:< typeOf[Byte]    => q"0"
+            case t if t <:< typeOf[Double]  => q"0D"
+            case t if t <:< typeOf[Float]   => q"0F"
+            case t if t <:< typeOf[Short]   => q"0"
+            case t if t <:< typeOf[Long]    => q"0L"
+            case t if t <:< typeOf[Char]    => q"63.toChar" // default char is ?
+            case t if t <:< typeOf[Boolean] => q"false"
+            case _                          => q"null"
+          }
         }
-      }))
+      )
       if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
         q"""
           def this() = {
@@ -80,9 +91,9 @@ object javaCompatibleMacro {
 
     private def replaceAnnotation(valDefTree: Tree): Tree = {
       val safeValDef = valDefAccessors(Seq(valDefTree)).head
-      val mods = safeValDef.mods.mapAnnotations(f => {
+      val mods = safeValDef.mods.mapAnnotations { f =>
         if (!f.toString().contains("BeanProperty")) f ++ List(q"new _root_.scala.beans.BeanProperty") else f
-      })
+      }
       ValDef(mods, safeValDef.name, safeValDef.tpt, safeValDef.rhs)
     }
 
@@ -93,10 +104,12 @@ object javaCompatibleMacro {
     }
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
-      val tmpClassDefTree = appendClassBody(classDecl, classInfo => List(getNoArgsContrWithCurrying(classInfo.classParamss, classInfo.body)))
+      val tmpClassDefTree = appendClassBody(
+        classDecl,
+        classInfo => List(getNoArgsContrWithCurrying(classInfo.classParamss, classInfo.body))
+      )
       val rest = getClassWithBeanProperty(tmpClassDefTree)
-      c.Expr(
-        q"""
+      c.Expr(q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
           $rest
          """)

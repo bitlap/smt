@@ -32,20 +32,25 @@ object jacksonEnumMacro {
     private val extractArgs: Seq[String] = {
       c.prefix.tree match {
         case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
-        case q"new jacksonEnum($nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
-        case q"new jacksonEnum()" => Nil
-        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+        case q"new jacksonEnum($nonTypeRefers)"               => evalTree(nonTypeRefers.asInstanceOf[Tree])
+        case q"new jacksonEnum()"                             => Nil
+        case _                                                => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
     }
 
     private def getJacksonTypeReferClasses(valDefs: List[ValDef]): Seq[Tree] = {
       val safeValDefs = valDefAccessors(valDefs)
       // Enum ?
-      safeValDefs.filter(_.symbol.name.toTermName.toString == "Value").
-        map(getTypeTermName).
-        filter(v => !extractArgs.contains(v.decodedName.toString)).
-        distinct.
-        map(c => q"""class ${TypeName(c.decodedName.toString + "TypeRefer")} extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[$c.type]""")
+      safeValDefs
+        .filter(_.symbol.name.toTermName.toString == "Value")
+        .map(getTypeTermName)
+        .filter(v => !extractArgs.contains(v.decodedName.toString))
+        .distinct
+        .map(c =>
+          q"""class ${TypeName(
+            c.decodedName.toString + "TypeRefer"
+          )} extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[$c.type]"""
+        )
     }
 
     private def getTypeTermName(valDefTree: Tree): c.universe.TermName = {
@@ -58,18 +63,20 @@ object jacksonEnumMacro {
       TermName(paramTypeStr.split("\\.").last)
     }
 
-    private def getAnnotation(valDefTree: Tree): Tree = {
+    private def getAnnotation(valDefTree: Tree): Tree =
       q"new com.fasterxml.jackson.module.scala.JsonScalaEnumeration(classOf[${TypeName(getTypeTermName(valDefTree).decodedName.toString + "TypeRefer")}])"
-    }
 
     private def replaceAnnotation(valDefTree: Tree): Tree = {
       val safeValDef = valDefAccessors(Seq(valDefTree)).head
       if (safeValDef.typeName.decodedName.toString == "Value") {
         // duplication should be removed
-        val mods = safeValDef.mods.mapAnnotations(f => {
-          if (!f.toString().contains("JsonScalaEnumeration") &&
-            !extractArgs.contains(getTypeTermName(safeValDef).decodedName.toString)) f ++ List(getAnnotation(valDefTree)) else f
-        })
+        val mods = safeValDef.mods.mapAnnotations { f =>
+          if (
+            !f.toString().contains("JsonScalaEnumeration") &&
+            !extractArgs.contains(getTypeTermName(safeValDef).decodedName.toString)
+          ) f ++ List(getAnnotation(valDefTree))
+          else f
+        }
         ValDef(mods, safeValDef.name, safeValDef.tpt, safeValDef.rhs)
       } else {
         valDefTree
@@ -91,12 +98,10 @@ object jacksonEnumMacro {
            $newClass 
          """
 
-      c.Expr(
-        q"""
+      c.Expr(q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
           $res
          """)
     }
   }
 }
-

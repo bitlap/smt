@@ -24,7 +24,6 @@ package org.bitlap.tools.macros
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/7
  * @version 1.0
@@ -35,9 +34,8 @@ object builderMacro {
 
     import c.universe._
 
-    private def getBuilderClassName(classTree: TypeName): TypeName = {
+    private def getBuilderClassName(classTree: TypeName): TypeName =
       TypeName(classTree.toTermName.decodedName.toString + "Builder")
-    }
 
     private def getFieldDefinition(field: Tree): Tree = {
       val ValDef(_, name, tpt, rhs) = field
@@ -58,13 +56,19 @@ object builderMacro {
       valDefMapTo(field.asInstanceOf[ValDef])
     }
 
-    private def getBuilderClassAndMethod(typeName: TypeName, fieldss: List[List[Tree]], classTypeParams: List[Tree], isCase: Boolean): List[Tree] = {
+    private def getBuilderClassAndMethod(
+      typeName: TypeName,
+      fieldss: List[List[Tree]],
+      classTypeParams: List[Tree],
+      isCase: Boolean
+    ): List[Tree] = {
       val fields = fieldss.flatten
       val builderClassName = getBuilderClassName(typeName)
       val builderFieldMethods = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
       val builderFieldDefinitions = fields.map(f => getFieldDefinition(f))
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-      val builderMethod = q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
+      val builderMethod =
+        q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
       val buulderClass =
         q"""
           class $builderClassName[..$classTypeParams] {
@@ -81,12 +85,15 @@ object builderMacro {
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
-      val builder = getBuilderClassAndMethod(classDefinition.className, classDefinition.classParamss,
-        classDefinition.classTypeParams, isCaseClass(classDecl))
+      val builder = getBuilderClassAndMethod(
+        classDefinition.className,
+        classDefinition.classParamss,
+        classDefinition.classTypeParams,
+        isCaseClass(classDecl)
+      )
       val compDecl = appendModuleBody(compDeclOpt, builder, classDefinition.className)
       // Return both the class and companion object declarations
-      c.Expr(
-        q"""
+      c.Expr(q"""
         $classDecl
         $compDecl
       """)

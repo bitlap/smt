@@ -31,10 +31,10 @@ import java.util.concurrent.Executor
  * @author 梦境迷离
  * @version 1.0,2021/12/6
  */
+@deprecated
 object ProcessorCreator {
 
   /**
-   *
    * @param service          Instance of the `Service`
    * @param defaultResp      Default instance of the Response Message
    * @param executor         Instance of the Executor
@@ -49,22 +49,23 @@ object ProcessorCreator {
    * @tparam E       Should be subclass of the Executor
    * @return [[ RRP ]] Instance of the `RpcRequestProcessor` subclass
    */
-  def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E <: Executor]
-    (
-    defaultResp:      Resp,
-    processRequest:   (Service, RRC, Req) ⇒ Resp,
-    processException: (Service, RC, Exception) ⇒ Resp
-  )(implicit service: Service, executor: E): RRP[Req] = macro ProcessorCreatorMacro.SimpleImpl[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E]
+  def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E <: Executor](
+    defaultResp: Resp,
+    processRequest: (Service, RRC, Req) => Resp,
+    processException: (Service, RC, Exception) => Resp
+  )(implicit service: Service, executor: E): RRP[Req] =
+    macro ProcessorCreatorMacro.SimpleImpl[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E]
 
-  def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service]
-    (
-    processRequest:   (Service, RRC, Req) ⇒ Resp,
-    processException: (Service, RC, Exception) ⇒ Resp
-  )(implicit service: Service): RRP[Req] = macro ProcessorCreatorMacro.WithoutExecutorAndDefaultResp[RRC, RRP[_ <: Req], RC, Req, Resp, Service]
+  def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service](
+    processRequest: (Service, RRC, Req) => Resp,
+    processException: (Service, RC, Exception) => Resp
+  )(implicit service: Service): RRP[Req] =
+    macro ProcessorCreatorMacro.WithoutExecutorAndDefaultResp[RRC, RRP[_ <: Req], RC, Req, Resp, Service]
 
   /**
    * Having two identical type parameters will cause the compiler to recognize error and change the order of generics to avoid.
    */
-  def apply[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
-    (processRequest: (Service, RRC, Req) ⇒ Resp)(processException: (Service, RC, Exception) ⇒ Resp): RRP[Req] = macro ProcessorCreatorMacro.OnlyWithFunctionalParameters[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
+  def apply[Service, RRC, RRP[_ <: Req], RC, Req, Resp](processRequest: (Service, RRC, Req) => Resp)(
+    processException: (Service, RC, Exception) => Resp
+  ): RRP[Req] = macro ProcessorCreatorMacro.OnlyWithFunctionalParameters[Service, RRC, RRP[_ <: Req], RC, Req, Resp]
 }

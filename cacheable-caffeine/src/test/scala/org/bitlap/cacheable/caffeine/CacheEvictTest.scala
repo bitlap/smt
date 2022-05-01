@@ -30,7 +30,6 @@ import zio.stream.ZStream
 import scala.util.Random
 
 /**
- *
  * @author 梦境迷离
  * @since 2022/3/19
  * @version 1.0
@@ -51,24 +50,20 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   "cacheEvict1" should "expected annotation pattern" in {
     @cacheEvict(true, List())
-    def updateFunction3(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction3(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
 
     @cacheEvict(local = true)
-    def updateFunction4(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction4(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
 
     @cacheEvict(values = List())
-    def updateFunction5(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction5(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
 
     @cacheEvict()
-    def updateFunction6(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateFunction6(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
   }
 
   "cacheEvict2" should "unexpected annotation pattern" in {
@@ -82,23 +77,20 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   "cacheEvict3" should "ok when return type is case class" in {
     @cacheEvict(local = true)
-    def updateEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] = {
+    def updateEntityFunction(id: Int, key: String): ZIO[Any, Throwable, CacheValue] =
       ZIO.effect(CacheValue(Random.nextInt() + ""))
-    }
   }
 
   "cacheEvict4" should "zio operation is ok with redis" in {
     val cacheValue = Random.nextInt().toString
 
     @cacheable(local = true)
-    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(cacheValue)
-    }
 
     @cacheEvict(local = true, values = List("readIOFunction"))
-    def updateIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def updateIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(Random.nextInt() + "")
-    }
 
     val result = runtime.unsafeRun(for {
       _ <- ZCaffeine.del("CacheableTest-" + readIOMethodName)
@@ -113,22 +105,19 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
     val cacheValue = Random.nextInt().toString
 
     @cacheable(local = true)
-    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+    def readStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] =
       ZStream.fromEffect(ZIO.effect(cacheValue))
-    }
 
     @cacheEvict(local = true, values = List("readStreamFunction"))
-    def updateStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] = {
+    def updateStreamFunction(id: Int, key: String): ZStream[Any, Throwable, String] =
       ZStream.fromEffect(ZIO.effect(Random.nextInt() + ""))
-    }
 
     val result = runtime.unsafeRun(for {
       _ <- ZCaffeine.del("CacheableTest-" + readStreamMethodName)
       read <- readStreamFunction(1, "hello").runHead
       update <- updateStreamFunction(1, "hello").runHead
       cache <- ZCaffeine.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello")
-    } yield cache
-    )
+    } yield cache)
     result shouldEqual None
   }
 }

@@ -26,7 +26,6 @@ import org.bitlap.tools.logs.extension.{ ScalaLoggingLazyImpl, ScalaLoggingStric
 import org.bitlap.tools.logs.impl.{ JLogImpl, Log4J2Impl, Slf4jImpl }
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/3/29
  */
@@ -43,19 +42,17 @@ object LogType extends Enumeration {
     ScalaLoggingLazyImpl.`type` -> ScalaLoggingLazyImpl
   )
 
-  def getLogImpl(logType: LogType): BaseLog = {
+  def getLogImpl(logType: LogType): BaseLog =
     types.getOrElse(logType, default = throw new Exception(s"Not support log type: $logType"))
-  }
 
   // TODO not use Enumeratio
   def getLogType(shortType: String): LogType = {
     val tpe1 = s"$PACKAGE.logs.$shortType" //LogType.JLog
     val tpe2 = s"$PACKAGE.logs.LogType.$shortType" // JLog
-    val v = LogType.values.find(p => {
+    val v = LogType.values.find { p =>
       s"$PACKAGE.logs.LogType.${p.toString}" == tpe1 ||
-        s"$PACKAGE.logs.LogType.${p.toString}" == tpe2 || s"$PACKAGE.logs.LogType.${p.toString}" == shortType
-    }).getOrElse(throw new Exception(s"Not support log type: $shortType")).toString
+      s"$PACKAGE.logs.LogType.${p.toString}" == tpe2 || s"$PACKAGE.logs.LogType.${p.toString}" == shortType
+    }.getOrElse(throw new Exception(s"Not support log type: $shortType")).toString
     LogType.withName(v)
   }
 }
-

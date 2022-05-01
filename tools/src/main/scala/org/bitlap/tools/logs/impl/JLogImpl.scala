@@ -27,7 +27,6 @@ import org.bitlap.tools.logs.LogType.LogType
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @version 1.0,2022/3/29
  */
@@ -38,9 +37,13 @@ object JLogImpl extends BaseLog {
   override def getTemplate(c: whitebox.Context)(logArgument: LogArgument): c.Tree = {
     import c.universe._
     if (logArgument.isClass) {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(logArgument.classNameStr)}].getName)"""
+      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(classOf[${TypeName(
+        logArgument.classNameStr
+      )}].getName)"""
     } else {
-      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(logArgument.classNameStr)}.getClass.getName)"""
+      q"""@transient private final val log: java.util.logging.Logger = java.util.logging.Logger.getLogger(${TermName(
+        logArgument.classNameStr
+      )}.getClass.getName)"""
     }
   }
 

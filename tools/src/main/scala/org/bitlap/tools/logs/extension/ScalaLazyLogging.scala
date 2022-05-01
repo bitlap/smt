@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory
 trait ScalaLazyLogging {
 
   @transient
-  protected lazy val log: com.typesafe.scalalogging.Logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(getClass.getName))
+  protected lazy val log: com.typesafe.scalalogging.Logger =
+    com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(getClass.getName))
 
 }

@@ -24,9 +24,36 @@
 - Java 8、11 编译通过
 - Scala 2.11.12、2.12.14、2.13.6 编译通过
 
-# 模块功能
+# 文档
 
-## `tools`
+[详细文档 https://bitlap.org/zh-CN/lab/smt](https://bitlap.org/zh-CN/lab/smt)
+
+# 如何使用
+
+添加库依赖，下面是如何在 SBT 中使用
+
+> 在gradle，maven中，通常`smt-tools`被替换为`smt-tools_2.12`这种。其中，`2.12`表示Scala版本号。
+
+## csv-core
+
+- `Converter` 基础的CSV转换器
+- `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为CSV
+- `ScalableBuilder` 支持以自定义的方式将CSV转化为Scala`case class`
+- 零依赖，类型安全
+
+```scala
+"org.bitlap" %% "smt-csv-core" % "<VERSION>" // 从0.4.4开始 
+```
+
+## csv-derive
+
+- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例
+
+```scala
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // 从0.4.4开始 
+```
+
+## tools
 
 - `@toString`
 - `@json`
@@ -42,45 +69,25 @@
 
 > Intellij插件 `Scala-Macro-Tools`。
 
-## `cacheable-core`
+```scala
+"org.bitlap" %% "smt-tools" % "<VERSION>" //从0.4.0开始名字改成 smt-tools 
+```
+
+## cacheable-core
 
 基于zio的类似Spring`@Cacheable`和`@CacheEvict`注解的缓存API定义。该模块不包含具体的存储媒介。
 
 - `@cacheable` / `Cache.apply`
 - `@cacheEvict` / `Cache.evict`
 
-## `cacheable-caffeine`
-
-基于zio和caffeine的内存缓存实现，内部依赖`cacheable-core`。
-
-## `cacheable-redis`
-
-基于zio和zio-redis的分布式缓存实现，内部依赖`cacheable-core`。
-
-# 文档
-
-[https://bitlap.org/zh-CN/lab/smt](https://bitlap.org/zh-CN/lab/smt)
-
-# 如何使用
-
-添加库依赖，在sbt中
-
-> 在gradle，maven中，通常`smt-tools`被替换为`smt-tools_2.12`这种。其中，`2.12`表示Scala版本号。
-
-**使用tools模块**
-
-```scala
-"org.bitlap" %% "smt-tools" % "<VERSION>" //从0.4.0开始名字改成 smt-tools 
-```
-
-**使用cacheable模块API**
-
 ```scala
 // 内部包含的依赖: zio, zio-streams, zio-logging
 "org.bitlap" %% "smt-cacheable-core" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
-**使用redis实现的cacheable模块**
+## cacheable-redis
+
+基于zio和zio-redis的分布式缓存实现，内部依赖`cacheable-core`。
 
 > TODO，目前不可用，无分布式锁
 
@@ -90,7 +97,9 @@
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
-**使用caffeine实现的cacheable模块**
+## cacheable-caffeine
+
+基于zio和caffeine的内存缓存实现，内部依赖`cacheable-core`。
 
 ```scala
 // 本地缓存, 内部包含的依赖: config, caffeine

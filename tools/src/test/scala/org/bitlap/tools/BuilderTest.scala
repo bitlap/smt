@@ -25,7 +25,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/6/19
  * @version 1.0
@@ -101,19 +100,16 @@ class BuilderTest extends AnyFlatSpec with Matchers {
   "builder8" should "ok on currying" in {
 
     @builder
-    case class TestClass11(val i: Int = 0)(var j: Int)(val k: Int)
-      (val t: Option[String])
+    case class TestClass11(val i: Int = 0)(var j: Int)(val k: Int)(val t: Option[String])
 
     @builder
-    class TestClass12(val i: Int = 0)(var j: Int)(val k: Int)
-      (val t: Option[String])
+    class TestClass12(val i: Int = 0)(var j: Int)(val k: Int)(val t: Option[String])
   }
 
   "builder9" should "ok with generic" in {
 
     @builder
-    case class TestClass11[T](i: T)(var j: Int)(val k: Int)
-      (val t: Option[String])
+    case class TestClass11[T](i: T)(var j: Int)(val k: Int)(val t: Option[String])
 
     val a = TestClass11.builder().i("hello generic").j(1).k(22).t(None).build()
     println(a)

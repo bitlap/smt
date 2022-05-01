@@ -27,7 +27,6 @@ import scala.annotation.tailrec
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/7/24
  * @version 1.0
@@ -82,14 +81,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param force
    * @param resTree
    */
-  def printTree(force: Boolean, resTree: Tree): Unit = {
+  def printTree(force: Boolean, resTree: Tree): Unit =
     c.info(
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
         s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
       force = force
     )
-  }
 
   /**
    * Check the class and its companion object, and return the class definition.
@@ -97,13 +95,12 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return Return a [[scala.reflect.api.Trees#ClassDef]]
    */
-  def checkGetClassDef(annottees: Seq[Expr[Any]]): ClassDef = {
+  def checkGetClassDef(annottees: Seq[Expr[Any]]): ClassDef =
     annottees.map(_.tree).toList match {
-      case (classDecl: ClassDef) :: Nil => classDecl
+      case (classDecl: ClassDef) :: Nil                   => classDecl
       case (classDecl: ClassDef) :: (_: ModuleDef) :: Nil => classDecl
-      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      case _                                              => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
-  }
 
   /**
    * Get object if it exists.
@@ -111,15 +108,14 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annottees
    * @return Return a optional [[scala.reflect.api.Trees#ModuleDef]]
    */
-  def getModuleDefOption(annottees: Seq[Expr[Any]]): Option[ModuleDef] = {
+  def getModuleDefOption(annottees: Seq[Expr[Any]]): Option[ModuleDef] =
     annottees.map(_.tree).toList match {
-      case (moduleDef: ModuleDef) :: Nil => Some(moduleDef)
-      case (_: ClassDef) :: Nil => None
-      case (_: ClassDef) :: (compDecl: ModuleDef) :: Nil => Some(compDecl)
+      case (moduleDef: ModuleDef) :: Nil                  => Some(moduleDef)
+      case (_: ClassDef) :: Nil                           => None
+      case (_: ClassDef) :: (compDecl: ModuleDef) :: Nil  => Some(compDecl)
       case (moduleDef: ModuleDef) :: (_: ClassDef) :: Nil => Some(moduleDef)
-      case _ => None
+      case _                                              => None
     }
-  }
 
   /**
    * Modify the associated object itself according to whether there is an associated object.
@@ -128,8 +124,9 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param modifyAction The actual processing function
    * @return Return the result of modifyAction function
    */
-  def collectCustomExpr(annottees: Seq[Expr[Any]])
-    (modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
+  def collectCustomExpr(
+    annottees: Seq[Expr[Any]]
+  )(modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
     val classDef = checkGetClassDef(annottees)
     val compDecl = getModuleDefOption(annottees)
     modifyAction(classDef, compDecl).asInstanceOf[Expr[Nothing]]
@@ -141,9 +138,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotateeClass classDef
    * @return Return true if it is a case class
    */
-  def isCaseClass(annotateeClass: ClassDef): Boolean = {
+  def isCaseClass(annotateeClass: ClassDef): Boolean =
     annotateeClass.mods.hasFlag(Flag.CASE)
-  }
 
   /**
    * Check whether the mods of the fields has a `private[this]` or `protected[this]`, because it cannot be used out of class.
@@ -170,9 +166,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassParams
    * @return Return a sequence of [[scala.reflect.api.Trees#Tree]], each one is `tname: tpt`
    */
-  def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] = {
+  def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] =
     annotteeClassParams.map(_.asInstanceOf[ValDef]).map(v => q"${v.name}: ${v.tpt}")
-  }
 
   /**
    * Modify companion object or object.
@@ -182,17 +177,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param className
    * @return Return a [[scala.reflect.api.Trees#ModuleDef]] which was appended codeblocks, ModuleDef may already exist or may be newly created
    */
-  def appendModuleBody(
-    compDeclOpt: Option[ModuleDef],
-    codeBlocks:  List[Tree], className: TypeName): Tree = {
-    compDeclOpt.fold(q"object ${className.toTermName} { ..$codeBlocks }") {
-      compDecl =>
-        val ModuleDef(mods, name, impl) = compDecl
-        val Template(parents, self, body) = impl
-        val newImpl = Template(parents, self, body ++ codeBlocks)
-        ModuleDef(mods, name, newImpl)
+  def appendModuleBody(compDeclOpt: Option[ModuleDef], codeBlocks: List[Tree], className: TypeName): Tree =
+    compDeclOpt.fold(q"object ${className.toTermName} { ..$codeBlocks }") { compDecl =>
+      val ModuleDef(mods, name, impl) = compDecl
+      val Template(parents, self, body) = impl
+      val newImpl = Template(parents, self, body ++ codeBlocks)
+      ModuleDef(mods, name, newImpl)
     }
-  }
 
   /**
    * Extract the internal fields of members belonging to the class, but not in primary constructor.
@@ -200,12 +191,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassDefinitions
    * @return Return a sequence of [[scala.reflect.api.Trees#ValDef]]
    */
-  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] = {
-    annotteeClassDefinitions.filter(_ match {
-      case _: ValDef => true
-      case _         => false
-    }).map(_.asInstanceOf[ValDef])
-  }
+  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] =
+    annotteeClassDefinitions
+      .filter(_ match {
+        case _: ValDef => true
+        case _         => false
+      })
+      .map(_.asInstanceOf[ValDef])
 
   /**
    * Extract the constructor params ValDef and flatten for currying.
@@ -213,9 +205,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassParams
    * @return Return a sequence of [[scala.reflect.api.Trees#ValDef]]
    */
-  def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] = {
+  def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] =
     annotteeClassParams.flatten.map(_.asInstanceOf[ValDef])
-  }
 
   /**
    * Extract the constructor params [[scala.reflect.api.Trees#ValDef]] not flatten.
@@ -223,9 +214,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassParams
    * @return Return a double sequence of [[scala.reflect.api.Trees#ValDef]]
    */
-  def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] = {
+  def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] =
     annotteeClassParams.map(_.map(_.asInstanceOf[ValDef]))
-  }
 
   /**
    * Extract the methods belonging to the class, contains Secondary Constructor.
@@ -233,12 +223,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param annotteeClassDefinitions
    * @return Return a sequence of [[scala.reflect.api.Trees#DefDef]]
    */
-  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] = {
-    annotteeClassDefinitions.filter(_ match {
-      case _: DefDef => true
-      case _         => false
-    }).map(_.asInstanceOf[DefDef])
-  }
+  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] =
+    annotteeClassDefinitions
+      .filter(_ match {
+        case _: DefDef => true
+        case _         => false
+      })
+      .map(_.asInstanceOf[DefDef])
 
   /**
    * We generate constructor with currying, and we have to deal with the first layer of currying alone.
@@ -254,7 +245,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     val allFieldsTermName = fieldssValDefNotFlatten.map(_.map(_.name.toTermName))
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
-      q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})" else q"new $typeName(..${allFieldsTermName.flatten})"}"
+      q"${if (isCase) q"${typeName.toTermName}(..${allFieldsTermName.flatten})"
+      else q"new $typeName(..${allFieldsTermName.flatten})"}"
     } else {
       // currying
       val first = allFieldsTermName.head
@@ -292,9 +284,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param tpParams
    * @return Return a sequence of [[scala.reflect.api.Names#TypeName]]
    */
-  def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] = {
+  def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] =
     tpParams.map(_.asInstanceOf[TypeDef].name)
-  }
 
   /**
    * Is there a parent class? Does not contains sdk class, such as AnyRef and Object.
@@ -302,15 +293,14 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param superClasses
    * @return Return true if there is a non-SDK super class
    */
-  def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean = {
+  def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean =
     superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
-  }
 
   private[macros] case class ValDefAccessor(
-      mods: Modifiers,
-      name: TermName,
-      tpt:  Tree,
-      rhs:  Tree
+    mods: Modifiers,
+    name: TermName,
+    tpt: Tree,
+    rhs: Tree
   ) {
 
     def typeName: TypeName = symbol.name.toTypeName
@@ -326,12 +316,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param params The list of params retrieved from the class
    * @return Return a sequence of [[org.bitlap.tools.macros.AbstractMacroProcessor#ValDefAccessor]]
    */
-  def valDefAccessors(params: Seq[Tree]): Seq[ValDefAccessor] = {
-    params.map {
-      case ValDef(mods, name: TermName, tpt: Tree, rhs) =>
-        ValDefAccessor(mods, name, tpt, rhs)
+  def valDefAccessors(params: Seq[Tree]): Seq[ValDefAccessor] =
+    params.map { case ValDef(mods, name: TermName, tpt: Tree, rhs) =>
+      ValDefAccessor(mods, name, tpt, rhs)
     }
-  }
 
   /**
    * Extract the necessary structure information of the class for macro programming.
@@ -340,10 +328,19 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @return Return the expansion of the class definition as [[org.bitlap.tools.macros.AbstractMacroProcessor#ClassDefinition]]
    */
   def mapToClassDeclInfo(classDecl: ClassDef): ClassDefinition = {
-    val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
-    val (className, classParamss, classTypeParams) = (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
-    ClassDefinition(self.asInstanceOf[ValDef], mods.asInstanceOf[Modifiers], className,
-      classParamss, classTypeParams, stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
+    val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =
+      classDecl
+    val (className, classParamss, classTypeParams) =
+      (tpname.asInstanceOf[TypeName], paramss.asInstanceOf[List[List[Tree]]], tparams.asInstanceOf[List[Tree]])
+    ClassDefinition(
+      self.asInstanceOf[ValDef],
+      mods.asInstanceOf[Modifiers],
+      className,
+      classParamss,
+      classTypeParams,
+      stats.asInstanceOf[List[Tree]],
+      parents.asInstanceOf[List[Tree]]
+    )
   }
 
   /**
@@ -354,9 +351,15 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def mapToModuleDeclInfo(moduleDef: ModuleDef): ClassDefinition = {
     val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
-    ClassDefinition(self.asInstanceOf[ValDef], mods.asInstanceOf[Modifiers],
-      tpname.asInstanceOf[TermName].toTypeName, Nil, Nil,
-      stats.asInstanceOf[List[Tree]], parents.asInstanceOf[List[Tree]])
+    ClassDefinition(
+      self.asInstanceOf[ValDef],
+      mods.asInstanceOf[Modifiers],
+      tpname.asInstanceOf[TermName].toTypeName,
+      Nil,
+      Nil,
+      stats.asInstanceOf[List[Tree]],
+      parents.asInstanceOf[List[Tree]]
+    )
   }
 
   /**
@@ -375,31 +378,31 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   // TODO fix, why cannot use ClassDef apply
-  def prependImplDefBody(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
+  def prependImplDefBody(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree =
     implDef match {
       case classDecl: ClassDef =>
         val classInfo = mapToClassDeclInfo(classDecl)
-        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
+        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =
+          classDecl
         q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${classInfoAction(classInfo) ++ stats} }"
       case moduleDef: ModuleDef =>
         val classInfo = mapToModuleDeclInfo(moduleDef)
         val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
         q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${classInfoAction(classInfo) ++ stats.toList} }"
     }
-  }
 
-  def appendImplDefSuper(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree = {
+  def appendImplDefSuper(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree =
     implDef match {
       case classDecl: ClassDef =>
         val classInfo = mapToClassDeclInfo(classDecl)
-        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = classDecl
+        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =
+          classDecl
         q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ classInfoAction(classInfo)} { $self => ..$stats }"
       case moduleDef: ModuleDef =>
         val classInfo = mapToModuleDeclInfo(moduleDef)
         val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
         q"$mods object $tpname extends { ..$earlydefns } with ..${parents.toList ++ classInfoAction(classInfo)} { $self => ..$stats }"
     }
-  }
 
   /**
    * Modify the method body of the method tree.
@@ -414,14 +417,14 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   private[macros] case class ClassDefinition(
-      self:            ValDef,
-      mods:            Modifiers,
-      className:       TypeName,
-      classParamss:    List[List[Tree]],
-      classTypeParams: List[Tree],
-      body:            List[Tree],
-      superClasses:    List[Tree],
-      earlydefns:      List[Tree]       = Nil
+    self: ValDef,
+    mods: Modifiers,
+    className: TypeName,
+    classParamss: List[List[Tree]],
+    classTypeParams: List[Tree],
+    body: List[Tree],
+    superClasses: List[Tree],
+    earlydefns: List[Tree] = Nil
   )
 
   /**
@@ -434,12 +437,14 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     @tailrec
     def doFind(trees: List[Tree]): Option[TermName] = trees match {
       case Nil => None
-      case tree :: tail => tree match {
-        case ValDef(_, name, tpt, _) =>
-          if (c.typecheck(tq"$tpt", c.TYPEmode).tpe.toString == t.decodedName.toString) //TODO better
-            Some(name.toTermName) else None
-        case _ => doFind(tail)
-      }
+      case tree :: tail =>
+        tree match {
+          case ValDef(_, name, tpt, _) =>
+            if (c.typecheck(tq"$tpt", c.TYPEmode).tpe.toString == t.decodedName.toString) //TODO better
+              Some(name.toTermName)
+            else None
+          case _ => doFind(tail)
+        }
     }
 
     c.enclosingClass match {

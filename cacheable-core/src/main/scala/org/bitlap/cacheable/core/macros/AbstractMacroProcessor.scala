@@ -28,7 +28,6 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.whitebox
 
 /**
- *
  * @author 梦境迷离
  * @since 2022/3/19
  * @version 1.0
@@ -43,14 +42,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param force
    * @param resTree
    */
-  def printTree(force: Boolean, resTree: Tree): Unit = {
+  def printTree(force: Boolean, resTree: Tree): Unit =
     c.info(
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
         s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
       force = force
     )
-  }
 
   /**
    * Find the specified method Name in the enclosing class definition.
@@ -58,9 +56,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    * @param t
    * @return Return a optional [[scala.reflect.api.Names#TermName]]
    */
-  def findDefDefInEnclosingClass(t: Name): Option[TermName] = {
+  def findDefDefInEnclosingClass(t: Name): Option[TermName] =
     getDefDefInEnclosingClass.find(_.decodedName.toString == t.decodedName.toString)
-  }
 
   /**
    * Find all method Name in the enclosing class definition.
@@ -76,7 +73,11 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       case tree :: tail =>
         tree match {
           case DefDef(_, name, _, _, _, _) =>
-            c.info(c.enclosingPosition, s"Method: `${name.decodedName.toString}` in enclosing class: `$getEnclosingClassName`.", force = true)
+            c.info(
+              c.enclosingPosition,
+              s"Method: `${name.decodedName.toString}` in enclosing class: `$getEnclosingClassName`.",
+              force = true
+            )
             buffer.append(name)
             doFind(tail)
           case _ =>
@@ -96,10 +97,9 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *
    * @return
    */
-  def getEnclosingClassName: String = {
+  def getEnclosingClassName: String =
     c.enclosingClass match {
       case ClassDef(_, name, _, Template(_, _, _)) => name.decodedName.toString
       case ModuleDef(_, name, Template(_, _, _))   => name.decodedName.toString
     }
-  }
 }

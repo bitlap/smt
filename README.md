@@ -24,9 +24,32 @@ Learn Scala macro and abstract syntax tree.
 - Compile passed in Java 8、11
 - Compile passed in Scala 2.11.12、2.12.14、2.13.6
 
-# Module Features
+# Document
 
-## `tools`
+[https://bitlap.org/en-US/lab/smt](https://bitlap.org/en-US/lab/smt)
+
+# How to use
+
+## csv-core
+
+- `Converter` A basic CSV converter
+- `CsvableBuilder` Support for converting Scala `case class` to CSV in a custom way.
+- `ScalableBuilder` Support for converting CSV to Scala `case class` in a custom way.
+- Zero dependency, type-safe
+
+```scala
+"org.bitlap" %% "smt-csv-core" % "<VERSION>" // since 0.4.4 
+```
+
+## csv-derive
+
+- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例
+
+```scala
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.4.4 
+```
+
+## tools
 
 - `@toString`
 - `@json`
@@ -42,43 +65,25 @@ Learn Scala macro and abstract syntax tree.
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
-## `cacheable-core`
-
-A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media. 
-
-- `@cacheable` / `Cache.apply`
-- `@cacheEvict` / `Cache.evict`
-
-## `cacheable-caffeine`
-
-A memory cache based on zio and caffeine. It needs `cacheable-core` module.
-
-## `cacheable-redis`
-
-A distributed cache based on zio and zio-redis. It needs `cacheable-core` module.
-
-# Document
-
-[https://bitlap.org/lab/smt](https://bitlap.org/lab/smt)
-
-# How to use
-
-Add library dependency
-
-**Use `smt-tools`**
-
 ```scala
 "org.bitlap" %% "smt-tools" % "<VERSION>" // named smt-tools since 0.4.0 
 ```
 
-**Only Use`smt-cacheable-core`**
+## cacheable-core
+
+A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media.
+
+- `@cacheable` / `Cache.apply`
+- `@cacheEvict` / `Cache.evict`
 
 ```scala
 // cache API, include dependencies: zio, zio-streams, zio-logging
 "org.bitlap" %% "smt-cacheable-core" % "<VERSION>" // not support Scala2.11.x
 ```
 
-**Use `smt-cacheable-redis`** 
+## cacheable-redis
+
+A distributed cache based on zio and zio-redis. It needs `cacheable-core` module.
 
 > TODO Not unavailable, no distributed lock
 
@@ -88,7 +93,9 @@ Add library dependency
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // not support Scala2.11.x
 ```
 
-**Use `smt-cacheable-caffeine`**
+## cacheable-caffeine
+
+A memory cache based on zio and caffeine. It needs `cacheable-core` module.
 
 ```scala
 // local cache, include dependencies: config, caffeine

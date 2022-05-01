@@ -25,7 +25,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/11/23
  * @version 1.0

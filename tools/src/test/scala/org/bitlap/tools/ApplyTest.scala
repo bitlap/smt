@@ -25,7 +25,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/6/30
  * @version 1.0
@@ -65,7 +64,10 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     @apply
     @toString class B3(int: Int)(val j: Int)(var k: Option[String] = None)(t: Option[Long] = Some(1L))
     @apply
-    @toString class B4(int: Int, a: Seq[Seq[String]])(val j: Int, b: Seq[String])(var k: Option[String] = None, c: Seq[Option[String]])(t: Option[Long] = Some(1L))
+    @toString class B4(int: Int, a: Seq[Seq[String]])(val j: Int, b: Seq[String])(
+      var k: Option[String] = None,
+      c: Seq[Option[String]]
+    )(t: Option[Long] = Some(1L))
   }
 
   "apply4" should "ok with generic" in {

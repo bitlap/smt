@@ -26,8 +26,7 @@ import org.scalatest.matchers.should.Matchers
 
 class EmployeeTests extends AnyFlatSpec with Matchers {
 
-  class Employee(name: String, age: Int, var role: String)
-    extends Person(name, age) {
+  class Employee(name: String, age: Int, var role: String) extends Person(name, age) {
     override def canEqual(a: Any): Boolean = a.isInstanceOf[Employee]
 
     override def equals(that: Any): Boolean =

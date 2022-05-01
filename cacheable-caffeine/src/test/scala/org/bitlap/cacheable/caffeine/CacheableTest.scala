@@ -31,7 +31,6 @@ import java.util
 import scala.util.Random
 
 /**
- *
  * @author 梦境迷离
  * @since 2021/8/7
  * @version 1.0
@@ -44,16 +43,14 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
   "cacheable1" should "ok" in {
     @cacheable(local = true)
-    def readAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] = {
+    def readAliasStreamFunction2(id: Int, key: String): zio.stream.Stream[Throwable, String] =
       ZStream.fromEffect(ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}"))
-    }
   }
 
   "cacheable2" should "ok" in {
     @cacheable(local = true)
-    def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def readFunction(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
   }
 
   "cacheable3" should "String cannot compile" in {
@@ -76,30 +73,26 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
   "cacheable5" should "expected annotation pattern" in {
     @cacheable(local = true)
-    def readFunction1(id: Int, key: String): Task[String] = {
+    def readFunction1(id: Int, key: String): Task[String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
 
     @cacheable()
-    def readFunction3(id: Int, key: String): Task[String] = {
+    def readFunction3(id: Int, key: String): Task[String] =
       ZIO.effect(s"hello world--$id-$key-${Random.nextInt()}")
-    }
   }
 
   "cacheable6" should "zio operation is ok with redis" in {
     val cacheValue = Random.nextInt().toString
 
     @cacheable(true)
-    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] =
       ZIO.effect(cacheValue)
-    }
 
     val result = runtime.unsafeRun(for {
       _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(1, "hello")
       cache <- ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello")
-    } yield method -> cache
-    )
+    } yield method -> cache)
     Some(result._1) shouldEqual result._2
   }
 
@@ -114,43 +107,38 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
   "cacheable7" should "test multi-threads" in {
     @cacheable(true)
-    def readIOFunction(id: Int): ZStream[Any, Throwable, StoreData] = {
+    def readIOFunction(id: Int): ZStream[Any, Throwable, StoreData] =
       ZStream.fromEffect(
         ZIO.effect(storeMap.get(id + ""))
       )
-    }
 
     @cacheEvict(local = true)
-    def updateIOFunction(value: String): ZStream[Any, Throwable, StoreData] = {
+    def updateIOFunction(value: String): ZStream[Any, Throwable, StoreData] =
       ZStream.fromEffect(
         ZIO.effect(storeMap.put(globalId, StoreData(globalId, value)))
       )
-    }
 
     val result = runtime.unsafeRun(for {
       _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(globalId.toInt).runHead
       update <- updateIOFunction("lisi").runHead
       after <- readIOFunction(globalId.toInt).runHead
-    } yield Some("lisi") -> after.map(_.name)
-    )
+    } yield Some("lisi") -> after.map(_.name))
     result._1 shouldEqual result._2
   }
 
   "cacheable8" should "test multi-threads" in {
     @cacheable(true)
-    def readIOFunction(id: Int): ZStream[Any, Throwable, StoreData] = {
+    def readIOFunction(id: Int): ZStream[Any, Throwable, StoreData] =
       ZStream.fromEffect(
         ZIO.effect(storeMap.get(id + ""))
       )
-    }
 
     @cacheEvict(local = true)
-    def updateIOFunction(id: String): ZStream[Any, Throwable, StoreData] = {
+    def updateIOFunction(id: String): ZStream[Any, Throwable, StoreData] =
       ZStream.fromEffect(
         ZIO.effect(storeMap.put(globalId, StoreData(id, "zhangsan")))
       )
-    }
 
     val newId = Random.nextInt().toString
     val result = runtime.unsafeRun(for {
@@ -158,8 +146,7 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       method <- readIOFunction(globalId.toInt).runHead
       update <- updateIOFunction(newId).runHead
       after <- readIOFunction(globalId.toInt).runHead
-    } yield Some(newId) -> after.map(_.id)
-    )
+    } yield Some(newId) -> after.map(_.id))
     result._1 shouldEqual result._2
   }
 
@@ -167,17 +154,15 @@ class CacheableTest extends AnyFlatSpec with Matchers {
     val chunk = Chunk(Random.nextInt().toString, Random.nextInt().toString, Random.nextInt().toString)
 
     @cacheable(local = true)
-    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, Chunk[String]] = {
+    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, Chunk[String]] =
       ZIO.succeed(chunk)
-    }
 
     println(chunk)
     val result = runtime.unsafeRun(for {
       _ <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(1, "hello")
       cache <- ZCaffeine.hGet[Chunk[String]]("CacheableTest-readIOFunction", "1-hello").map(_.getOrElse(Chunk.empty))
-    } yield method -> cache
-    )
+    } yield method -> cache)
     result._1 shouldEqual result._2
   }
 }

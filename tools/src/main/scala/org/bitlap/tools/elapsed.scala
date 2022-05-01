@@ -24,7 +24,7 @@ package org.bitlap.tools
 import org.bitlap.tools.LogLevel.LogLevel
 import org.bitlap.tools.macros.elapsedMacro.ElapsedProcessor
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.concurrent.duration.Duration
 
 /**

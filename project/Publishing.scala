@@ -46,6 +46,7 @@ object Publishing {
       ScmInfo(
         url("https://github.com/bitlap/scala-macro-tools"),
         "scm:git@github.com:bitlap/scala-macro-tools.git"
-      ))
+      )
+    )
   )
 }

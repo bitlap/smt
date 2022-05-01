@@ -29,7 +29,6 @@ import zio.ZIO
 import scala.util.Random
 
 /**
- *
  * @author 梦境迷离
  * @since 2022/3/20
  * @version 1.0
@@ -38,7 +37,9 @@ class CustomCacheableTest extends AnyFlatSpec with Matchers {
 
   "create a custom cacheable by implicit" should "" in {
     implicit def cache: ZIOCache[Any, Throwable, String] = new ZIOCache[Any, Throwable, String] {
-      override def getIfPresent(business: => ZIO[Any, Throwable, String])(identities: List[String], args: List[_]): ZIO[Any, Throwable, String] = {
+      override def getIfPresent(
+        business: => ZIO[Any, Throwable, String]
+      )(identities: List[String], args: List[_]): ZIO[Any, Throwable, String] = {
         println("hello world!!")
         business
       }

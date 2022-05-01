@@ -23,7 +23,7 @@ package org.bitlap.tools
 
 import org.bitlap.tools.macros.builderMacro
 
-import scala.annotation.{ StaticAnnotation, compileTimeOnly }
+import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
 /**
  * annotation to generate builder pattern for classes.
