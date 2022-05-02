@@ -132,7 +132,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
         ScalableBuilder[Metric2]
           .setField[Seq[Dimension3]](
             _.dimensions,
-            dims => StringUtils.extraJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+            dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
           )
           .build(csv)
           .toScala

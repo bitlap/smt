@@ -49,7 +49,7 @@ object StringUtils {
     null
   }
 
-  def extraJsonValues[T <: Product](jsonString: String)(func: (String, String) => T): List[T] = {
+  def extractJsonValues[T <: Product](jsonString: String)(func: (String, String) => T): List[T] = {
     val pairs = extraJsonPairs(jsonString)
     if (pairs == null) return Nil
     val jsonElements = pairs.split(",")
