@@ -21,6 +21,9 @@
 
 package org.bitlap.csv.core
 
+import java.io.{ BufferedReader, InputStreamReader }
+import scala.util.Using
+
 import scala.collection.mutable.ListBuffer
 import java.util.regex.Pattern
 import scala.util.matching.Regex
@@ -47,6 +50,17 @@ object StringUtils {
     }
 
     null
+  }
+
+  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
+    val ts = ListBuffer[Option[T]]()
+    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
+    val bufferedReader = new BufferedReader(reader)
+    Using.resource(bufferedReader) { input =>
+      ts.append(func(input.readLine()))
+    }
+
+    ts.result()
   }
 
   def extractJsonValues[T <: Product](jsonString: String)(func: (String, String) => T): List[T] = {

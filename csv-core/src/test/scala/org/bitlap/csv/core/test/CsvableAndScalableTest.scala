@@ -85,7 +85,8 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       CsvableBuilder[Metric]
         .setField(
           _.dimensions,
-          (ds: List[Dimension3]) => s"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}"
+          (ds: List[Dimension3]) =>
+            s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}\\}\""""
         )
         .build(metric.get, ',')
         .toCsvString
@@ -93,7 +94,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
 
     println(csv)
     assert(
-      csv.toString() == """List(100,1,{""city"":""北京"",""os"":""Mac"",vv,1, 100,1,{""city"":""北京"",""os"":""Mac"",pv,2, 100,1,{""city"":""北京"",""os"":""Windows"",vv,1, 100,1,{""city"":""北京"",""os"":""Windows"",pv,3, 100,2,{""city"":""北京"",""os"":""Mac"",vv,1, 100,2,{""city"":""北京"",""os"":""Mac"",pv,5, 100,3,{""city"":""北京"",""os"":""Mac"",vv,1, 100,3,{""city"":""北京"",""os"":""Mac"",pv,2, 200,1,{""city"":""北京"",""os"":""Mac"",vv,1, 200,1,{""city"":""北京"",""os"":""Mac"",pv,2, 200,1,{""city"":""北京"",""os"":""Windows"",vv,1, 200,1,{""city"":""北京"",""os"":""Windows"",pv,3, 200,2,{""city"":""北京"",""os"":""Mac"",vv,1, 200,2,{""city"":""北京"",""os"":""Mac"",pv,5, 200,3,{""city"":""北京"",""os"":""Mac"",vv,1, 200,3,{""city"":""北京"",""os"":""Mac"",pv,2)"""
+      csv.toString() == """List(100,1,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 100,1,"{""city"":""北京"",""os"":""Mac""\}",pv,2, 100,1,"{""city"":""北京"",""os"":""Windows""\}",vv,1, 100,1,"{""city"":""北京"",""os"":""Windows""\}",pv,3, 100,2,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 100,2,"{""city"":""北京"",""os"":""Mac""\}",pv,5, 100,3,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 100,3,"{""city"":""北京"",""os"":""Mac""\}",pv,2, 200,1,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 200,1,"{""city"":""北京"",""os"":""Mac""\}",pv,2, 200,1,"{""city"":""北京"",""os"":""Windows""\}",vv,1, 200,1,"{""city"":""北京"",""os"":""Windows""\}",pv,3, 200,2,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 200,2,"{""city"":""北京"",""os"":""Mac""\}",pv,5, 200,3,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 200,3,"{""city"":""北京"",""os"":""Mac""\}",pv,2)"""
     )
   }
 
@@ -139,6 +140,23 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       )
 
     println(metrics.toList)
+
+    assert(metrics.head.get.dimensions.head.key == "city")
+    assert(metrics.head.get.dimensions.head.value == "北京")
+  }
+
+  "CsvableAndScalable4" should "ok when reading from file" in {
+    val metrics = StringUtils.readCsvFromClassPath[Metric2]("simple_data.csv") { line =>
+      ScalableBuilder[Metric2]
+        .setField[Seq[Dimension3]](
+          _.dimensions,
+          dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+        )
+        .build(line)
+        .toScala
+    }
+
+    println(metrics)
 
     assert(metrics.head.get.dimensions.head.key == "city")
     assert(metrics.head.get.dimensions.head.value == "北京")
