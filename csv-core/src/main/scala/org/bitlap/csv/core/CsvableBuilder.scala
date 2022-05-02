@@ -29,7 +29,7 @@ import org.bitlap.csv.core.macros.DeriveCsvableBuilder
  * @author 梦境迷离
  * @version 1.0,2022/4/30
  */
-private[core] class CsvableBuilder[T] {
+final class CsvableBuilder[T] {
 
   /**
    * Convert this CSV column string to any Scala types.
