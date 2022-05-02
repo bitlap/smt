@@ -35,8 +35,13 @@ object ScalableHelper {
     val ts = ListBuffer[Option[T]]()
     val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
     val bufferedReader = new BufferedReader(reader)
+    var line: String = null
     Using.resource(bufferedReader) { input =>
-      ts.append(func(input.readLine()))
+      while ({
+        line = input.readLine()
+        line != null
+      })
+        ts.append(func(line))
     }
 
     ts.result()
