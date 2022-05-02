@@ -22,6 +22,8 @@
 package org.bitlap.csv.core
 
 import scala.collection.mutable.ListBuffer
+import java.util.regex.Pattern
+import scala.util.matching.Regex
 
 /**
  * split csv column value by columnSeparator.
@@ -30,6 +32,32 @@ import scala.collection.mutable.ListBuffer
  * @version 1.0,2022/4/30
  */
 object StringUtils {
+
+  private val regex: Regex = "\\{(.*?)\\}".r
+  private val kvr: Regex = "(.*):(.*)".r
+  private val pattern: Pattern = Pattern.compile(regex.toString())
+
+  def extraJsonPairs(input: String): String = {
+    val matcher = pattern.matcher(input)
+    while (matcher.find) {
+      val tail = matcher.group().tail.init
+      if (tail != null && tail.nonEmpty) {
+        return tail
+      } else return null
+    }
+
+    null
+  }
+
+  def extraJsonValues[T <: Product](jsonString: String)(func: (String, String) => T): List[T] = {
+    val pairs = extraJsonPairs(jsonString)
+    if (pairs == null) return Nil
+    val jsonElements = pairs.split(",")
+    val kvs = jsonElements.collect {
+      case kvr(k, v) if k.length > 2 && v.length > 2 => k.init.tail -> v.init.tail
+    }
+    kvs.toList.map(f => func(f._1, f._2))
+  }
 
   def splitColumns(line: String, columnSeparator: Char): List[String] = {
     val listBuffer = ListBuffer[String]()

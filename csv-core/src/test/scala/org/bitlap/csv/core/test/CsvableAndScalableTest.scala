@@ -21,6 +21,8 @@
 
 package org.bitlap.csv.core.test
 
+import org.bitlap.csv.core.StringUtils
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.bitlap.csv.core.ScalableBuilder
@@ -118,6 +120,25 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       )
 
     println(metrics)
+
+    assert(metrics.head.get.dimensions.head.key == "city")
+    assert(metrics.head.get.dimensions.head.value == "北京")
+  }
+
+  "CsvableAndScalable3" should "ok when using StringUtils" in {
+    val metrics = csvData
+      .split("\n")
+      .map(csv =>
+        ScalableBuilder[Metric2]
+          .setField[Seq[Dimension3]](
+            _.dimensions,
+            dims => StringUtils.extraJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+          )
+          .build(csv)
+          .toScala
+      )
+
+    println(metrics.toList)
 
     assert(metrics.head.get.dimensions.head.key == "city")
     assert(metrics.head.get.dimensions.head.value == "北京")

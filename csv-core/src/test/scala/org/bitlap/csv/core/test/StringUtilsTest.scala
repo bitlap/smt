@@ -37,4 +37,11 @@ class StringUtilsTest extends AnyFlatSpec with Matchers {
     println(csv)
     assert(csv.size == 8)
   }
+
+  "StringUtilsTest2" should "ok" in {
+    val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
+    val csv = StringUtils.extraJsonValues[Dimension3](line)((k, v) => Dimension3(k, v))
+    println(csv)
+    assert(csv.toString() == "List(Dimension3(a,b), Dimension3(c,d))")
+  }
 }

@@ -1,4 +1,3 @@
-import sbt.librarymanagement.InclExclRule
 import sbt.{ Def, Test }
 import sbtrelease.ReleaseStateTransformations._
 
