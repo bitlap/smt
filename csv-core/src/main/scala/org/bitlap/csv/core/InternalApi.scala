@@ -24,6 +24,8 @@ package org.bitlap.csv.core
 import scala.annotation.StaticAnnotation
 
 /**
+ * The annotation notes the method should only be used in library.
+ * 
  * @author 梦境迷离
  * @version 1.0,2022/5/1
  */

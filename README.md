@@ -38,7 +38,7 @@ Learn Scala macro and abstract syntax tree.
 - Zero dependency, type-safe
 
 ```scala
-"org.bitlap" %% "smt-csv-core" % "<VERSION>" // since 0.5.1
+"org.bitlap" %% "smt-csv-core" % "<VERSION>" // since 0.5.2
 ```
 
 ## csv-derive
@@ -46,7 +46,7 @@ Learn Scala macro and abstract syntax tree.
 - `DeriveCsvConverter` Automatically derive`Converter`instances for Scala`case class`
 
 ```scala
-"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.5.1
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.5.2
 ```
 
 ## tools

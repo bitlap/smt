@@ -31,7 +31,7 @@ package org.bitlap.csv.core
 trait Csvable[T] {
 
   @InternalApi
-  private[core] def _toCsvString(t: T): String = ""
+  def _toCsvString(t: T): String = ""
 
   def toCsvString: String = ""
 
