@@ -46,7 +46,7 @@ Learn Scala macro and abstract syntax tree.
 - `DeriveCsvConverter` Automatically derive`Converter`instances for Scala`case class`
 
 ```scala
-"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.4.4 
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.5.0 
 ```
 
 ## tools

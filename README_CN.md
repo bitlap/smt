@@ -50,7 +50,7 @@
 - `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例
 
 ```scala
-"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // 从0.4.4开始 
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // 从0.5.0开始 
 ```
 
 ## tools
