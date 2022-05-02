@@ -158,7 +158,6 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     }
 
     println(metrics)
-
     assert(metrics.head.get.dimensions.head.key == "city")
     assert(metrics.head.get.dimensions.head.value == "北京")
   }

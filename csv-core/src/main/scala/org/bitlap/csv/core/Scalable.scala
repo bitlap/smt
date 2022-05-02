@@ -31,7 +31,7 @@ package org.bitlap.csv.core
 trait Scalable[T] {
 
   @InternalApi
-  def _toScala(line: String): Option[T] = None
+  def _toScala(column: String): Option[T] = None
 
   def toScala: Option[T] = None
 }
