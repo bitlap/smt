@@ -42,7 +42,7 @@
 - 零依赖，类型安全
 
 ```scala
-"org.bitlap" %% "smt-csv-core" % "<VERSION>" // 从0.4.4开始 
+"org.bitlap" %% "smt-csv-core" % "<VERSION>" // 从0.5.0开始 
 ```
 
 ## csv-derive

@@ -38,7 +38,7 @@ Learn Scala macro and abstract syntax tree.
 - Zero dependency, type-safe
 
 ```scala
-"org.bitlap" %% "smt-csv-core" % "<VERSION>" // since 0.4.4 
+"org.bitlap" %% "smt-csv-core" % "<VERSION>" // since 0.5.0 
 ```
 
 ## csv-derive
