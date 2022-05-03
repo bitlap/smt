@@ -27,35 +27,35 @@ package org.bitlap.csv.core
  */
 trait CsvableImplicits {
 
-  implicit val stringCSVCsvable: Csvable[String] = new Csvable[String] {
+  implicit val stringCsvable: Csvable[String] = new Csvable[String] {
     override def _toCsvString(s: String): String = s
   }
 
-  implicit val intCsvCsvable: Csvable[Int] = new Csvable[Int] {
+  implicit val intCsvable: Csvable[Int] = new Csvable[Int] {
     override def _toCsvString(column: Int): String = column.toString
   }
 
-  implicit val charCsvCsvable: Csvable[Char] = new Csvable[Char] {
+  implicit val charCsvable: Csvable[Char] = new Csvable[Char] {
     override def _toCsvString(t: Char): String = t.toString
   }
 
-  implicit val longCsvCsvable: Csvable[Long] = new Csvable[Long] {
+  implicit val longCsvable: Csvable[Long] = new Csvable[Long] {
     override def _toCsvString(column: Long): String = column.toString
   }
 
-  implicit val shortCsvCsvable: Csvable[Short] = new Csvable[Short] {
+  implicit val shortCsvable: Csvable[Short] = new Csvable[Short] {
     override def _toCsvString(column: Short): String = column.toString
   }
 
-  implicit val doubleCsvCsvable: Csvable[Double] = new Csvable[Double] {
+  implicit val doubleCsvable: Csvable[Double] = new Csvable[Double] {
     override def _toCsvString(column: Double): String = column.toString
   }
 
-  implicit val floatCsvCsvable: Csvable[Float] = new Csvable[Float] {
+  implicit val floatCsvable: Csvable[Float] = new Csvable[Float] {
     override def _toCsvString(column: Float): String = column.toString
   }
 
-  implicit val booleanCsvCsvable: Csvable[Boolean] = new Csvable[Boolean] {
+  implicit val booleanCsvable: Csvable[Boolean] = new Csvable[Boolean] {
     override def _toCsvString(column: Boolean): String = column.toString
   }
 }
