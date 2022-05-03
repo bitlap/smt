@@ -38,7 +38,7 @@ object DeriveToString {
     private val packageName = q"_root_.org.bitlap.csv.core"
 
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
-      val (names, indexTypes) = super.zipAllCaseClassParams[T]
+      val (names, indexTypes) = super.checkCaseClassZip[T]
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName = TermName("_t")
       val indexByName = (i: Int) => TermName(names(i))

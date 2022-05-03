@@ -22,22 +22,34 @@
 package org.bitlap.csv.core
 
 /**
- * a Custom Csv decoder.
+ * a Custom Csv encoder.
  *
  * @author 梦境迷离
- * @since 2022/04/30
+ * @since 2022/04/27
  * @version 1.0
  */
-trait Scalable[T] {
+trait Csvable[T] {
 
+  /**
+   * Internal API for processing a specific field of case class object.
+   *
+   * @param t case class object
+   * @return
+   */
   @InternalApi
-  def _toScala(column: String): Option[T] = None
+  def _toCsvString(t: T): String = ""
 
-  def toScala: Option[T] = None
+  /**
+   * Public API, finally get CSV line string.
+   *
+   * @return
+   */
+  def toCsvString: String = ""
+
 }
 
-object Scalable extends ScalableImplicits {
+object Csvable extends CsvableImplicits {
 
-  def apply[T](implicit st: Scalable[T]): Scalable[T] = st
+  def apply[T](implicit st: Csvable[T]): Csvable[T] = st
 
 }

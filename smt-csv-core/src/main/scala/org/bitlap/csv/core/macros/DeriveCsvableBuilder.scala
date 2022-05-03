@@ -99,7 +99,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     customTrees: mutable.Map[String, Any]
   ): c.Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
-    val (fieldNames, indexTypes) = zipAllCaseClassParams
+    val (fieldNames, indexTypes) = checkCaseClassZip
     val indexByName = (i: Int) => TermName(fieldNames(i))
     val fieldsToString = indexTypes.map { idxType =>
       val customFunction = () =>

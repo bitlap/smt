@@ -53,7 +53,7 @@ lazy val commonSettings =
     publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
   )
 
-lazy val `cacheable-core` = (project in file("cacheable-core"))
+lazy val `smt-cacheable-core` = (project in file("smt-cacheable-core"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
@@ -68,7 +68,7 @@ lazy val `cacheable-core` = (project in file("cacheable-core"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
+lazy val `smt-cacheable-caffeine` = (project in file("smt-cacheable-caffeine"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
@@ -79,11 +79,11 @@ lazy val `cacheable-caffeine` = (project in file("cacheable-caffeine"))
       "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
     )
   )
-  .dependsOn(`cacheable-core` % "compile->compile;test->test")
+  .dependsOn(`smt-cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `cacheable-redis` = (project in file("cacheable-redis"))
+lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
@@ -97,21 +97,21 @@ lazy val `cacheable-redis` = (project in file("cacheable-redis"))
       "dev.zio" %% "zio-schema-derivation" % zioSchemaVersion % Test
     )
   )
-  .dependsOn(`cacheable-core` % "compile->compile;test->test")
+  .dependsOn(`smt-cacheable-core` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `cacheable-benchmark` = (project in file("cacheable-benchmark"))
+lazy val `smt-cacheable-benchmark` = (project in file("smt-cacheable-benchmark"))
   .settings(commonSettings)
   .settings(
     name := "smt-cacheable-benchmark",
     publish / skip := true
   )
-  .dependsOn(`cacheable-core`, `cacheable-redis`, `cacheable-caffeine`)
+  .dependsOn(`smt-cacheable-core`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
   .settings(paradise())
   .enablePlugins(HeaderPlugin, JmhPlugin)
 
-lazy val `csv-core` = (project in file("csv-core"))
+lazy val `smt-csv-core` = (project in file("smt-csv-core"))
   .settings(commonSettings)
   .settings(
     name := "smt-csv-core",
@@ -121,7 +121,7 @@ lazy val `csv-core` = (project in file("csv-core"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `csv-derive` = (project in file("csv-derive"))
+lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
   .settings(commonSettings)
   .settings(
     name := "smt-csv-derive",
@@ -130,9 +130,9 @@ lazy val `csv-derive` = (project in file("csv-derive"))
   .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
-  .dependsOn(`csv-core` % "compile->compile;test->test")
+  .dependsOn(`smt-csv-core` % "compile->compile;test->test")
 
-lazy val tools = (project in file("tools"))
+lazy val `smt-tools` = (project in file("smt-tools"))
   .settings(commonSettings)
   .settings(
     name := "smt-tools",
@@ -154,13 +154,13 @@ lazy val tools = (project in file("tools"))
 
 lazy val root = (project in file("."))
   .aggregate(
-    tools,
-    `cacheable-core`,
-    `cacheable-redis`,
-    `cacheable-caffeine`,
-    `cacheable-benchmark`,
-    `csv-core`,
-    `csv-derive`
+    `smt-tools`,
+    `smt-cacheable-core`,
+    `smt-cacheable-redis`,
+    `smt-cacheable-caffeine`,
+    `smt-cacheable-benchmark`,
+    `smt-csv-core`,
+    `smt-csv-derive`
   )
   .settings(
     commands ++= Commands.value,

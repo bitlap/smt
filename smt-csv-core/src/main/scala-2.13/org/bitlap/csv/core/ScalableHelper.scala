@@ -21,24 +21,32 @@
 
 package org.bitlap.csv.core
 
+import java.io.{ BufferedReader, InputStreamReader }
+import scala.collection.mutable.ListBuffer
+import scala.util.Using
+
 /**
- * a Custom Csv encoder.
+ * Tool class for parsing CSV files.
  *
  * @author 梦境迷离
- * @since 2022/04/27
- * @version 1.0
+ * @version 1.0,2022/5/2
  */
-trait Csvable[T] {
+object ScalableHelper {
 
-  @InternalApi
-  def _toCsvString(t: T): String = ""
+  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
+    val ts = ListBuffer[Option[T]]()
+    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
+    val bufferedReader = new BufferedReader(reader)
+    var line: String = null
+    Using.resource(bufferedReader) { input =>
+      while ({
+        line = input.readLine()
+        line != null
+      })
+        ts.append(func(line))
+    }
 
-  def toCsvString: String = ""
-
-}
-
-object Csvable extends CsvableImplicits {
-
-  def apply[T](implicit st: Csvable[T]): Csvable[T] = st
+    ts.result()
+  }
 
 }

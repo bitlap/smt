@@ -104,7 +104,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val params = getCaseClassParams[T]()
     val fieldNames = params.map(_.name.decodedName.toString)
-    val fields = checkCaseClassZipParams[T](innerVarTermName).map { idxType =>
+    val fields = checkCaseClassZipAll[T](innerVarTermName).map { idxType =>
       val idx = idxType._1._1
       val columnValues = idxType._1._2
       val fieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)

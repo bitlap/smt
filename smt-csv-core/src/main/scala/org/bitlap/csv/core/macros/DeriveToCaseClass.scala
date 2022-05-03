@@ -43,7 +43,7 @@ object DeriveToCaseClass {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName = TermName("_columns")
       val fields = (columns: TermName) =>
-        checkCaseClassZipParams[T](columns).map { idxType =>
+        checkCaseClassZipAll[T](columns).map { idxType =>
           val columnValues = idxType._1._2
           if (idxType._2 <:< typeOf[Option[_]]) {
             val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head

@@ -21,30 +21,34 @@
 
 package org.bitlap.csv.core
 
-import java.io.{ BufferedReader, InputStreamReader }
-import scala.collection.mutable.ListBuffer
-import scala.util.Using
-
 /**
+ * a Custom Csv decoder.
+ *
  * @author 梦境迷离
- * @version 1.0,2022/5/2
+ * @since 2022/04/30
+ * @version 1.0
  */
-object ScalableHelper {
+trait Scalable[T] {
 
-  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
-    val ts = ListBuffer[Option[T]]()
-    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
-    val bufferedReader = new BufferedReader(reader)
-    var line: String = null
-    Using.resource(bufferedReader) { input =>
-      while ({
-        line = input.readLine()
-        line != null
-      })
-        ts.append(func(line))
-    }
+  /**
+   * Internal API for processing a specific column value of CSV line data.
+   *
+   * @param column The column value of CSV line data.
+   * @return
+   */
+  @InternalApi
+  def _toScala(column: String): Option[T] = None
 
-    ts.result()
-  }
+  /**
+   * Public API, finally get scala case class object.
+   *
+   * @return
+   */
+  def toScala: Option[T] = None
+}
+
+object Scalable extends ScalableImplicits {
+
+  def apply[T](implicit st: Scalable[T]): Scalable[T] = st
 
 }
