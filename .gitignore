@@ -19,18 +19,12 @@ examples/scala2-13/target/
 examples/scala2-11/project/target
 examples/scala2-12/project/target
 examples/scala2-13/project/target
-cacheable-core/target
-cacheable-caffeine/target
-cacheable-redis/target
-cacheable-benchmark/target
-csv-core/target
-csv-derive/target
+smt-cacheable-core/target
+smt-cacheable-caffeine/target
+smt-cacheable-redis/target
+smt-cacheable-benchmark/target
+smt-csv-core/target
+smt-csv-derive/target
+smt-tools/target
 
-
-tools/target
-
-## plugin
-intellij-plugin/target/
-intellij-plugin/project/project/
-intellij-plugin/project/target/
 .run/
