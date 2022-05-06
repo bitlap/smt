@@ -26,7 +26,7 @@
 
 # 文档
 
-[详细文档 https://bitlap.org/zh-CN/lab/smt](https://bitlap.org/zh-CN/lab/smt)
+[详细文档 https://bitlap.org/lab/smt](https://bitlap.org/lab/smt)
 
 # 如何使用
 
