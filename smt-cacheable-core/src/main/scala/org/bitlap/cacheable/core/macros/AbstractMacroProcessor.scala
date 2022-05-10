@@ -47,7 +47,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
         s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
-      force = force
+      force = false
     )
 
   /**
@@ -76,7 +76,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
             c.info(
               c.enclosingPosition,
               s"Method: `${name.decodedName.toString}` in enclosing class: `$getEnclosingClassName`.",
-              force = true
+              force = false
             )
             buffer.append(name)
             doFind(tail)

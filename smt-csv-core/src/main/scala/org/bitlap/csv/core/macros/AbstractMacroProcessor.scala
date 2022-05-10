@@ -36,6 +36,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   import c.universe._
 
+  protected val packageName = q"_root_.org.bitlap.csv.core"
+
   /**
    * Get the list of case class constructor parameters and return the column index, column name, and parameter type that zip as a `List[((Int, Tree), Type)]`.
    *
@@ -80,12 +82,12 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    * @tparam T
    * @return
    */
-  def printTree[T: c.WeakTypeTag](force: Boolean, resTree: c.Tree): c.Expr[T] = {
+  def exprPrintTree[T: c.WeakTypeTag](force: Boolean, resTree: c.Tree): c.Expr[T] = {
     c.info(
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
         .toString() + "\n###### Expanded macro end ######\n",
-      force = force
+      force = false
     )
     c.Expr[T](resTree)
   }

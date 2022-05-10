@@ -195,7 +195,7 @@ object ProcessorCreatorMacro {
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
         s"Expanded macro start ######\n" + ret.toString() + "\n###### Expanded macro end ######\n",
-      force = true
+      force = false
     )
     ret
   }

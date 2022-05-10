@@ -55,7 +55,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def impl(annottees: Expr[Any]*): Expr[Any] = {
     checkAnnottees(annottees)
     val resTree = collectCustomExpr(annottees)(createCustomExpr)
-    printTree(force = true, resTree.tree)
+    printTree(force = false, resTree.tree)
     resTree
   }
 
@@ -86,7 +86,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
         s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
-      force = force
+      force = false
     )
 
   /**

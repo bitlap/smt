@@ -34,8 +34,6 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   import c.universe._
 
-  private val packageName = q"_root_.org.bitlap.csv.core"
-
   private val annoBuilderPrefix = "_AnonCsvableBuilder$"
 
   private val builderFunctionPrefix = "_CsvableBuilderFunction$"
@@ -48,7 +46,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     val builderId = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
     val tree = q"new ${c.prefix.actualType}"
-    printTree[CsvableBuilder[T]](force = true, tree)
+    exprPrintTree[CsvableBuilder[T]](force = false, tree)
   }
 
   def applyImpl[T: c.WeakTypeTag]: c.Expr[CsvableBuilder[T]] =
@@ -68,7 +66,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
         class $className extends $packageName.CsvableBuilder[$caseClazzName]
         new $className
       """
-    printTree[CsvableBuilder[T]](force = true, tree)
+    exprPrintTree[CsvableBuilder[T]](force = false, tree)
   }
 
   private def deriveCsvableImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
@@ -90,7 +88,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
             ..${CsvableBody[T](columnSeparator, innerVarTermName, customTrees)}
          }
       """
-    printTree[Csvable[T]](force = false, tree)
+    exprPrintTree[Csvable[T]](force = false, tree)
   }
 
   private def CsvableBody[T: c.WeakTypeTag](
@@ -152,7 +150,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
             if (null == fields) "" else $fieldsToString.mkString($separator.toString)
          }
       """
-    printTree[Csvable[T]](force = false, tree)
+    exprPrintTree[Csvable[T]](force = false, tree)
   }
 
 }

@@ -34,9 +34,8 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
 
   import c.universe._
 
-  private val packageName = q"_root_.org.bitlap.csv.core"
-
   private val annoBuilderPrefix = "_AnonScalableBuilder$"
+
   private val builderFunctionPrefix = "_ScalableBuilderFunction$"
 
   def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
@@ -47,7 +46,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     val builderId = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
     val tree = q"new ${c.prefix.actualType}"
-    printTree[ScalableBuilder[T]](force = true, tree)
+    exprPrintTree[ScalableBuilder[T]](force = false, tree)
   }
 
   def applyImpl[T: c.WeakTypeTag]: c.Expr[ScalableBuilder[T]] =
@@ -67,7 +66,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         class $className extends $packageName.ScalableBuilder[$caseClazzName]
         new $className
        """
-    printTree[ScalableBuilder[T]](force = true, tree)
+    exprPrintTree[ScalableBuilder[T]](force = false, tree)
 
   }
 
@@ -94,7 +93,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
             ..${scalableBody[T](clazzName, innerVarTermName)}
          }
       """
-    printTree[Scalable[T]](force = true, tree)
+    exprPrintTree[Scalable[T]](force = false, tree)
   }
 
   private def scalableBody[T: c.WeakTypeTag](

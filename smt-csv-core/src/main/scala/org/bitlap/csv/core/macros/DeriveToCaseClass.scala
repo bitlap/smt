@@ -34,8 +34,6 @@ object DeriveToCaseClass {
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
     import c.universe._
 
-    private val packageName = q"_root_.org.bitlap.csv.core"
-
     def macroImpl[T <: Product: c.WeakTypeTag](
       line: c.Expr[String],
       columnSeparator: c.Expr[Char]
@@ -77,7 +75,7 @@ object DeriveToCaseClass {
            lazy val $innerVarTermName = _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
            Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerVarTermName)}))
            """
-      printTree[T](force = false, tree)
+      exprPrintTree[T](force = false, tree)
 
     }.asInstanceOf[c.Expr[Option[T]]]
 
