@@ -35,8 +35,6 @@ object DeriveToString {
 
     import c.universe._
 
-    private val packageName = q"_root_.org.bitlap.csv.core"
-
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
       val (names, indexTypes) = super.checkCaseClassZip[T]
       val clazzName = c.weakTypeOf[T].typeSymbol.name
@@ -62,7 +60,7 @@ object DeriveToString {
         val fields = ${TermName(clazzName.decodedName.toString)}.unapply($innerVarTermName).orNull
         if (null == fields) "" else $fieldsToString.mkString($separator.toString)
        """
-      printTree[String](force = false, tree)
+      exprPrintTree[String](force = false, tree)
     }
 
   }

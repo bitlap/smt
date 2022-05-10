@@ -49,7 +49,7 @@ object DeriveCsvConverter {
             override def toCsvString(t: $typeName): String = org.bitlap.csv.core.macros.DeriveToString[$typeName](t, $columnSeparator)
         }
        """
-      printTree[CC](force = true, tree)
+      exprPrintTree[CC](force = false, tree)
     }
 
     def macroImpl[CC: c.WeakTypeTag]: c.Expr[CC] = {

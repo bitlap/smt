@@ -170,7 +170,7 @@ object elapsedMacro {
             getNewMethod(defDef)
           }
       }
-      printTree(force = true, resTree)
+      printTree(force = false, resTree)
       c.Expr[Any](resTree)
     }
   }

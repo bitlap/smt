@@ -97,7 +97,7 @@ object logMacro {
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      printTree(force = true, resTree)
+      printTree(force = false, resTree)
       c.Expr[Any](resTree)
     }
   }
