@@ -31,6 +31,8 @@ import org.bitlap.csv.core.macros.DeriveCsvableBuilder
  */
 class CsvableBuilder[T] {
 
+  import java.io.File
+
   /**
    * Convert this CSV column string to any Scala types.
    *
@@ -69,6 +71,15 @@ class CsvableBuilder[T] {
    * Make columnSeparator assign to `,` as default value.
    */
   def convert(ts: List[T]): String = macro DeriveCsvableBuilder.convertDefaultImpl[T]
+
+  /**
+   * Convert the sequence of Scala case class to CSV string and write to file.
+   *
+   * @param ts               The sequence of Scala case class.
+   * @param file File to save CSV string.
+   * @return
+   */
+  def writeTo(ts: List[T], file: File): Boolean = macro DeriveCsvableBuilder.writeToFileImpl[T]
 
 }
 

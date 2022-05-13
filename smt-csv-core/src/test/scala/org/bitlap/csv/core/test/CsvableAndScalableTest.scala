@@ -28,6 +28,7 @@ import org.scalatest.matchers.should.Matchers
 import org.bitlap.csv.core.ScalableBuilder
 import org.bitlap.csv.core.CsvableBuilder
 import org.bitlap.csv.core.ScalableHelper
+import java.io.File
 
 /**
  * Complex use of common tests
@@ -212,6 +213,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     object _ScalaAnno$1 extends _root_.org.bitlap.csv.core.Scalable[Metric2] {
       var _line: String = _;
       private val _columns = (() => _root_.org.bitlap.csv.core.StringUtils.splitColumns(_ScalaAnno$1._line, ','));
+
       override def toScala: Option[Metric2] = Option(
         Metric2(
           _root_.org.bitlap.csv.core.Scalable[Long]._toScala(_columns()(0)).getOrElse(0L),
@@ -266,6 +268,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
             )
             .mkString(','.toString)
       });
+
       override def toCsvString: String = toCsv(_CsvAnno$2._tt)
     };
     lazy val _csvableInstance = _CsvAnno$2;
@@ -280,4 +283,28 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
 
     println(csv)
   }
+
+  "CsvableAndScalable8" should "ok when reading from file" in {
+    val metrics =
+      ScalableBuilder[Metric2]
+        .setField[Seq[Dimension3]](
+          _.dimensions,
+          dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+        )
+        .readFrom(ClassLoader.getSystemResourceAsStream("simple_data.csv"), "utf-8")
+
+    println(metrics)
+    assert(metrics.nonEmpty)
+
+    val file = new File("./simple_data.csv")
+    CsvableBuilder[Metric2]
+      .setField[Seq[Dimension3]](
+        _.dimensions,
+        ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+      )
+      .writeTo(metrics.filter(_.isDefined).map(_.get), file)
+
+    file.delete()
+  }
+
 }

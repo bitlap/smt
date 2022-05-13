@@ -34,10 +34,8 @@ object DeriveToCaseClass {
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
     import c.universe._
 
-    def macroImpl[T <: Product: c.WeakTypeTag](
-      line: c.Expr[String],
-      columnSeparator: c.Expr[Char]
-    ): c.Expr[Option[T]] = {
+    // scalafmt: { maxColumn = 400 }
+    def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Option[T]] = {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
       val innerFuncTermName = TermName("_columns")
       val fields = (columnsFunc: TermName) =>
@@ -72,7 +70,7 @@ object DeriveToCaseClass {
         }
       val tree =
         q"""
-           lazy val $innerFuncTermName = () => _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
+           lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
            Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)

@@ -11,7 +11,7 @@ ThisBuild / resolvers ++= Seq(
 lazy val scala212 = "2.12.14"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
-lazy val lastVersionForExamples = "0.4.2"
+lazy val lastVersionForExamples = "0.5.2"
 
 lazy val scalatestVersion = "3.2.12"
 lazy val zioVersion = "1.0.14"

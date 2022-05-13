@@ -23,6 +23,7 @@ package org.bitlap.csv.core.macros
 
 import org.bitlap.csv.core.{ Scalable, ScalableBuilder }
 
+import java.io.InputStream
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
 
@@ -39,16 +40,13 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   private val builderFunctionPrefix = "_ScalableBuilderFunction$"
 
   private val innerColumnFuncTermName = TermName("_columns")
-
   private val innerLName = q"_l"
   private val innerTempTermName = TermName("_line")
   private val scalableInstanceTermName = TermName("_scalableInstance")
   private val scalableImplClassNamePrefix = "_ScalaAnno$"
 
-  def setFieldImpl[T: WeakTypeTag, SF: WeakTypeTag](
-    scalaField: Expr[T => SF],
-    value: Expr[String => SF]
-  ): Expr[ScalableBuilder[T]] = {
+  // scalafmt: { maxColumn = 400 }
+  def setFieldImpl[T: WeakTypeTag, SF: WeakTypeTag](scalaField: Expr[T => SF], value: Expr[String => SF]): Expr[ScalableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
@@ -79,6 +77,11 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     deriveScalableImpl[T](clazzName, line, c.Expr[Char](q"','"))
   }
 
+  def readFromFileImpl[T: WeakTypeTag](file: Expr[InputStream], charset: Expr[String]): Expr[List[Option[T]]] = {
+    val clazzName = resolveClazzTypeName[T]
+    deriveFullFromFileScalableImpl[T](clazzName, file, charset, c.Expr[Char](q"','"))
+  }
+
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] = {
     val className = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
     val caseClazzName = TypeName(weakTypeOf[T].typeSymbol.name.decodedName.toString)
@@ -102,24 +105,28 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     preTrees
   }
 
-  private def deriveFullScalableImpl[T: WeakTypeTag](
-    clazzName: TypeName,
-    lines: Expr[List[String]],
-    columnSeparator: Expr[Char]
-  ): Expr[List[Option[T]]] = {
-    val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
+  // scalafmt: { maxColumn = 400 }
+  private def deriveFullFromFileScalableImpl[T: WeakTypeTag](clazzName: TypeName, file: Expr[InputStream], charset: Expr[String], columnSeparator: Expr[Char]): Expr[List[Option[T]]] = {
     // NOTE: preTrees must be at the same level as Scalable
     val tree =
       q"""
          ..$getPreTree
-         
-         object $annoClassName extends $packageName.Scalable[$clazzName] {
-             var $innerTempTermName: String = _
-             private val $innerColumnFuncTermName = () => _root_.org.bitlap.csv.core.StringUtils.splitColumns(${annoClassName.toTermName}.$innerTempTermName, $columnSeparator)
-              ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
+         ..${getAnnoClassObject[T](clazzName, columnSeparator)}
+         $packageName.FileUtils.reader($file, $charset).map { ($innerLName: String) =>
+             $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
+             $scalableInstanceTermName.toScala 
          }
-         private final lazy val $scalableInstanceTermName = $annoClassName
-           
+      """
+    exprPrintTree[List[Option[T]]](force = false, tree)
+  }
+
+  // scalafmt: { maxColumn = 400 }
+  private def deriveFullScalableImpl[T: WeakTypeTag](clazzName: TypeName, lines: Expr[List[String]], columnSeparator: Expr[Char]): Expr[List[Option[T]]] = {
+    // NOTE: preTrees must be at the same level as Scalable
+    val tree =
+      q"""
+         ..$getPreTree
+         ..${getAnnoClassObject[T](clazzName, columnSeparator)}
          $lines.map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
              $scalableInstanceTermName.toScala 
@@ -128,18 +135,27 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     exprPrintTree[List[Option[T]]](force = false, tree)
   }
 
-  private def deriveScalableImpl[T: WeakTypeTag](
-    clazzName: TypeName,
-    line: Expr[String],
-    columnSeparator: Expr[Char]
-  ): Expr[Scalable[T]] = {
+  private def getAnnoClassObject[T: WeakTypeTag](clazzName: TypeName, columnSeparator: Expr[Char]): Tree = {
+    val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
+    q"""
+       object $annoClassName extends $packageName.Scalable[$clazzName] {
+           var $innerTempTermName: String = _
+           private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns(${annoClassName.toTermName}.$innerTempTermName, $columnSeparator)
+            ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
+       }
+       private final lazy val $scalableInstanceTermName = $annoClassName
+     """
+  }
+
+  // scalafmt: { maxColumn = 400 }
+  private def deriveScalableImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], columnSeparator: Expr[Char]): Expr[Scalable[T]] = {
     val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
     // NOTE: preTrees must be at the same level as Scalable
     val tree =
       q"""
          ..$getPreTree
          object $annoClassName extends $packageName.Scalable[$clazzName] {
-            final lazy private val $innerColumnFuncTermName = () => _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
+            final lazy private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
             ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
          }
          $annoClassName
@@ -147,10 +163,8 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     exprPrintTree[Scalable[T]](force = false, tree)
   }
 
-  private def scalableBody[T: WeakTypeTag](
-    clazzName: TypeName,
-    innerFuncTermName: TermName
-  ): Tree = {
+  // scalafmt: { maxColumn = 400 }
+  private def scalableBody[T: WeakTypeTag](clazzName: TypeName, innerFuncTermName: TermName): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val params = getCaseClassParams[T]()
     val fieldNames = params.map(_.name.decodedName.toString)

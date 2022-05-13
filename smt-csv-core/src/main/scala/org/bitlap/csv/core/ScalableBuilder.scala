@@ -22,6 +22,7 @@
 package org.bitlap.csv.core
 
 import org.bitlap.csv.core.macros.DeriveScalableBuilder
+import java.io.InputStream
 
 /**
  * Builder to create a custom Csv Decoder.
@@ -59,7 +60,7 @@ class ScalableBuilder[T] {
   /**
    * Convert all CSV lines to the sequence of Scala case class.
    *
-   * @param lines            All CSV lines.
+   * @param lines           All CSV lines.
    * @param columnSeparator The separator for CSV column value.
    * @return
    */
@@ -69,6 +70,15 @@ class ScalableBuilder[T] {
    * Make columnSeparator assign to `,` as default value.
    */
   def convert(lines: List[String]): List[Option[T]] = macro DeriveScalableBuilder.convertDefaultImpl[T]
+
+  /**
+   * Read all CSV lines of the file and convert them to the sequence of Scala case class.
+   *
+   * @param file    InputStream of the CSV file.
+   * @param charset String charset of the CSV file content.
+   * @return
+   */
+  def readFrom(file: InputStream, charset: String): List[Option[T]] = macro DeriveScalableBuilder.readFromFileImpl[T]
 
 }
 
