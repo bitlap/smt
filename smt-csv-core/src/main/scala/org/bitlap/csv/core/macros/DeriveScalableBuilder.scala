@@ -121,7 +121,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
          private final lazy val $scalableInstanceTermName = $annoClassName
            
          $lines.map { ($innerLName: String) =>
-             $annoClassName.$innerTempTermName = ${TermName(innerLName.toString())}
+             $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
              $scalableInstanceTermName.toScala 
          }
       """
