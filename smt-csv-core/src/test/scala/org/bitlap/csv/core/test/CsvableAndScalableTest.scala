@@ -229,7 +229,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       .wrapRefArray[String](CsvableAndScalableTest.this.csvData.split("\n"))
       .toList
       .map(((_l: String) => {
-        _ScalaAnno$1._line = _l;
+        _scalableInstance._line = _l;
         _scalableInstance.toScala
       }))
 
@@ -273,7 +273,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       .filter(((x$3: Option[org.bitlap.csv.core.test.Metric2]) => x$3.isDefined))
       .map[org.bitlap.csv.core.test.Metric2](((x$4: Option[org.bitlap.csv.core.test.Metric2]) => x$4.get))
       .map(((_t: Metric2) => {
-        _CsvAnno$2._tt = _t;
+        _csvableInstance._tt = _t;
         _csvableInstance.toCsvString
       }))
       .mkString("\n")

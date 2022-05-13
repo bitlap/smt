@@ -117,7 +117,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          final lazy private val $csvableInstanceTermName = $annoClassName
          
          $ts.map { ($innerTName: $clazzName) =>
-             $annoClassName.$innerTmpTermName = $innerTName
+             $csvableInstanceTermName.$innerTmpTermName = $innerTName
              $csvableInstanceTermName.toCsvString
          }.mkString("\n")
       """
