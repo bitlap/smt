@@ -75,11 +75,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     exprPrintTree[CsvableBuilder[T]](force = false, tree)
   }
 
-  private def deriveFullCsvableImpl[T: WeakTypeTag](
-    ts: Expr[List[T]],
-    columnSeparator: Expr[Char]
-  ): Expr[String] = {
-    val clazzName = resolveClazzTypeName[T]
+  private def getCustomPreTress: (mutable.Map[String, Any], Iterable[Tree]) = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
       expr.tree match {
@@ -88,6 +84,15 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
           key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
       }
     }.unzip
+    customTrees -> preTrees
+  }
+
+  private def deriveFullCsvableImpl[T: WeakTypeTag](
+    ts: Expr[List[T]],
+    columnSeparator: Expr[Char]
+  ): Expr[String] = {
+    val clazzName = resolveClazzTypeName[T]
+    val (customTrees, preTrees) = getCustomPreTress
     val innerTName = q"_t"
     val tree =
       q"""
@@ -103,14 +108,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
-    val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
-      expr.tree match {
-        case buildFunction: Function =>
-          val functionName = TermName(builderFunctionPrefix + key)
-          key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
-      }
-    }.unzip
+    val (customTrees, preTrees) = getCustomPreTress
     val innerVarTermName = TermName("_t")
     val tree =
       q"""
