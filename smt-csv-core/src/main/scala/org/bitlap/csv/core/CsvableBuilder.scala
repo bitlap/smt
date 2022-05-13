@@ -52,12 +52,22 @@ class CsvableBuilder[T] {
   def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
 
   /**
-   * Make columnSeparator assign to `,` as default value
+   * Make columnSeparator assign to `,` as default value.
    */
   def build(t: T): Csvable[T] = macro DeriveCsvableBuilder.buildDefaultImpl[T]
 
+  /**
+   * Convert the sequence of Scala case class to CSV string.
+   *
+   * @param ts               The sequence of Scala case class.
+   * @param columnSeparator The separator for CSV column value.
+   * @return
+   */
   def convert(ts: List[T], columnSeparator: Char): String = macro DeriveCsvableBuilder.convertImpl[T]
 
+  /**
+   * Make columnSeparator assign to `,` as default value.
+   */
   def convert(ts: List[T]): String = macro DeriveCsvableBuilder.convertDefaultImpl[T]
 
 }

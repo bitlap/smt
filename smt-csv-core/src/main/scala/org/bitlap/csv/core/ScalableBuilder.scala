@@ -43,7 +43,7 @@ class ScalableBuilder[T] {
     macro DeriveScalableBuilder.setFieldImpl[T, SF]
 
   /**
-   * Create a custom builder for converting this CSV line to scala values
+   * Create a custom builder for converting this CSV line to scala values.
    *
    * @param line            One CSV line.
    * @param columnSeparator The separator for CSV column value.
@@ -52,12 +52,22 @@ class ScalableBuilder[T] {
   def build(line: String, columnSeparator: Char): Scalable[T] = macro DeriveScalableBuilder.buildImpl[T]
 
   /**
-   * Make columnSeparator assign to `,` as default value
+   * Make columnSeparator assign to `,` as default value.
    */
   def build(line: String): Scalable[T] = macro DeriveScalableBuilder.buildDefaultImpl[T]
 
+  /**
+   * Convert all CSV lines to the sequence of Scala case class.
+   *
+   * @param lines            All CSV lines.
+   * @param columnSeparator The separator for CSV column value.
+   * @return
+   */
   def convert(lines: List[String], columnSeparator: Char): List[Option[T]] = macro DeriveScalableBuilder.convertImpl[T]
 
+  /**
+   * Make columnSeparator assign to `,` as default value.
+   */
   def convert(lines: List[String]): List[Option[T]] = macro DeriveScalableBuilder.convertDefaultImpl[T]
 
 }
