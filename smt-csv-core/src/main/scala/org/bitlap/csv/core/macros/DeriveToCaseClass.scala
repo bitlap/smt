@@ -39,9 +39,9 @@ object DeriveToCaseClass {
       columnSeparator: c.Expr[Char]
     ): c.Expr[Option[T]] = {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
-      val innerVarTermName = TermName("_columns")
-      val fields = (columns: TermName) =>
-        checkCaseClassZipAll[T](columns).map { idxType =>
+      val innerFuncTermName = TermName("_columns")
+      val fields = (columnsFunc: TermName) =>
+        checkCaseClassZipAll[T](columnsFunc).map { idxType =>
           val columnValues = idxType._1._2
           if (idxType._2 <:< typeOf[Option[_]]) {
             val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
@@ -72,8 +72,8 @@ object DeriveToCaseClass {
         }
       val tree =
         q"""
-           lazy val $innerVarTermName = _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
-           Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerVarTermName)}))
+           lazy val $innerFuncTermName = () => _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
+           Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)
 

@@ -59,7 +59,7 @@ object StringUtils {
     kvs.toList.map(f => func(f._1, f._2))
   }
 
-  def splitColumns(line: String, columnSeparator: Char): List[String] = {
+  def splitColumns(line: => String, columnSeparator: Char): List[String] = {
     val listBuffer = ListBuffer[String]()
     val columnBuffer = ListBuffer[Char]()
     val chars = line.toCharArray

@@ -38,6 +38,12 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   private val builderFunctionPrefix = "_CsvableBuilderFunction$"
 
+  private val innerTName = q"_t"
+  private val innerTmpTermName = TermName("_tt")
+  private val csvableInstanceTermName = TermName("_csvableInstance")
+  private val csvableImplClassNamePrefix = "_CsvAnno$"
+  private val funcArgsTempTermName = TermName("temp")
+
   def setFieldImpl[T: WeakTypeTag, SF: WeakTypeTag](
     scalaField: Expr[T => SF],
     value: Expr[SF => String]
@@ -93,14 +99,26 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   ): Expr[String] = {
     val clazzName = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
-    val innerTName = q"_t"
+    val annoClassName = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
+    val separator = q"$columnSeparator"
     val tree =
       q"""
          ..$preTrees
+         object $annoClassName extends $packageName.Csvable[$clazzName] {
+             var $innerTmpTermName: $clazzName = _
+             
+             lazy private val toCsv = ($funcArgsTempTermName: $clazzName) => {
+                  val fields = ${clazzName.toTermName}.unapply($funcArgsTempTermName).orNull
+                  if (null == fields) "" else ${fieldsToString[T](funcArgsTempTermName, customTrees)}.mkString($separator.toString)
+             }
+             override def toCsvString: String = toCsv($annoClassName.$innerTmpTermName)
+         }
+         
+         final lazy private val $csvableInstanceTermName = $annoClassName
+         
          $ts.map { ($innerTName: $clazzName) =>
-             new $packageName.Csvable[$clazzName] {
-                ..${CsvableBody[T](columnSeparator, TermName(innerTName.toString()), customTrees)}
-             }.toCsvString
+             $annoClassName.$innerTmpTermName = $innerTName
+             $csvableInstanceTermName.toCsvString
          }.mkString("\n")
       """
     exprPrintTree[String](force = false, tree)
@@ -109,27 +127,33 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
-    val innerVarTermName = TermName("_t")
+    val annoClassName = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
+    val separator = q"$columnSeparator"
+
     val tree =
       q"""
          ..$preTrees
-         new $packageName.Csvable[$clazzName] {
-            private final val $innerVarTermName = $t
-            ..${CsvableBody[T](columnSeparator, innerVarTermName, customTrees)}
+         object $annoClassName extends $packageName.Csvable[$clazzName] {
+            final private val $innerTmpTermName = $t
+           
+            override def toCsvString: String = {
+                val fields = ${clazzName.toTermName}.unapply($innerTmpTermName).orNull
+                if (null == fields) "" else ${fieldsToString[T](innerTmpTermName, customTrees)}.mkString($separator.toString) 
+            }
          }
+         $annoClassName
       """
     exprPrintTree[Csvable[T]](force = false, tree)
   }
 
-  private def CsvableBody[T: WeakTypeTag](
-    columnSeparator: Expr[Char],
+  private def fieldsToString[T: WeakTypeTag](
     innerVarTermName: TermName,
     customTrees: mutable.Map[String, Any]
-  ): Expr[Csvable[T]] = {
+  ): List[Tree] = {
     val clazzName = resolveClazzTypeName[T]
     val (fieldNames, indexTypes) = checkCaseClassZip
     val indexByName = (i: Int) => TermName(fieldNames(i))
-    val fieldsToString = indexTypes.map { idxType =>
+    indexTypes.map { idxType =>
       val customFunction = () =>
         q"${TermName(builderFunctionPrefix + fieldNames(idxType._1))}.apply($innerVarTermName.${indexByName(idxType._1)})"
       idxType._2 match {
@@ -172,15 +196,6 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
           }
       }
     }
-    val separator = q"$columnSeparator"
-    val tree =
-      q"""
-         override def toCsvString: String = {
-            val fields = ${clazzName.toTermName}.unapply(_t).orNull
-            if (null == fields) "" else $fieldsToString.mkString($separator.toString)
-         }
-      """
-    exprPrintTree[Csvable[T]](force = false, tree)
   }
 
 }

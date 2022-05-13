@@ -41,14 +41,14 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   /**
    * Get the list of case class constructor parameters and return the column index, column name, and parameter type that zip as a `List[((Int, Tree), Type)]`.
    *
-   * @param columns CSV row data temporary identifier, also known as a line.
+   * @param columnsFunc The function to get CSV row data temporary identifier, also known as a line.
    * @tparam T Type of the case class.
    * @return
    */
   private[macros] def checkCaseClassZipAll[T: c.WeakTypeTag](
-    columns: TermName
+    columnsFunc: TermName
   ): List[((Int, Tree), Type)] = {
-    val idxColumn = (i: Int) => q"$columns($i)"
+    val idxColumn = (i: Int) => q"$columnsFunc()($i)"
     val params = getCaseClassParams[T]()
     val paramsSize = params.size
     val types = params.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
