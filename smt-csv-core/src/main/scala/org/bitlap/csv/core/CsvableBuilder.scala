@@ -56,6 +56,10 @@ class CsvableBuilder[T] {
    */
   def build(t: T): Csvable[T] = macro DeriveCsvableBuilder.buildDefaultImpl[T]
 
+  def convert(ts: List[T], columnSeparator: Char): String = macro DeriveCsvableBuilder.convertImpl[T]
+
+  def convert(ts: List[T]): String = macro DeriveCsvableBuilder.convertDefaultImpl[T]
+
 }
 
 object CsvableBuilder {

@@ -56,6 +56,10 @@ class ScalableBuilder[T] {
    */
   def build(line: String): Scalable[T] = macro DeriveScalableBuilder.buildDefaultImpl[T]
 
+  def convert(lines: List[String], columnSeparator: Char): List[Option[T]] = macro DeriveScalableBuilder.convertImpl[T]
+
+  def convert(lines: List[String]): List[Option[T]] = macro DeriveScalableBuilder.convertDefaultImpl[T]
+
 }
 
 object ScalableBuilder {

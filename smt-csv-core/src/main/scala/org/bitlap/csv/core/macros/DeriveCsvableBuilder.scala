@@ -38,10 +38,10 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   private val builderFunctionPrefix = "_CsvableBuilderFunction$"
 
-  def setFieldImpl[T: c.WeakTypeTag, SF: c.WeakTypeTag](
-    scalaField: c.Expr[T => SF],
-    value: c.Expr[SF => String]
-  ): c.Expr[CsvableBuilder[T]] = {
+  def setFieldImpl[T: WeakTypeTag, SF: WeakTypeTag](
+    scalaField: Expr[T => SF],
+    value: Expr[SF => String]
+  ): Expr[CsvableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
@@ -49,18 +49,24 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     exprPrintTree[CsvableBuilder[T]](force = false, tree)
   }
 
-  def applyImpl[T: c.WeakTypeTag]: c.Expr[CsvableBuilder[T]] =
+  def applyImpl[T: WeakTypeTag]: Expr[CsvableBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
-  def buildDefaultImpl[T: c.WeakTypeTag](t: c.Expr[T]): c.Expr[Csvable[T]] =
+  def buildDefaultImpl[T: WeakTypeTag](t: Expr[T]): Expr[Csvable[T]] =
     deriveCsvableImpl[T](t, c.Expr[Char](q"','"))
 
-  def buildImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] =
+  def buildImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[Csvable[T]] =
     deriveCsvableImpl[T](t, columnSeparator)
 
-  private def deriveBuilderApplyImpl[T: WeakTypeTag]: c.Expr[CsvableBuilder[T]] = {
+  def convertImpl[T: WeakTypeTag](ts: Expr[List[T]], columnSeparator: Expr[Char]): Expr[String] =
+    deriveFullCsvableImpl[T](ts, columnSeparator)
+
+  def convertDefaultImpl[T: WeakTypeTag](ts: Expr[List[T]]): Expr[String] =
+    deriveFullCsvableImpl[T](ts, c.Expr[Char](q"','"))
+
+  private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[CsvableBuilder[T]] = {
     val className = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
-    val caseClazzName = TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
+    val caseClazzName = TypeName(weakTypeOf[T].typeSymbol.name.decodedName.toString)
     val tree =
       q"""
         class $className extends $packageName.CsvableBuilder[$caseClazzName]
@@ -69,7 +75,33 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     exprPrintTree[CsvableBuilder[T]](force = false, tree)
   }
 
-  private def deriveCsvableImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[Csvable[T]] = {
+  private def deriveFullCsvableImpl[T: WeakTypeTag](
+    ts: Expr[List[T]],
+    columnSeparator: Expr[Char]
+  ): Expr[String] = {
+    val clazzName = resolveClazzTypeName[T]
+    val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
+      expr.tree match {
+        case buildFunction: Function =>
+          val functionName = TermName(builderFunctionPrefix + key)
+          key -> q"lazy val $functionName: ${c.typecheck(q"${buildFunction.tpe}", c.TYPEmode).tpe} = $buildFunction"
+      }
+    }.unzip
+    val innerTName = q"_t"
+    val tree =
+      q"""
+         ..$preTrees
+         $ts.map { ($innerTName: $clazzName) =>
+             new $packageName.Csvable[$clazzName] {
+                ..${CsvableBody[T](columnSeparator, TermName(innerTName.toString()), customTrees)}
+             }.toCsvString
+         }.mkString("\n")
+      """
+    exprPrintTree[String](force = false, tree)
+  }
+
+  private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
@@ -84,18 +116,18 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
       q"""
          ..$preTrees
          new $packageName.Csvable[$clazzName] {
-            lazy val $innerVarTermName = $t
+            private final val $innerVarTermName = $t
             ..${CsvableBody[T](columnSeparator, innerVarTermName, customTrees)}
          }
       """
     exprPrintTree[Csvable[T]](force = false, tree)
   }
 
-  private def CsvableBody[T: c.WeakTypeTag](
-    columnSeparator: c.Expr[Char],
+  private def CsvableBody[T: WeakTypeTag](
+    columnSeparator: Expr[Char],
     innerVarTermName: TermName,
     customTrees: mutable.Map[String, Any]
-  ): c.Expr[Csvable[T]] = {
+  ): Expr[Csvable[T]] = {
     val clazzName = resolveClazzTypeName[T]
     val (fieldNames, indexTypes) = checkCaseClassZip
     val indexByName = (i: Int) => TermName(fieldNames(i))
