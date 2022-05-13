@@ -176,4 +176,27 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
 
     assert(csvData.replace("\"", "") == csv.replace("\"", ""))
   }
+
+  "CsvableAndScalable6" should "ok when using convert and StringUtils" in {
+    val metrics = ScalableBuilder[Metric2]
+      .setField[Seq[Dimension3]](
+        _.dimensions,
+        dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+      )
+      .convert(csvData.split("\n").toList)
+
+    assert(metrics.head.get.dimensions.head.key == "city")
+    assert(metrics.head.get.dimensions.head.value == "北京")
+
+    val csv = CsvableBuilder[Metric2]
+      .setField(
+        _.dimensions,
+        (ds: Seq[Dimension3]) =>
+          s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+      )
+      .convert(metrics.filter(_.isDefined).map(_.get))
+
+    println(csv)
+    assert(csv == csvData)
+  }
 }
