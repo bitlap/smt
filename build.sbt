@@ -101,10 +101,10 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `smt-cacheable-benchmark` = (project in file("smt-cacheable-benchmark"))
+lazy val `smt-benchmark` = (project in file("smt-benchmark"))
   .settings(commonSettings)
   .settings(
-    name := "smt-cacheable-benchmark",
+    name := "smt-benchmark",
     publish / skip := true
   )
   .dependsOn(`smt-cacheable-core`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
@@ -158,7 +158,7 @@ lazy val root = (project in file("."))
     `smt-cacheable-core`,
     `smt-cacheable-redis`,
     `smt-cacheable-caffeine`,
-    `smt-cacheable-benchmark`,
+    `smt-benchmark`,
     `smt-csv-core`,
     `smt-csv-derive`
   )

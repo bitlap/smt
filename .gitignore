@@ -23,7 +23,7 @@ examples/scala2-13/project/target
 smt-cacheable-core/target
 smt-cacheable-caffeine/target
 smt-cacheable-redis/target
-smt-cacheable-benchmark/target
+smt-cacheable/target
 smt-csv-core/target
 smt-csv-derive/target
 smt-tools/target
