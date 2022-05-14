@@ -78,7 +78,8 @@ class ScalableBuilder[T] {
    * @param charset String charset of the CSV file content.
    * @return
    */
-  def convertFrom(file: InputStream, charset: String): List[Option[T]] = macro DeriveScalableBuilder.convertFromFileImpl[T]
+  def convertFrom(file: InputStream, charset: String): List[Option[T]] =
+    macro DeriveScalableBuilder.convertFromFileImpl[T]
 
 }
 
