@@ -209,7 +209,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       var _line: String = _;
       private val _columns = (() => _root_.org.bitlap.csv.core.StringUtils.splitColumns(_ScalaAnno$1._line, ','));
 
-      override def _toScala(column:String): Option[Metric2] = Option(
+      override def _toScala(column: String): Option[Metric2] = Option(
         Metric2(
           _root_.org.bitlap.csv.core.Scalable[Long]._toScala(_columns()(0)).getOrElse(0L),
           _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(1)).getOrElse(0),
@@ -264,7 +264,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
             .mkString(','.toString)
       });
 
-      override def _toCsvString(t:Metric2): String = toCsv(_CsvAnno$2._tt)
+      override def _toCsvString(t: Metric2): String = toCsv(_CsvAnno$2._tt)
     };
     lazy val _csvableInstance = _CsvAnno$2;
     val csv = metrics

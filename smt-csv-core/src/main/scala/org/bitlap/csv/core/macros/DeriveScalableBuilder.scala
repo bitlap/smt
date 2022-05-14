@@ -226,14 +226,14 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
                 q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(false)"
               case t if t =:= typeOf[Long] =>
                 q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
-              case _  =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(null)"                
+              case _ =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(null)"
             }
           }
       }
     }
 
-    // input args not need used 
+    // input args not need used
     q"override def _toScala(column: String): Option[$clazzName] = Option(${TermName(clazzName.decodedName.toString)}(..$fields))"
   }
 }

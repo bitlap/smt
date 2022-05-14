@@ -41,7 +41,7 @@ class CsvableBuilder[T] {
    * @return
    */
   def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
-  macro DeriveCsvableBuilder.setFieldImpl[T, SF]
+    macro DeriveCsvableBuilder.setFieldImpl[T, SF]
 
   /**
    * Create a custom builder for converting this scala value to CSV line string.
