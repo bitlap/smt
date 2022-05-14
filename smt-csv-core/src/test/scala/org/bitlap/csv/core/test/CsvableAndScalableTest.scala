@@ -74,8 +74,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
               kvs.map(kv => Dimension3(kv._1, kv._2)).toList
             }
           )
-          .build(csv, ',')
-          .toScala
+          .convert(csv, ',')
       )
 
     println(metrics)
@@ -90,8 +89,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
           (ds: List[Dimension3]) =>
             s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
         )
-        .build(metric.get, ',')
-        .toCsvString
+        .convert(metric.get, ',')
     )
 
     println(csv)
@@ -118,8 +116,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
               kvs.map(kv => Dimension3(kv._1, kv._2)).toSeq
             }
           )
-          .build(csv, ',')
-          .toScala
+          .convert(csv, ',')
       )
 
     println(metrics)
@@ -137,8 +134,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
             _.dimensions,
             dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
           )
-          .build(csv)
-          .toScala
+          .convert(csv)
       )
 
     println(metrics.toList)
@@ -154,8 +150,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
         )
-        .build(line)
-        .toScala
+        .convert(line)
     }
 
     println(metrics)
@@ -214,7 +209,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       var _line: String = _;
       private val _columns = (() => _root_.org.bitlap.csv.core.StringUtils.splitColumns(_ScalaAnno$1._line, ','));
 
-      override def toScala: Option[Metric2] = Option(
+      override def _toScala(column:String): Option[Metric2] = Option(
         Metric2(
           _root_.org.bitlap.csv.core.Scalable[Long]._toScala(_columns()(0)).getOrElse(0L),
           _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(1)).getOrElse(0),
@@ -232,7 +227,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       .toList
       .map(((_l: String) => {
         _scalableInstance._line = _l;
-        _scalableInstance.toScala
+        _scalableInstance._toScala(_l)
       }))
 
     metrics.foreach(println)
@@ -269,7 +264,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
             .mkString(','.toString)
       });
 
-      override def toCsvString: String = toCsv(_CsvAnno$2._tt)
+      override def _toCsvString(t:Metric2): String = toCsv(_CsvAnno$2._tt)
     };
     lazy val _csvableInstance = _CsvAnno$2;
     val csv = metrics
@@ -277,7 +272,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       .map[org.bitlap.csv.core.test.Metric2](((x$4: Option[org.bitlap.csv.core.test.Metric2]) => x$4.get))
       .map(((_t: Metric2) => {
         _csvableInstance._tt = _t;
-        _csvableInstance.toCsvString
+        _csvableInstance._toCsvString(_t)
       }))
       .mkString("\n")
 
@@ -291,7 +286,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
         )
-        .readFrom(ClassLoader.getSystemResourceAsStream("simple_data.csv"), "utf-8")
+        .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data.csv"), "utf-8")
 
     println(metrics)
     assert(metrics.nonEmpty)
@@ -302,7 +297,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
         _.dimensions,
         ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
       )
-      .writeTo(metrics.filter(_.isDefined).map(_.get), file)
+      .convertTo(metrics.filter(_.isDefined).map(_.get), file)
 
     file.delete()
   }

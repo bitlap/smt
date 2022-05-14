@@ -31,20 +31,12 @@ package org.bitlap.csv.core
 trait Scalable[T] {
 
   /**
-   * Internal API for processing a specific column value of CSV line data.
+   * API for processing a specific column value of CSV line data.
    *
    * @param column The column value of CSV line data.
    * @return
    */
-  @InternalApi
-  def _toScala(column: String): Option[T] = None
-
-  /**
-   * Public API, finally get scala case class object.
-   *
-   * @return
-   */
-  def toScala: Option[T] = None
+  def _toScala(column: String): Option[T]
 }
 
 object Scalable extends ScalableImplicits {

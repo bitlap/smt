@@ -31,20 +31,12 @@ package org.bitlap.csv.core
 trait Csvable[T] {
 
   /**
-   * Internal API for processing a specific field of case class object.
+   * API for processing a specific field of case class object.
    *
    * @param t case class object
    * @return
    */
-  @InternalApi
-  def _toCsvString(t: T): String = ""
-
-  /**
-   * Public API, finally get CSV line string.
-   *
-   * @return
-   */
-  def toCsvString: String = ""
+  def _toCsvString(t: T): String
 
 }
 

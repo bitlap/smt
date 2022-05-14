@@ -50,12 +50,12 @@ class ScalableBuilder[T] {
    * @param columnSeparator The separator for CSV column value.
    * @return
    */
-  def build(line: String, columnSeparator: Char): Scalable[T] = macro DeriveScalableBuilder.buildImpl[T]
+  def convert(line: String, columnSeparator: Char): Option[T] = macro DeriveScalableBuilder.convertOneImpl[T]
 
   /**
    * Make columnSeparator assign to `,` as default value.
    */
-  def build(line: String): Scalable[T] = macro DeriveScalableBuilder.buildDefaultImpl[T]
+  def convert(line: String): Option[T] = macro DeriveScalableBuilder.convertOneDefaultImpl[T]
 
   /**
    * Convert all CSV lines to the sequence of Scala case class.
@@ -78,7 +78,7 @@ class ScalableBuilder[T] {
    * @param charset String charset of the CSV file content.
    * @return
    */
-  def readFrom(file: InputStream, charset: String): List[Option[T]] = macro DeriveScalableBuilder.readFromFileImpl[T]
+  def convertFrom(file: InputStream, charset: String): List[Option[T]] = macro DeriveScalableBuilder.convertFromFileImpl[T]
 
 }
 

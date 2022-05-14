@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.core.macros
 
-import org.bitlap.csv.core.{ Csvable, CsvableBuilder }
+import org.bitlap.csv.core.CsvableBuilder
 
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
@@ -57,10 +57,10 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   def applyImpl[T: WeakTypeTag]: Expr[CsvableBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
-  def buildDefaultImpl[T: WeakTypeTag](t: Expr[T]): Expr[Csvable[T]] =
+  def convertOneDefaultImpl[T: WeakTypeTag](t: Expr[T]): Expr[String] =
     deriveCsvableImpl[T](t, c.Expr[Char](q"','"))
 
-  def buildImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[Csvable[T]] =
+  def convertOneImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[String] =
     deriveCsvableImpl[T](t, columnSeparator)
 
   def convertImpl[T: WeakTypeTag](ts: Expr[List[T]], columnSeparator: Expr[Char]): Expr[String] =
@@ -69,7 +69,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   def convertDefaultImpl[T: WeakTypeTag](ts: Expr[List[T]]): Expr[String] =
     deriveFullCsvableImpl[T](ts, c.Expr[Char](q"','"))
 
-  def writeToFileImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File]): Expr[Boolean] =
+  def convertToFileImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File]): Expr[Boolean] =
     deriveFullIntoFileCsvableImpl[T](ts, file, c.Expr[Char](q"','"))
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[CsvableBuilder[T]] = {
@@ -104,7 +104,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          ..${getAnnoClassObject[T](customTrees, columnSeparator)}
          $packageName.FileUtils.writer($file, $ts.map { ($innerTName: $clazzName) =>
                $csvableInstanceTermName.$innerTmpTermName = $innerTName
-               $csvableInstanceTermName.toCsvString
+               $csvableInstanceTermName._toCsvString($innerTName)
            }
          )
       """
@@ -121,7 +121,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          ..${getAnnoClassObject[T](customTrees, columnSeparator)}
          $ts.map { ($innerTName: $clazzName) =>
              $csvableInstanceTermName.$innerTmpTermName = $innerTName
-             $csvableInstanceTermName.toCsvString
+             $csvableInstanceTermName._toCsvString($innerTName)
          }.mkString("\n")
       """
     exprPrintTree[String](force = false, tree)
@@ -139,14 +139,14 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
                 val fields = ${clazzName.toTermName}.unapply($funcArgsTempTermName).orNull
                 if (null == fields) "" else ${fieldsToString[T](funcArgsTempTermName, customTrees)}.mkString($separator.toString)
            }
-           override def toCsvString: String = toCsv($annoClassName.$innerTmpTermName)
+           override def _toCsvString(t: $clazzName): String = toCsv($annoClassName.$innerTmpTermName)
        }
        
        final lazy private val $csvableInstanceTermName = $annoClassName
      """
   }
 
-  private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[Csvable[T]] = {
+  private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[String] = {
     val clazzName = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val annoClassName = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
@@ -158,14 +158,14 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          object $annoClassName extends $packageName.Csvable[$clazzName] {
             final private val $innerTmpTermName = $t
            
-            override def toCsvString: String = {
+            override def _toCsvString(t: $clazzName): String = {
                 val fields = ${clazzName.toTermName}.unapply($innerTmpTermName).orNull
                 if (null == fields) "" else ${fieldsToString[T](innerTmpTermName, customTrees)}.mkString($separator.toString) 
             }
          }
-         $annoClassName
+         $annoClassName._toCsvString($t)
       """
-    exprPrintTree[Csvable[T]](force = false, tree)
+    exprPrintTree[String](force = false, tree)
   }
 
   // scalafmt: { maxColumn = 400 }

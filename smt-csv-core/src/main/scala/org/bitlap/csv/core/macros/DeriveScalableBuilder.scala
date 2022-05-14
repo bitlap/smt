@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.core.macros
 
-import org.bitlap.csv.core.{ Scalable, ScalableBuilder }
+import org.bitlap.csv.core.ScalableBuilder
 
 import java.io.InputStream
 import scala.collection.mutable
@@ -57,7 +57,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   def applyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
-  def buildImpl[T: WeakTypeTag](line: Expr[String], columnSeparator: Expr[Char]): Expr[Scalable[T]] = {
+  def convertOneImpl[T: WeakTypeTag](line: Expr[String], columnSeparator: Expr[Char]): Expr[Option[T]] = {
     val clazzName = resolveClazzTypeName[T]
     deriveScalableImpl[T](clazzName, line, columnSeparator)
   }
@@ -72,12 +72,12 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     deriveFullScalableImpl[T](clazzName, lines, c.Expr[Char](q"','"))
   }
 
-  def buildDefaultImpl[T: WeakTypeTag](line: Expr[String]): Expr[Scalable[T]] = {
+  def convertOneDefaultImpl[T: WeakTypeTag](line: Expr[String]): Expr[Option[T]] = {
     val clazzName = resolveClazzTypeName[T]
     deriveScalableImpl[T](clazzName, line, c.Expr[Char](q"','"))
   }
 
-  def readFromFileImpl[T: WeakTypeTag](file: Expr[InputStream], charset: Expr[String]): Expr[List[Option[T]]] = {
+  def convertFromFileImpl[T: WeakTypeTag](file: Expr[InputStream], charset: Expr[String]): Expr[List[Option[T]]] = {
     val clazzName = resolveClazzTypeName[T]
     deriveFullFromFileScalableImpl[T](clazzName, file, charset, c.Expr[Char](q"','"))
   }
@@ -114,7 +114,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
          ..${getAnnoClassObject[T](clazzName, columnSeparator)}
          $packageName.FileUtils.reader($file, $charset).map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
-             $scalableInstanceTermName.toScala 
+             $scalableInstanceTermName._toScala($innerLName) 
          }
       """
     exprPrintTree[List[Option[T]]](force = false, tree)
@@ -129,7 +129,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
          ..${getAnnoClassObject[T](clazzName, columnSeparator)}
          $lines.map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
-             $scalableInstanceTermName.toScala 
+             $scalableInstanceTermName._toScala($innerLName) 
          }
       """
     exprPrintTree[List[Option[T]]](force = false, tree)
@@ -148,7 +148,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveScalableImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], columnSeparator: Expr[Char]): Expr[Scalable[T]] = {
+  private def deriveScalableImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], columnSeparator: Expr[Char]): Expr[Option[T]] = {
     val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
     // NOTE: preTrees must be at the same level as Scalable
     val tree =
@@ -158,9 +158,9 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
             final lazy private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
             ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
          }
-         $annoClassName
+         $annoClassName._toScala($line)
       """
-    exprPrintTree[Scalable[T]](force = false, tree)
+    exprPrintTree[Option[T]](force = false, tree)
   }
 
   // scalafmt: { maxColumn = 400 }
@@ -226,11 +226,14 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
                 q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(false)"
               case t if t =:= typeOf[Long] =>
                 q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
+              case _  =>
+                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(null)"                
             }
           }
       }
     }
 
-    q"override def toScala: Option[$clazzName] = Option(${TermName(clazzName.decodedName.toString)}(..$fields))"
+    // input args not need used 
+    q"override def _toScala(column: String): Option[$clazzName] = Option(${TermName(clazzName.decodedName.toString)}(..$fields))"
   }
 }

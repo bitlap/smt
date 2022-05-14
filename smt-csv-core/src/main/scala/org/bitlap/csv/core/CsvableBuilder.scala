@@ -41,7 +41,7 @@ class CsvableBuilder[T] {
    * @return
    */
   def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
-    macro DeriveCsvableBuilder.setFieldImpl[T, SF]
+  macro DeriveCsvableBuilder.setFieldImpl[T, SF]
 
   /**
    * Create a custom builder for converting this scala value to CSV line string.
@@ -50,19 +50,19 @@ class CsvableBuilder[T] {
    * @param columnSeparator The separator for CSV column value.
    * @return
    */
-  def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
+  def convert(t: T, columnSeparator: Char): String = macro DeriveCsvableBuilder.convertOneImpl[T]
 
   /**
    * Make columnSeparator assign to `,` as default value.
    */
-  def build(t: T): Csvable[T] = macro DeriveCsvableBuilder.buildDefaultImpl[T]
+  def convert(t: T): String = macro DeriveCsvableBuilder.convertOneDefaultImpl[T]
 
   /**
    * Convert the sequence of Scala case class to CSV string.
    *
-   * @param ts               The sequence of Scala case class.
+   * @param ts              The sequence of Scala case class.
    * @param columnSeparator The separator for CSV column value.
-   * @return
+   * @return It combines CSV lines by '\n'.
    */
   def convert(ts: List[T], columnSeparator: Char): String = macro DeriveCsvableBuilder.convertImpl[T]
 
@@ -74,11 +74,11 @@ class CsvableBuilder[T] {
   /**
    * Convert the sequence of Scala case class to CSV string and write to file.
    *
-   * @param ts               The sequence of Scala case class.
+   * @param ts   The sequence of Scala case class.
    * @param file File to save CSV string.
    * @return
    */
-  def writeTo(ts: List[T], file: File): Boolean = macro DeriveCsvableBuilder.writeToFileImpl[T]
+  def convertTo(ts: List[T], file: File): Boolean = macro DeriveCsvableBuilder.convertToFileImpl[T]
 
 }
 
