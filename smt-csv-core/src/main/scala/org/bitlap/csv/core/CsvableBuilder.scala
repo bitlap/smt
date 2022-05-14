@@ -22,6 +22,7 @@
 package org.bitlap.csv.core
 
 import org.bitlap.csv.core.macros.DeriveCsvableBuilder
+import java.io.File
 
 /**
  * Builder to create a custom Csv Encoder.
@@ -30,8 +31,6 @@ import org.bitlap.csv.core.macros.DeriveCsvableBuilder
  * @version 1.0,2022/4/30
  */
 class CsvableBuilder[T] {
-
-  import java.io.File
 
   /**
    * Convert this CSV column string to any Scala types.
