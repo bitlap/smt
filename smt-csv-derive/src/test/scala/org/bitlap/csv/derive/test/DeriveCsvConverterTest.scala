@@ -33,28 +33,26 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
 
   "DeriveCsvConverter1" should "ok" in {
     val line = "abc,cdf,d,12,2,false,0.1,0.23333"
-    val dimension = Converter[Dimension].toScala(line)
-    assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
-    val csv = Converter[Dimension].toCsvString(dimension.orNull)
-    println(csv)
+    val dimension = Converter[CsvLine].toScala(line)
+    assert(dimension.toString == "Some(CsvLine(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
+    val csv = Converter[CsvLine].toCsvString(dimension.orNull)
     assert(csv == line)
   }
 
   "DeriveCsvConverter2" should "ok when csv column empty" in {
     val line =
       "abc,,d,12,2,false,0.1,0.23333"
-    val dimension = Converter[Dimension].toScala(line)
-    println(dimension.toString)
-    assert(dimension.toString == "Some(Dimension(abc,None,d,12,2,false,0.1,0.23333))")
+    val dimension = Converter[CsvLine].toScala(line)
+    assert(dimension.toString == "Some(CsvLine(abc,None,d,12,2,false,0.1,0.23333))")
   }
 
   "DeriveCsvConverter3" should "ok when using list" in {
     val line =
       """1,cdf,d,12,2,false,0.1,0.2
         |2,cdf,d,12,2,false,0.1,0.1""".stripMargin
-    val dimension = Converter[List[Dimension]].toScala(line)
+    val dimension = Converter[List[CsvLine]].toScala(line)
     assert(
-      dimension.toString == "Some(List(Dimension(1,Some(cdf),d,12,2,false,0.1,0.2), Dimension(2,Some(cdf),d,12,2,false,0.1,0.1)))"
+      dimension.toString == "Some(List(CsvLine(1,Some(cdf),d,12,2,false,0.1,0.2), CsvLine(2,Some(cdf),d,12,2,false,0.1,0.1)))"
     )
 
   }
@@ -63,10 +61,9 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
     val line =
       """1 22
         |2 0.1""".stripMargin
-    val dimension = Converter[List[Dimension2]].toScala(line)
-    assert(dimension.toString == "Some(List(Dimension2(1,Some(22)), Dimension2(2,Some(0.1))))")
-    val csv = Converter[List[Dimension2]].toCsvString(dimension.orNull)
-    println(csv)
+    val dimension = Converter[List[CsvLine2]].toScala(line)
+    assert(dimension.toString == "Some(List(CsvLine2(1,Some(22)), CsvLine2(2,Some(0.1))))")
+    val csv = Converter[List[CsvLine2]].toCsvString(dimension.orNull)
     assert(csv == line)
 
   }

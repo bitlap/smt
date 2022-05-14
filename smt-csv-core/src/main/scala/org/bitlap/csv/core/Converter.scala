@@ -39,7 +39,7 @@ trait Converter[T] {
 
 object Converter {
 
-  lazy val LINE_SEPARATOR: String = "\n"
+  lazy val LINE_SEPARATOR: String = System.lineSeparator()
 
   def apply[T](implicit st: Converter[T]): Converter[T] = st
 

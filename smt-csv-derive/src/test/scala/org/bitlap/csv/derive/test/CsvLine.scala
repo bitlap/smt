@@ -28,10 +28,10 @@ import org.bitlap.csv.derive.DeriveCsvConverter
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+case class CsvLine(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
 
-object Dimension {
+object CsvLine {
 
-  implicit val dimensionCsvConverter: Converter[Dimension] = DeriveCsvConverter.gen[Dimension]
+  implicit val dimensionCsvConverter: Converter[CsvLine] = DeriveCsvConverter.gen[CsvLine]
 
 }
