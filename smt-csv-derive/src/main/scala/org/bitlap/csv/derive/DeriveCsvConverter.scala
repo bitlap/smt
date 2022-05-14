@@ -32,11 +32,13 @@ import scala.reflect.macros.blackbox
  */
 object DeriveCsvConverter {
 
-  def gen[CC](columnSeparator: Char = ','): Converter[CC] = macro Macro.macroImpl[CC]
+  def gen[CC]: Converter[CC] = macro Macro.macroImpl[CC]
+
+  def gen[CC](columnSeparator: Char): Converter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
-    def macroImpl[CC: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[CC] = {
+    def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[CC] = {
       import c.universe._
       val clazzName = c.weakTypeOf[CC].typeSymbol.name
       val typeName = TypeName(clazzName.decodedName.toString)
@@ -48,6 +50,12 @@ object DeriveCsvConverter {
         }
        """
       exprPrintTree[CC](force = false, tree)
+    }
+
+    def macroImpl[CC: c.WeakTypeTag]: c.Expr[CC] = {
+      import c.universe._
+      val columnSeparator = ','
+      macroImplWithColumnSeparator[CC](c.Expr[Char](q"$columnSeparator"))
     }
   }
 }

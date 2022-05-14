@@ -20,6 +20,7 @@ examples/scala2-13/target/
 examples/scala2-11/project/target
 examples/scala2-12/project/target
 examples/scala2-13/project/target
+smt-benchmark/target
 smt-cacheable-core/target
 smt-cacheable-caffeine/target
 smt-cacheable-redis/target
