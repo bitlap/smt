@@ -23,7 +23,7 @@ lazy val zioSchemaVersion = "0.1.9"
 lazy val scalaLoggingVersion = "3.9.4"
 lazy val playJsonVersion = "2.7.4"
 lazy val log4jVersion = "2.17.2"
-lazy val jacksonScalaVersion = "2.13.2"
+lazy val jacksonScalaVersion = "2.13.3"
 lazy val jraftVersion = "1.3.9"
 lazy val protocVersion = "3.20.1"
 
