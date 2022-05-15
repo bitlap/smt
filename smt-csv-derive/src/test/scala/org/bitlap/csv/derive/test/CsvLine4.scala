@@ -21,17 +21,31 @@
 
 package org.bitlap.csv.derive.test
 
-import org.bitlap.csv.core.Converter
+import org.bitlap.csv.core.{ Converter, StringUtils }
 import org.bitlap.csv.derive.DeriveCsvConverter
 
 /**
  * @author 梦境迷离
- * @version 1.0,2022/4/29
+ * @version 1.0,2022/5/15
  */
-case class CsvLine(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+case class CsvLine4(time: Long, entity: Int, dimensions: List[Dimension], metricName: String, metricValue: Int)
 
-object CsvLine {
+case class Dimension(key: String, value: String)
 
-  implicit val lineCsvConverter: Converter[CsvLine] = DeriveCsvConverter.gen[CsvLine]
+object Dimension {
+
+  implicit val fieldCsvConverter: Converter[List[Dimension]] = new Converter[List[Dimension]] {
+    override def toScala(line: String): Option[List[Dimension]] =
+      Option(StringUtils.extractJsonValues[Dimension](line)((k, v) => Dimension(k, v)))
+
+    override def toCsvString(t: List[Dimension]): String =
+      s"""\"{${t.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+  }
+
+}
+
+object CsvLine4 {
+
+  implicit val lineCsvConverter: Converter[CsvLine4] = DeriveCsvConverter.gen[CsvLine4]
 
 }

@@ -27,6 +27,8 @@ import org.bitlap.csv.core.macros.AbstractMacroProcessor
 import scala.reflect.macros.blackbox
 
 /**
+ * This is a tool macro for automatic derivation of the base CSV converter.
+ *
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */

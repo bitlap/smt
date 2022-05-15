@@ -49,7 +49,16 @@ object DeriveToString {
               }
           """
         } else {
-          q"$packageName.Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+          idxType._2 match {
+            case t if t <:< typeOf[List[_]] =>
+              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[List[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+            case t if t <:< typeOf[Seq[_]] =>
+              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[Seq[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+            case _ =>
+              q"$packageName.Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+          }
         }
       }
       val separator = q"$columnSeparator"

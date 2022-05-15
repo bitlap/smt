@@ -32,5 +32,5 @@ case class CsvLine2(key: String, value: Option[String])
 
 object CsvLine2 {
 
-  implicit val dimensionCsvConverter: Converter[CsvLine2] = DeriveCsvConverter.gen[CsvLine2](' ')
+  implicit val lineCsvConverter: Converter[CsvLine2] = DeriveCsvConverter.gen[CsvLine2](' ')
 }

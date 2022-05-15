@@ -24,14 +24,27 @@ package org.bitlap.csv.derive.test
 import org.bitlap.csv.core.Converter
 import org.bitlap.csv.derive.DeriveCsvConverter
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 /**
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
-case class CsvLine(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+case class CsvLine3(key: String, time: LocalDateTime)
 
-object CsvLine {
+object CsvLine3 {
 
-  implicit val lineCsvConverter: Converter[CsvLine] = DeriveCsvConverter.gen[CsvLine]
+  implicit val zonedDateTimeConvert = new Converter[LocalDateTime] {
+
+    final val pattern: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+    override def toScala(line: String): Option[LocalDateTime] =
+      if (line.nonEmpty) Some(LocalDateTime.parse(line, pattern)) else None
+
+    override def toCsvString(t: LocalDateTime) = t.format(pattern)
+  }
+
+  implicit val lineCsvConverter: Converter[CsvLine3] = DeriveCsvConverter.gen[CsvLine3]
 
 }
