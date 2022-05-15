@@ -55,23 +55,23 @@ object DeriveToCaseClass {
             case t =>
               val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
               t match {
-                case t if t =:= typeOf[Int] =>
+                case tt if tt =:= typeOf[Int] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
-                case t if t =:= typeOf[String] =>
+                case tt if tt =:= typeOf[String] =>
                   q"""$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse("")"""
-                case t if t =:= typeOf[Float] =>
+                case tt if tt =:= typeOf[Float] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0F)"
-                case t if t =:= typeOf[Double] =>
+                case tt if tt =:= typeOf[Double] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0D)"
-                case t if t =:= typeOf[Char] =>
+                case tt if tt =:= typeOf[Char] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse('?')"
-                case t if t =:= typeOf[Byte] =>
+                case tt if tt =:= typeOf[Byte] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
-                case t if t =:= typeOf[Short] =>
+                case tt if tt =:= typeOf[Short] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
-                case t if t =:= typeOf[Boolean] =>
+                case tt if tt =:= typeOf[Boolean] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(false)"
-                case t if t =:= typeOf[Long] =>
+                case tt if tt =:= typeOf[Long] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
                 case _ =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(null)"

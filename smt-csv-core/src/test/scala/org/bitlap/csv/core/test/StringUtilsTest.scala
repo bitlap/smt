@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.core.test
 
-import scala.util.Using
+import org.bitlap.csv.core.FileUtils
 
 import org.bitlap.csv.core.StringUtils
 import org.scalatest.flatspec.AnyFlatSpec
@@ -52,7 +52,7 @@ class StringUtilsTest extends AnyFlatSpec with Matchers {
   "StringUtilsTest3" should "ok for file" in {
     val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream("simple_data.csv"))
     val bufferedReader = new BufferedReader(reader)
-    Using.resource(bufferedReader) { input =>
+    FileUtils.using(bufferedReader) { input =>
       var line: String = null
       while ({
         line = input.readLine()
