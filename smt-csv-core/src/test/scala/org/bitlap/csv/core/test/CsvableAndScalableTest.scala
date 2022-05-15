@@ -28,6 +28,7 @@ import org.scalatest.matchers.should.Matchers
 import org.bitlap.csv.core.ScalableBuilder
 import org.bitlap.csv.core.CsvableBuilder
 import org.bitlap.csv.core.ScalableHelper
+import java.io.File
 
 /**
  * Complex use of common tests
@@ -73,8 +74,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
               kvs.map(kv => Dimension3(kv._1, kv._2)).toList
             }
           )
-          .build(csv, ',')
-          .toScala
+          .convert(csv, ',')
       )
 
     println(metrics)
@@ -87,15 +87,14 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
         .setField(
           _.dimensions,
           (ds: List[Dimension3]) =>
-            s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}\\}\""""
+            s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
         )
-        .build(metric.get, ',')
-        .toCsvString
+        .convert(metric.get, ',')
     )
 
     println(csv)
     assert(
-      csv.toString() == """List(100,1,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 100,1,"{""city"":""北京"",""os"":""Mac""\}",pv,2, 100,1,"{""city"":""北京"",""os"":""Windows""\}",vv,1, 100,1,"{""city"":""北京"",""os"":""Windows""\}",pv,3, 100,2,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 100,2,"{""city"":""北京"",""os"":""Mac""\}",pv,5, 100,3,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 100,3,"{""city"":""北京"",""os"":""Mac""\}",pv,2, 200,1,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 200,1,"{""city"":""北京"",""os"":""Mac""\}",pv,2, 200,1,"{""city"":""北京"",""os"":""Windows""\}",vv,1, 200,1,"{""city"":""北京"",""os"":""Windows""\}",pv,3, 200,2,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 200,2,"{""city"":""北京"",""os"":""Mac""\}",pv,5, 200,3,"{""city"":""北京"",""os"":""Mac""\}",vv,1, 200,3,"{""city"":""北京"",""os"":""Mac""\}",pv,2)"""
+      csv.toString() == """List(100,1,"{""city"":""北京"",""os"":""Mac""}",vv,1, 100,1,"{""city"":""北京"",""os"":""Mac""}",pv,2, 100,1,"{""city"":""北京"",""os"":""Windows""}",vv,1, 100,1,"{""city"":""北京"",""os"":""Windows""}",pv,3, 100,2,"{""city"":""北京"",""os"":""Mac""}",vv,1, 100,2,"{""city"":""北京"",""os"":""Mac""}",pv,5, 100,3,"{""city"":""北京"",""os"":""Mac""}",vv,1, 100,3,"{""city"":""北京"",""os"":""Mac""}",pv,2, 200,1,"{""city"":""北京"",""os"":""Mac""}",vv,1, 200,1,"{""city"":""北京"",""os"":""Mac""}",pv,2, 200,1,"{""city"":""北京"",""os"":""Windows""}",vv,1, 200,1,"{""city"":""北京"",""os"":""Windows""}",pv,3, 200,2,"{""city"":""北京"",""os"":""Mac""}",vv,1, 200,2,"{""city"":""北京"",""os"":""Mac""}",pv,5, 200,3,"{""city"":""北京"",""os"":""Mac""}",vv,1, 200,3,"{""city"":""北京"",""os"":""Mac""}",pv,2)"""
     )
   }
 
@@ -117,8 +116,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
               kvs.map(kv => Dimension3(kv._1, kv._2)).toSeq
             }
           )
-          .build(csv, ',')
-          .toScala
+          .convert(csv, ',')
       )
 
     println(metrics)
@@ -136,8 +134,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
             _.dimensions,
             dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
           )
-          .build(csv)
-          .toScala
+          .convert(csv)
       )
 
     println(metrics.toList)
@@ -153,12 +150,156 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
         )
-        .build(line)
-        .toScala
+        .convert(line)
     }
 
     println(metrics)
     assert(metrics.head.get.dimensions.head.key == "city")
     assert(metrics.head.get.dimensions.head.value == "北京")
   }
+
+  "CsvableAndScalable5" should "ok when using convert method" in {
+
+    val csvLines = csvData.split("\n").toList
+
+    val metrics = ScalableBuilder[Metric3].convert(csvLines)
+
+    // if we don't define a custom function for convert `Metric3#dimension`
+    val csv = CsvableBuilder[Metric3].convert(metrics.filter(_.isDefined).map(_.get))
+
+    println(metrics)
+    println(csv)
+
+    assert(csvData.replace("\"", "") == csv.replace("\"", ""))
+  }
+
+  "CsvableAndScalable6" should "ok when using convert and StringUtils" in {
+    val metrics = ScalableBuilder[Metric2]
+      .setField[Seq[Dimension3]](
+        _.dimensions,
+        dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+      )
+      .convert(csvData.split("\n").toList)
+
+    metrics.foreach(println)
+
+    assert(metrics.head.get.dimensions.head.key == "city")
+    assert(metrics.head.get.dimensions.head.value == "北京")
+
+    val csv = CsvableBuilder[Metric2]
+      .setField(
+        _.dimensions,
+        (ds: Seq[Dimension3]) =>
+          s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+      )
+      .convert(metrics.filter(_.isDefined).map(_.get))
+
+    println(csv)
+  }
+
+  "CsvableAndScalable7" should "ok macro expose code" in {
+    // to scala
+    lazy val _ScalableBuilderFunction$dimensions: String => List[org.bitlap.csv.core.test.Dimension3] = (
+      (dims: String) =>
+        org.bitlap.csv.core.StringUtils.extractJsonValues[org.bitlap.csv.core.test.Dimension3](dims)(
+          ((k: String, v: String) => Dimension3.apply(k, v))
+        )
+    );
+    object _ScalaAnno$1 extends _root_.org.bitlap.csv.core.Scalable[Metric2] {
+      var _line: String = _;
+      private val _columns = (() => _root_.org.bitlap.csv.core.StringUtils.splitColumns(_ScalaAnno$1._line, ','));
+
+      override def _toScala(column: String): Option[Metric2] = Option(
+        Metric2(
+          _root_.org.bitlap.csv.core.Scalable[Long]._toScala(_columns()(0)).getOrElse(0L),
+          _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(1)).getOrElse(0),
+          _ScalableBuilderFunction$dimensions
+            .apply(_columns()(2))
+            .asInstanceOf[Seq[org.bitlap.csv.core.test.Dimension3]],
+          _root_.org.bitlap.csv.core.Scalable[String]._toScala(_columns()(3)).getOrElse(""),
+          _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(4)).getOrElse(0)
+        )
+      )
+    };
+    lazy val _scalableInstance = _ScalaAnno$1;
+    val metrics = scala.Predef
+      .wrapRefArray[String](CsvableAndScalableTest.this.csvData.split("\n"))
+      .toList
+      .map(((_l: String) => {
+        _scalableInstance._line = _l;
+        _scalableInstance._toScala(_l)
+      }))
+
+    metrics.foreach(println)
+
+    // to csv
+    lazy val _CsvableBuilderFunction$dimensions: Seq[org.bitlap.csv.core.test.Dimension3] => String = (
+      (ds: Seq[org.bitlap.csv.core.test.Dimension3]) =>
+        ("\"{"
+          .+(
+            ds.map[String](
+              (
+                (kv: org.bitlap.csv.core.test.Dimension3) =>
+                  ("\"\"".+(kv.key).+("\"\":\"\"").+(kv.value).+("\"\""): String)
+              )
+            ).mkString(",")
+          )
+          .+("}\""): String)
+    );
+    object _CsvAnno$2 extends _root_.org.bitlap.csv.core.Csvable[Metric2] {
+      var _tt: Metric2 = _;
+      lazy private val toCsv = ((temp: Metric2) => {
+        val fields = Metric2.unapply(temp).orNull;
+        if (null.$eq$eq(fields))
+          ""
+        else
+          scala.collection.immutable
+            .List(
+              _root_.org.bitlap.csv.core.Csvable[Long]._toCsvString(temp.time),
+              _root_.org.bitlap.csv.core.Csvable[Int]._toCsvString(temp.entity),
+              _CsvableBuilderFunction$dimensions.apply(temp.dimensions),
+              _root_.org.bitlap.csv.core.Csvable[String]._toCsvString(temp.metricName),
+              _root_.org.bitlap.csv.core.Csvable[Int]._toCsvString(temp.metricValue)
+            )
+            .mkString(','.toString)
+      });
+
+      override def _toCsvString(t: Metric2): String = toCsv(_CsvAnno$2._tt)
+    };
+    lazy val _csvableInstance = _CsvAnno$2;
+    val csv = metrics
+      .filter(((x$3: Option[org.bitlap.csv.core.test.Metric2]) => x$3.isDefined))
+      .map[org.bitlap.csv.core.test.Metric2](((x$4: Option[org.bitlap.csv.core.test.Metric2]) => x$4.get))
+      .map(((_t: Metric2) => {
+        _csvableInstance._tt = _t;
+        _csvableInstance._toCsvString(_t)
+      }))
+      .mkString("\n")
+
+    println(csv)
+  }
+
+  "CsvableAndScalable8" should "ok when reading from file" in {
+    val metrics =
+      ScalableBuilder[Metric2]
+        .setField[Seq[Dimension3]](
+          _.dimensions,
+          dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+        )
+        .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data.csv"), "utf-8")
+
+    println(metrics)
+    assert(metrics.nonEmpty)
+
+    val file = new File("./simple_data.csv")
+    CsvableBuilder[Metric2]
+      .setField[Seq[Dimension3]](
+        _.dimensions,
+        ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+      )
+      .convertTo(metrics.filter(_.isDefined).map(_.get), file)
+
+    file.delete()
+  }
+
 }

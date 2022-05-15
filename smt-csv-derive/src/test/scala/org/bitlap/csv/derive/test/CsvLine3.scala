@@ -19,34 +19,32 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv.derive.test
 
-import java.io.{ BufferedReader, InputStreamReader }
-import scala.collection.mutable.ListBuffer
-import scala.util.Using
+import org.bitlap.csv.core.Converter
+import org.bitlap.csv.derive.DeriveCsvConverter
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
- * Tool class for parsing CSV files.
- *
  * @author 梦境迷离
- * @version 1.0,2022/5/2
+ * @version 1.0,2022/4/29
  */
-object ScalableHelper {
+case class CsvLine3(key: String, time: LocalDateTime)
 
-  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
-    val ts = ListBuffer[Option[T]]()
-    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
-    val bufferedReader = new BufferedReader(reader)
-    var line: String = null
-    Using.resource(bufferedReader) { input =>
-      while ({
-        line = input.readLine()
-        line != null
-      })
-        ts.append(func(line))
-    }
+object CsvLine3 {
 
-    ts.result()
+  implicit val zonedDateTimeConvert = new Converter[LocalDateTime] {
+
+    final val pattern: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+    override def toScala(line: String): Option[LocalDateTime] =
+      if (line.nonEmpty) Some(LocalDateTime.parse(line, pattern)) else None
+
+    override def toCsvString(t: LocalDateTime) = t.format(pattern)
   }
+
+  implicit val lineCsvConverter: Converter[CsvLine3] = DeriveCsvConverter.gen[CsvLine3]
 
 }

@@ -37,6 +37,8 @@ case class Metric(time: Long, entity: Int, dimensions: List[Dimension3], metricN
 
 case class Metric2(time: Long, entity: Int, dimensions: Seq[Dimension3], metricName: String, metricValue: Int)
 
+case class Metric3(time: Long, entity: Int, dimensions: String, metricName: String, metricValue: Int)
+
 case class Dimension3(key: String, value: String)
 
 object Dimension {

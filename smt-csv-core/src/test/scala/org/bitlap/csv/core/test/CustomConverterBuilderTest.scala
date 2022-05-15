@@ -33,9 +33,9 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
 
   "CustomConverterBuilder1" should "ok" in {
     val line = "abc,cdf,d,12,2,false,0.1,0.23333"
-    val dimension = ScalableBuilder[Dimension2].build(line, ',').toScala
+    val dimension = ScalableBuilder[Dimension2].convert(line, ',')
     assert(dimension.toString == "Some(Dimension2(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
-    val csv = CsvableBuilder[Dimension2].build(dimension.get, ',').toCsvString
+    val csv = CsvableBuilder[Dimension2].convert(dimension.get, ',')
     println(csv)
     assert(csv == line)
   }
@@ -44,8 +44,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
     val dimension1 = ScalableBuilder[Dimension2]
       .setField(_.c, _ => 12L)
-      .build(line, ',')
-      .toScala
+      .convert(line, ',')
 
     println(dimension1)
     assert(dimension1.toString == "Some(Dimension2(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
@@ -53,8 +52,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     val csv = CsvableBuilder[Dimension2]
       .setField[Char](_.d, _ => "????????")
       .setField[Option[String]](_.value, js => s"""\"${js.get.replace("\"", "\"\"")}\"""")
-      .build(dimension1.get, ',')
-      .toCsvString
+      .convert(dimension1.get, ',')
 
     println(csv)
     assert(csv == "abc,\"{\"\"a\"\":\"\"b\"\",\"\"c\"\":\"\"d\"\"}\",????????,12,2,false,0.1,0.23333")
@@ -64,19 +62,16 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
     val d = ScalableBuilder[Dimension2]
       .setField(_.value, _ => None)
-      .build(line, ',')
-      .toScala
+      .convert(line, ',')
     assert(d.toString == "Some(Dimension2(abc,None,d,12,2,false,0.1,0.23333))")
 
     val d2 = ScalableBuilder[Dimension2]
       .setField(_.value, _ => None)
-      .build("""abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333""", ',')
-      .toScala
+      .convert("""abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333""", ',')
     assert(d2.toString == "Some(Dimension2(abc,None,d,12,2,false,0.1,0.23333))")
 
     val e = ScalableBuilder[Dimension2]
-      .build(line, ',')
-      .toScala
+      .convert(line, ',')
     println(e)
 
     assert(e.toString == "Some(Dimension2(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
@@ -85,20 +80,17 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
   "CustomConverterBuilder4" should "ok when using toCsvString" in {
     val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
     val dimension1 = CsvableBuilder[Dimension2]
-      .build(e, ',')
-      .toCsvString
+      .convert(e, ',')
     assert(dimension1 == "1,hello,c,1,1,false,0.1,0.2")
 
     val dimension2 = CsvableBuilder[Dimension2]
       .setField[Option[String]](_.value, _ => "hello world")
-      .build(e, '*')
-      .toCsvString
+      .convert(e, '*')
     assert(dimension2 == "1*hello world*c*1*1*false*0.1*0.2")
 
     val dimension3 = CsvableBuilder[Dimension2]
       .setField[Option[String]](_.value, _ => "hello world")
-      .build(Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2), ',')
-      .toCsvString
+      .convert(Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2), ',')
     assert(dimension3 == "1,hello world,c,1,1,false,0.1,0.2")
   }
 
@@ -108,11 +100,11 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
       Dimension2("2", Some("hello bitlap"), 'c', 1L, 1, false, 0.1f, 0.2)
     )
 
-    val dimension1 = es.map(e => CsvableBuilder[Dimension2].build(e, ',').toCsvString)
+    val dimension1 = es.map(e => CsvableBuilder[Dimension2].convert(e, ','))
     assert(dimension1 == List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2"))
 
     val csv = List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2")
-    val scala = csv.map(f => ScalableBuilder[Dimension2].build(f, ',').toScala)
+    val scala = csv.map(f => ScalableBuilder[Dimension2].convert(f, ','))
     assert(
       scala.toString() == "List(Some(Dimension2(1,Some(hello),c,1,1,true,0.1,0.2)), Some(Dimension2(2,Some(hello bitlap),c,1,1,false,0.1,0.2)))"
     )
@@ -125,32 +117,32 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
 
   "CustomConverterBuilder6" should "fail when find List or Seq but without using setFiled" in {
     """
-      |ScalableBuilder[Metric2].build(csv, ',').toScala
+      |ScalableBuilder[Metric2].convert(csv, ',')
       |""".stripMargin shouldNot compile
 
     """
-      |CsvableBuilder[Metric2].build(metric, ',').toCsvString
+      |CsvableBuilder[Metric2].convert(metric, ',')
       |""".stripMargin shouldNot compile
 
   }
 
   "CustomConverterBuilder7" should "fail when find List or Seq but without using setFiled" in {
     """
-      |ScalableBuilder[Metric2].build(csv, ',').toScala
+      |ScalableBuilder[Metric2].convert(csv, ',')
       |""".stripMargin shouldNot compile
 
     """
-      |CsvableBuilder[Metric2].build(metric2, ',').toCsvString
+      |CsvableBuilder[Metric2].convert(metric2, ',')
       |""".stripMargin shouldNot compile
   }
 
   "CustomConverterBuilder8" should "ok when not pass columnSeparator" in {
     val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
-    val csv = CsvableBuilder[Dimension2].build(e).toCsvString
+    val csv = CsvableBuilder[Dimension2].convert(e)
     println(csv)
     assert(csv == "1,hello,c,1,1,false,0.1,0.2")
 
-    val scala = ScalableBuilder[Dimension2].build(csv).toScala
+    val scala = ScalableBuilder[Dimension2].convert(csv)
     println(scala)
     assert(scala.get == e)
   }
@@ -159,7 +151,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     """
       |case class Test(i:Int)(j:String)
       |    val t = Test(1)("hello")
-      |    CsvableBuilder[Test].build(t).toCsvString
+      |    CsvableBuilder[Test].convert(t)
       |""".stripMargin shouldNot compile
   }
 }

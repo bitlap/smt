@@ -32,48 +32,56 @@ object DeriveToCaseClass {
   def apply[T <: Product](line: String, columnSeparator: Char): Option[T] = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
+
     import c.universe._
 
-    def macroImpl[T <: Product: c.WeakTypeTag](
-      line: c.Expr[String],
-      columnSeparator: c.Expr[Char]
-    ): c.Expr[Option[T]] = {
+    // scalafmt: { maxColumn = 400 }
+    def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Option[T]] = {
       val clazzName = c.weakTypeOf[T].typeSymbol.name
-      val innerVarTermName = TermName("_columns")
-      val fields = (columns: TermName) =>
-        checkCaseClassZipAll[T](columns).map { idxType =>
+      val innerFuncTermName = TermName("_columns")
+      val fields = (columnsFunc: TermName) =>
+        checkCaseClassZipAll[T](columnsFunc).map { idxType =>
           val columnValues = idxType._1._2
-          if (idxType._2 <:< typeOf[Option[_]]) {
-            val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-            q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
-          } else {
-            val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
-            idxType._2 match {
-              case t if t =:= typeOf[Int] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
-              case t if t =:= typeOf[String] =>
-                q"""$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse("")"""
-              case t if t =:= typeOf[Float] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0F)"
-              case t if t =:= typeOf[Double] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0D)"
-              case t if t =:= typeOf[Char] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse('?')"
-              case t if t =:= typeOf[Byte] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
-              case t if t =:= typeOf[Short] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
-              case t if t =:= typeOf[Boolean] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(false)"
-              case t if t =:= typeOf[Long] =>
-                q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
-            }
+          idxType._2 match {
+            case t if t <:< typeOf[Option[_]] =>
+              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
+            case t if t <:< typeOf[List[_]] =>
+              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues).getOrElse(Nil)"
+            case t if t <:< typeOf[Seq[_]] =>
+              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues).getOrElse(Nil)"
+            case t =>
+              val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
+              t match {
+                case t if t =:= typeOf[Int] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
+                case t if t =:= typeOf[String] =>
+                  q"""$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse("")"""
+                case t if t =:= typeOf[Float] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0F)"
+                case t if t =:= typeOf[Double] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0D)"
+                case t if t =:= typeOf[Char] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse('?')"
+                case t if t =:= typeOf[Byte] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
+                case t if t =:= typeOf[Short] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
+                case t if t =:= typeOf[Boolean] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(false)"
+                case t if t =:= typeOf[Long] =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
+                case _ =>
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(null)"
+              }
           }
         }
       val tree =
         q"""
-           lazy val $innerVarTermName = _root_.org.bitlap.csv.core.StringUtils.splitColumns($line, $columnSeparator)
-           Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerVarTermName)}))
+           lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
+           Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)
 

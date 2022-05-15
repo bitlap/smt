@@ -22,6 +22,7 @@
 package org.bitlap.csv.core
 
 import org.bitlap.csv.core.macros.DeriveCsvableBuilder
+import java.io.File
 
 /**
  * Builder to create a custom Csv Encoder.
@@ -49,12 +50,35 @@ class CsvableBuilder[T] {
    * @param columnSeparator The separator for CSV column value.
    * @return
    */
-  def build(t: T, columnSeparator: Char): Csvable[T] = macro DeriveCsvableBuilder.buildImpl[T]
+  def convert(t: T, columnSeparator: Char): String = macro DeriveCsvableBuilder.convertOneImpl[T]
 
   /**
-   * Make columnSeparator assign to `,` as default value
+   * Make columnSeparator assign to `,` as default value.
    */
-  def build(t: T): Csvable[T] = macro DeriveCsvableBuilder.buildDefaultImpl[T]
+  def convert(t: T): String = macro DeriveCsvableBuilder.convertOneDefaultImpl[T]
+
+  /**
+   * Convert the sequence of Scala case class to CSV string.
+   *
+   * @param ts              The sequence of Scala case class.
+   * @param columnSeparator The separator for CSV column value.
+   * @return It combines CSV lines by '\n'.
+   */
+  def convert(ts: List[T], columnSeparator: Char): String = macro DeriveCsvableBuilder.convertImpl[T]
+
+  /**
+   * Make columnSeparator assign to `,` as default value.
+   */
+  def convert(ts: List[T]): String = macro DeriveCsvableBuilder.convertDefaultImpl[T]
+
+  /**
+   * Convert the sequence of Scala case class to CSV string and write to file.
+   *
+   * @param ts   The sequence of Scala case class.
+   * @param file File to save CSV string.
+   * @return
+   */
+  def convertTo(ts: List[T], file: File): Boolean = macro DeriveCsvableBuilder.convertToFileImpl[T]
 
 }
 

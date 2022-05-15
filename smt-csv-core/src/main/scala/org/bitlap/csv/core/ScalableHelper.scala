@@ -19,25 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.macros
-import scala.collection.mutable
+package org.bitlap.csv.core
+
+import java.io.{ BufferedReader, File, FileReader, InputStreamReader }
 
 /**
+ * Tool class for parsing CSV files.
+ *
  * @author 梦境迷离
- * @version 1.0,2022/5/1
+ * @version 1.0,2022/5/13
  */
-object MacroCache {
+object ScalableHelper {
 
-  private var builderCount = 0
-  private var identityCount = 0
-
-  def getBuilderId: Int = builderCount.synchronized {
-    builderCount += 1; builderCount
+  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
+    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
+    FileUtils.readFileFunc[T](new BufferedReader(reader), func)
   }
 
-  def getIdentityId: Int = identityCount.synchronized {
-    identityCount += 1; identityCount
+  def readCsvFromFile[T <: Product](file: File)(func: String => Option[T]): List[Option[T]] = {
+    val reader = new BufferedReader(new FileReader(file))
+    FileUtils.readFileFunc[T](reader, func)
   }
-
-  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
 }

@@ -19,14 +19,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv.derive.test
 
-import scala.annotation.StaticAnnotation
+import org.bitlap.csv.core.{ Converter, StringUtils }
+import org.bitlap.csv.derive.DeriveCsvConverter
 
 /**
- * The annotation notes the method should only be used in library.
- *
  * @author 梦境迷离
- * @version 1.0,2022/5/1
+ * @version 1.0,2022/5/15
  */
-case class InternalApi() extends StaticAnnotation
+case class CsvLine4(time: Long, entity: Int, dimensions: List[Dimension], metricName: String, metricValue: Int)
+
+case class Dimension(key: String, value: String)
+
+object Dimension {
+
+  implicit val fieldCsvConverter: Converter[List[Dimension]] = new Converter[List[Dimension]] {
+    override def toScala(line: String): Option[List[Dimension]] =
+      Option(StringUtils.extractJsonValues[Dimension](line)((k, v) => Dimension(k, v)))
+
+    override def toCsvString(t: List[Dimension]): String =
+      s"""\"{${t.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+  }
+
+}
+
+object CsvLine4 {
+
+  implicit val lineCsvConverter: Converter[CsvLine4] = DeriveCsvConverter.gen[CsvLine4]
+
+}

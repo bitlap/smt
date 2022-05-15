@@ -28,10 +28,9 @@ import org.bitlap.csv.derive.DeriveCsvConverter
  * @author 梦境迷离
  * @version 1.0,2022/4/29
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+case class CsvLine2(key: String, value: Option[String])
 
-object Dimension {
+object CsvLine2 {
 
-  implicit val dimensionCsvConverter: Converter[Dimension] = DeriveCsvConverter.gen[Dimension]
-
+  implicit val lineCsvConverter: Converter[CsvLine2] = DeriveCsvConverter.gen[CsvLine2](' ')
 }
