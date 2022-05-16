@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/11/23
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/11/23
+ *  @version 1.0
  */
 object javaCompatibleMacro {
 
@@ -34,8 +34,7 @@ object javaCompatibleMacro {
 
     import c.universe._
 
-    /**
-     * We generate this method with currying, and we have to deal with the first layer of currying alone.
+    /** We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
     private def getNoArgsContrWithCurrying(
       annotteeClassParams: List[List[Tree]],

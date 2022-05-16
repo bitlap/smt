@@ -25,9 +25,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.macros.blackbox
 
-/**
- * @author 梦境迷离
- * @version 1.0,2021/12/6
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2021/12/6
  */
 object ProcessorCreatorMacro {
 
@@ -48,12 +48,12 @@ object ProcessorCreatorMacro {
   )(service: c.Expr[Service], executor: c.Expr[E]): c.Expr[RRP] = { // parameters in order, parameter names differ will compile error
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)(needCheckService = false)
-    val serviceType = weakTypeOf[Service]
-    val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
-    val reqProtoType = weakTypeOf[Req]
+    val serviceType           = weakTypeOf[Service]
+    val className             = TypeName(classNamePrefix + MacroCache.getIdentityId)
+    val reqProtoType          = weakTypeOf[Req]
     val rpcRequestClosureType = weakTypeOf[RRC]
-    val rpcContextType = weakTypeOf[RC]
-    val respProtoType = weakTypeOf[Resp]
+    val rpcContextType        = weakTypeOf[RC]
+    val respProtoType         = weakTypeOf[Resp]
     val processor =
       q"""
        class $className(private val service: $serviceType, executor: java.util.concurrent.Executor = null)
@@ -98,13 +98,13 @@ object ProcessorCreatorMacro {
   )(service: c.Expr[Service]): c.Expr[RRP] = {
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)(needCheckService = false)
-    val serviceType = weakTypeOf[Service]
-    val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
-    val reqProtoType = weakTypeOf[Req]
-    val rpcRequestClosureType = weakTypeOf[RRC]
-    val rpcContextType = weakTypeOf[RC]
-    val respProtoType = weakTypeOf[Resp]
-    val respProtoCompanionType = weakTypeOf[Resp].companion //getDefaultInstance is static method, it's in companion
+    val serviceType            = weakTypeOf[Service]
+    val className              = TypeName(classNamePrefix + MacroCache.getIdentityId)
+    val reqProtoType           = weakTypeOf[Req]
+    val rpcRequestClosureType  = weakTypeOf[RRC]
+    val rpcContextType         = weakTypeOf[RC]
+    val respProtoType          = weakTypeOf[Resp]
+    val respProtoCompanionType = weakTypeOf[Resp].companion // getDefaultInstance is static method, it's in companion
     val processor =
       q"""
        class $className(private val service: $serviceType, executor: java.util.concurrent.Executor = null)
@@ -149,13 +149,13 @@ object ProcessorCreatorMacro {
   ): c.Expr[RRP] = {
     import c.universe._
     checkTree[RRC, RRP, RC, Service](c)(needCheckService = true)
-    val serviceType = weakTypeOf[Service]
-    val className = TypeName(classNamePrefix + MacroCache.getIdentityId)
-    val reqProtoType = weakTypeOf[Req]
-    val rpcRequestClosureType = weakTypeOf[RRC]
-    val rpcContextType = weakTypeOf[RC]
-    val respProtoType = weakTypeOf[Resp]
-    val respProtoCompanionType = weakTypeOf[Resp].companion //getDefaultInstance is static method, it's in companion
+    val serviceType            = weakTypeOf[Service]
+    val className              = TypeName(classNamePrefix + MacroCache.getIdentityId)
+    val reqProtoType           = weakTypeOf[Req]
+    val rpcRequestClosureType  = weakTypeOf[RRC]
+    val rpcContextType         = weakTypeOf[RC]
+    val respProtoType          = weakTypeOf[Resp]
+    val respProtoCompanionType = weakTypeOf[Resp].companion // getDefaultInstance is static method, it's in companion
     val processor =
       q"""
        class $className(private val service: $serviceType, executor: java.util.concurrent.Executor = null)

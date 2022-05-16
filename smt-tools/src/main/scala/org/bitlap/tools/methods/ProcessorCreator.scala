@@ -25,29 +25,41 @@ import org.bitlap.tools.methods.impl.ProcessorCreatorMacro
 
 import java.util.concurrent.Executor
 
-/**
- * The macro util to generate processor for alipay sofa jraft rpc.
+/** The macro util to generate processor for alipay sofa jraft rpc.
  *
- * @author 梦境迷离
- * @version 1.0,2021/12/6
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2021/12/6
  */
 @deprecated
 object ProcessorCreator {
 
-  /**
-   * @param service          Instance of the `Service`
-   * @param defaultResp      Default instance of the Response Message
-   * @param executor         Instance of the Executor
-   * @param processRequest   Function to handle request
-   * @param processException Function to handle exception
-   * @tparam RRC     `RpcRequestClosure`
-   * @tparam RRP     `RpcRequestProcessor`
-   * @tparam RC      `RpcContext`
-   * @tparam Req     Request Message of the protobuf
-   * @tparam Resp    Response Message of the protobuf
-   * @tparam Service Should be custom class/interface/trait which handle the business logic of Processors
-   * @tparam E       Should be subclass of the Executor
-   * @return [[ RRP ]] Instance of the `RpcRequestProcessor` subclass
+  /** @param service
+   *    Instance of the `Service`
+   *  @param defaultResp
+   *    Default instance of the Response Message
+   *  @param executor
+   *    Instance of the Executor
+   *  @param processRequest
+   *    Function to handle request
+   *  @param processException
+   *    Function to handle exception
+   *  @tparam RRC
+   *    `RpcRequestClosure`
+   *  @tparam RRP
+   *    `RpcRequestProcessor`
+   *  @tparam RC
+   *    `RpcContext`
+   *  @tparam Req
+   *    Request Message of the protobuf
+   *  @tparam Resp
+   *    Response Message of the protobuf
+   *  @tparam Service
+   *    Should be custom class/interface/trait which handle the business logic of Processors
+   *  @tparam E
+   *    Should be subclass of the Executor
+   *  @return
+   *    [[RRP]] Instance of the `RpcRequestProcessor` subclass
    */
   def apply[RRC, RRP[_ <: Req], RC, Req, Resp, Service, E <: Executor](
     defaultResp: Resp,
@@ -62,8 +74,8 @@ object ProcessorCreator {
   )(implicit service: Service): RRP[Req] =
     macro ProcessorCreatorMacro.WithoutExecutorAndDefaultResp[RRC, RRP[_ <: Req], RC, Req, Resp, Service]
 
-  /**
-   * Having two identical type parameters will cause the compiler to recognize error and change the order of generics to avoid.
+  /** Having two identical type parameters will cause the compiler to recognize error and change the order of generics
+   *  to avoid.
    */
   def apply[Service, RRC, RRP[_ <: Req], RC, Req, Resp](processRequest: (Service, RRC, Req) => Resp)(
     processException: (Service, RC, Exception) => Resp

@@ -24,12 +24,12 @@ package org.bitlap.tools.utils
 import scala.reflect.runtime.currentMirror
 import scala.reflect.runtime.universe._
 
-/**
- * Scala runtime reflection
+/** Scala runtime reflection
  *
- * @author 梦境迷离
- * @since 2021/12/5
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/12/5
+ *  @version 1.0
  */
 class ScalaReflectionUtils[T: WeakTypeTag] {
 

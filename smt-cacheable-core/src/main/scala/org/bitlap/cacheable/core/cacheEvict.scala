@@ -25,14 +25,16 @@ import org.bitlap.cacheable.core.macros.CacheEvictMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * A distributed cache for zio.
+/** A distributed cache for zio.
  *
- * @author 梦境迷离
- * @param local  Whether to enable local cache by caffeine. Must be a named parameter.
- * @param values Indicates which caches the purge operation occurs on. Must be a named parameter.
- * @since 2022/3/18
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @param local
+ *    Whether to enable local cache by caffeine. Must be a named parameter.
+ *  @param values
+ *    Indicates which caches the purge operation occurs on. Must be a named parameter.
+ *  @since 2022/3/18
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class cacheEvict(local: Boolean = true, values: List[String] = Nil) extends StaticAnnotation {

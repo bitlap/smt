@@ -25,9 +25,9 @@ import com.fasterxml.jackson.module.scala.JsonScalaEnumeration
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @version 1.0,2021/8/3
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2021/8/3
  */
 class JacksonEnumTest extends AnyFlatSpec with Matchers {
 

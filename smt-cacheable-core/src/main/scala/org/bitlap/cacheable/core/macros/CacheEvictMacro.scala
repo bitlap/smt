@@ -23,12 +23,12 @@ package org.bitlap.cacheable.core.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * Evict cache
+/** Evict cache
  *
- * @author 梦境迷离
- * @since 2022/3/19
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2022/3/19
+ *  @version 1.0
  */
 object CacheEvictMacro {
 
@@ -37,9 +37,9 @@ object CacheEvictMacro {
     import c.universe._
 
     private lazy val resultValName: c.universe.TermName = TermName("$result")
-    private lazy val argsValName: c.universe.TermName = TermName("$args")
+    private lazy val argsValName: c.universe.TermName   = TermName("$args")
 
-    private val parameters: Tuple2[Boolean, List[String]] = {
+    private val parameters: Tuple2[Boolean, List[String]] =
       c.prefix.tree match {
         case q"new cacheEvict(local=$local, values=$values)" =>
           Tuple2(
@@ -69,7 +69,6 @@ object CacheEvictMacro {
         case _ =>
           c.abort(c.enclosingPosition, "Unexpected annotation pattern!")
       }
-    }
 
     def impl(annottees: c.universe.Expr[Any]*): c.universe.Expr[Any] = {
       val resTree = annottees.map(_.tree) match {
@@ -107,9 +106,9 @@ object CacheEvictMacro {
           c.info(
             c.enclosingPosition,
             s"""These methods will remove from cache: $identities, key prefix is: $enclosingClassName, mode is: ${if (
-              parameters._1
-            ) "local"
-            else "redis"}""",
+                parameters._1
+              ) "local"
+              else "redis"}""",
             true
           )
           val newBody =

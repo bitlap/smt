@@ -25,12 +25,12 @@ import org.bitlap.tools.macros.applyMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate apply method for primary construction of ordinary classes.
+/** annotation to generate apply method for primary construction of ordinary classes.
  *
- * @author 梦境迷离
- * @since 2021/6/30
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/6/30
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class apply extends StaticAnnotation {

@@ -29,14 +29,13 @@ object jacksonEnumMacro {
 
     import c.universe._
 
-    private val extractArgs: Seq[String] = {
+    private val extractArgs: Seq[String] =
       c.prefix.tree match {
         case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
         case q"new jacksonEnum($nonTypeRefers)"               => evalTree(nonTypeRefers.asInstanceOf[Tree])
         case q"new jacksonEnum()"                             => Nil
-        case _                                                => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
-    }
 
     private def getJacksonTypeReferClasses(valDefs: List[ValDef]): Seq[Tree] = {
       val safeValDefs = valDefAccessors(valDefs)
@@ -48,8 +47,8 @@ object jacksonEnumMacro {
         .distinct
         .map(c =>
           q"""class ${TypeName(
-            c.decodedName.toString + "TypeRefer"
-          )} extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[$c.type]"""
+              c.decodedName.toString + "TypeRefer"
+            )} extends _root_.com.fasterxml.jackson.core.`type`.TypeReference[$c.type]"""
         )
     }
 
@@ -85,12 +84,12 @@ object jacksonEnumMacro {
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // return all typeReferClasses and new classDef
-      val classDefinition = mapToClassDeclInfo(classDecl)
-      val valDefs = classDefinition.classParamss.flatten.map(_.asInstanceOf[ValDef])
+      val classDefinition  = mapToClassDeclInfo(classDecl)
+      val valDefs          = classDefinition.classParamss.flatten.map(_.asInstanceOf[ValDef])
       val typeReferClasses = getJacksonTypeReferClasses(valDefs).distinct
       val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends ..$bases { ..$body }" = classDecl
       val newFieldss = paramss.asInstanceOf[List[List[Tree]]].map(_.map(replaceAnnotation))
-      val newClass = q"$mods class $tpname[..$tparams] $ctorMods(...$newFieldss) extends ..$bases { ..$body }"
+      val newClass   = q"$mods class $tpname[..$tparams] $ctorMods(...$newFieldss) extends ..$bases { ..$body }"
       val res =
         q"""
            ..$typeReferClasses

@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 object toStringMacro {
 
@@ -109,14 +109,14 @@ object toStringMacro {
       })
 
       val ctorParams = classDefinition.classParamss.flatten
-      val member = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
+      val member     = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
       val lastParam = member.lastOption.map {
         case v: ValDef => v.name.toTermName.decodedName.toString
         case c         => c.toString
       }
       val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(argument, lastParam, acc)}")
-      //scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
+      // scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
       val toString =
         q"""override def toString: String = ${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
 
@@ -129,7 +129,7 @@ object toStringMacro {
         superClassDef.fold(toString) { _ =>
           val superClass = q"${"super="}"
           q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", "
-          else ""}+$paramsWithName + ${")"}).s(super.toString)"
+            else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
       } else {
         toString

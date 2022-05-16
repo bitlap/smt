@@ -26,13 +26,14 @@ import org.bitlap.tools.macros.logMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate log.
+/** annotation to generate log.
  *
- * @author 梦境迷离
- * @param logType Specifies the type of `log` that needs to be generated
- * @since 2021/6/28
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @param logType
+ *    Specifies the type of `log` that needs to be generated
+ *  @since 2021/6/28
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class log(logType: LogType.LogType = LogType.JLog) extends StaticAnnotation {

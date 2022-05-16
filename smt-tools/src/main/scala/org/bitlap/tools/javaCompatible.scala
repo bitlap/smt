@@ -24,13 +24,13 @@ package org.bitlap.tools
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import org.bitlap.tools.macros.javaCompatibleMacro
 
-/**
- * annotation to generate non-parameter constructor and get/set method for case classes.
- * Fields marked `private[this]` in curry are not supported !
+/** annotation to generate non-parameter constructor and get/set method for case classes. Fields marked `private[this]`
+ *  in curry are not supported !
  *
- * @author 梦境迷离
- * @since 2021/11/23
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/11/23
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class javaCompatible extends StaticAnnotation {

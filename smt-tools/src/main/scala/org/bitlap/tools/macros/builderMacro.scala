@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 object builderMacro {
 
@@ -45,14 +45,12 @@ object builderMacro {
     private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
       val builderClassName = getBuilderClassName(typeName)
       val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
-      lazy val valDefMapTo = (v: ValDef) => {
-        q"""
+      lazy val valDefMapTo = (v: ValDef) => q"""
           def ${v.name}(${v.name}: ${v.tpt}): $builderClassName[..$returnTypeParams] = {
               this.${v.name} = ${v.name}
               this
           }
          """
-      }
       valDefMapTo(field.asInstanceOf[ValDef])
     }
 
@@ -62,11 +60,11 @@ object builderMacro {
       classTypeParams: List[Tree],
       isCase: Boolean
     ): List[Tree] = {
-      val fields = fieldss.flatten
-      val builderClassName = getBuilderClassName(typeName)
-      val builderFieldMethods = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
+      val fields                  = fieldss.flatten
+      val builderClassName        = getBuilderClassName(typeName)
+      val builderFieldMethods     = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
       val builderFieldDefinitions = fields.map(f => getFieldDefinition(f))
-      val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      val returnTypeParams        = extractClassTypeParamsTypeName(classTypeParams)
       val builderMethod =
         q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
       val buulderClass =

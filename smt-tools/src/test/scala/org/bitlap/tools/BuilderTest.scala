@@ -24,10 +24,10 @@ package org.bitlap.tools
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/6/19
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/6/19
+ *  @version 1.0
  */
 class BuilderTest extends AnyFlatSpec with Matchers {
 
@@ -51,7 +51,7 @@ class BuilderTest extends AnyFlatSpec with Matchers {
   }
 
   "builder3" should "class with toString, non companion object" in {
-    @toString //"toString" must be before "builder"
+    @toString // "toString" must be before "builder"
     @builder
     class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
     val ret = TestClass1.builder().i(1).j(0).x("x").build()
@@ -89,7 +89,7 @@ class BuilderTest extends AnyFlatSpec with Matchers {
 
   "builder7" should "case class with toString and companion object not in order" in {
     @builder
-    @toString //failed when companion object exists, fix in 0.0.6
+    @toString // failed when companion object exists, fix in 0.0.6
     case class TestClass1(val i: Int = 0, var j: Int, x: String, o: Option[String] = Some(""))
     object TestClass1
     val ret = TestClass1.builder().i(1).j(0).x("x").build()

@@ -25,15 +25,15 @@ import org.bitlap.tools.logs.LogType.LogType
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/3/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/29
  */
 package object logs {
 
-  /**
-   * @author 梦境迷离
-   * @version 1.0,2022/3/29
+  /** @author
+   *    梦境迷离
+   *  @version 1.0,2022/3/29
    */
   private[tools] trait BaseLog {
 
@@ -42,10 +42,12 @@ package object logs {
     def getTemplate(c: whitebox.Context)(logArgument: LogArgument): c.Tree
   }
 
-  /**
-   * @author 梦境迷离
-   * @param classNameStr The class Name.
-   * @param isClass      Is it a class?
+  /** @author
+   *    梦境迷离
+   *  @param classNameStr
+   *    The class Name.
+   *  @param isClass
+   *    Is it a class?
    */
   private[tools] case class LogArgument(classNameStr: String, isClass: Boolean)
 

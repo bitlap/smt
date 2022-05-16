@@ -28,11 +28,11 @@ import zio.stream.{ UStream, ZStream }
 import zio.{ UIO, ULayer, URLayer, ZIO }
 import zio.blocking.Blocking
 
-/**
- * Internal Utils
+/** Internal Utils
  *
- * @author 梦境迷离
- * @version 1.0,2022/3/18
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/18
  */
 object Utils {
 

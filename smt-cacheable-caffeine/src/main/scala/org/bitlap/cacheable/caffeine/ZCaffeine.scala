@@ -28,15 +28,15 @@ import org.bitlap.cacheable.core.Utils
 import java.util.concurrent.{ ConcurrentHashMap, TimeUnit }
 import scala.concurrent.duration.Duration
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/3/21
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/21
  */
 object ZCaffeine {
 
   import zio.Task
 
-  private val conf: Config = ConfigFactory.load("reference.conf")
+  private val conf: Config   = ConfigFactory.load("reference.conf")
   private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
 
   private[caffeine] lazy val disabledLog: Boolean = custom.getBoolean("caffeine.disabledLog")
@@ -44,7 +44,7 @@ object ZCaffeine {
     custom.getString("caffeine.calculateResultTimeout")
   )
 
-  private lazy val maximumSize: Int = custom.getInt("caffeine.maximumSize")
+  private lazy val maximumSize: Int             = custom.getInt("caffeine.maximumSize")
   private lazy val expireAfterWriteSeconds: Int = custom.getInt("caffeine.expireAfterWriteSeconds")
 
   val hashCache: Cache[String, ConcurrentHashMap[String, Any]] = Caffeine

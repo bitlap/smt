@@ -30,9 +30,9 @@ import org.scalatest.matchers.should.Matchers
 import java.util.concurrent.Executor
 import scala.jdk.CollectionConverters.MapHasAsScala
 
-/**
- * @author 梦境迷离
- * @version 1.0,2021/12/6
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2021/12/6
  */
 class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
 
@@ -54,10 +54,10 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
     ](
       BOpenSessionResp.getDefaultInstance,
       (service, _, req) => {
-        val username = req.getUsername
-        val password = req.getPassword
+        val username         = req.getUsername
+        val password         = req.getPassword
         val configurationMap = req.getConfigurationMap
-        val ret = service.openSession(username, password, configurationMap.asScala.toMap)
+        val ret              = service.openSession(username, password, configurationMap.asScala.toMap)
         BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
       },
       (_, _, exception) => BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
@@ -82,10 +82,10 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
       NetService
     ](
       (service, _, req) => {
-        val username = req.getUsername
-        val password = req.getPassword
+        val username         = req.getUsername
+        val password         = req.getPassword
         val configurationMap = req.getConfigurationMap
-        val ret = service.openSession(username, password, configurationMap.asScala.toMap)
+        val ret              = service.openSession(username, password, configurationMap.asScala.toMap)
         BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
       },
       (_, _, exception) => BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()
@@ -109,10 +109,10 @@ class ProcessorCreatorTest extends AnyFlatSpec with Matchers {
       BOpenSessionReq,
       BOpenSessionResp
     ] { (service, _, req) =>
-      val username = req.getUsername
-      val password = req.getPassword
+      val username         = req.getUsername
+      val password         = req.getPassword
       val configurationMap = req.getConfigurationMap
-      val ret = service.openSession(username, password, configurationMap.asScala.toMap)
+      val ret              = service.openSession(username, password, configurationMap.asScala.toMap)
       BOpenSessionResp.newBuilder().setSessionHandle(ret).build()
     } { (_, _, exception) =>
       BOpenSessionResp.newBuilder().setStatus(exception.getLocalizedMessage).build()

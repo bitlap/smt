@@ -2,16 +2,16 @@ import sbt.Keys._
 import sbt._
 import xerial.sbt.Sonatype.autoImport._
 
-/**
- * sbt publish setting
+/** sbt publish setting
  *
- * @author 梦境迷离 dreamylost
- * @since 2020-07-19
- * @version v1.0
+ *  @author
+ *    梦境迷离 dreamylost
+ *  @since 2020-07-19
+ *  @version v1.0
  */
 object Publishing {
 
-  //publish by sbt publishSigned
+  // publish by sbt publishSigned
   lazy val publishSettings = Seq(
     isSnapshot := version.value endsWith "SNAPSHOT",
     credentials += Credentials(Path.userHome / ".ivy2" / ".bitlap_sonatype_credentials"),
@@ -22,10 +22,10 @@ object Publishing {
       else
         Some("releases" at nexus + "service/local/staging/deploy/maven2")
     },
-    licenses := Seq(License.MIT),
-    publishMavenStyle := true,
+    licenses               := Seq(License.MIT),
+    publishMavenStyle      := true,
     Test / publishArtifact := false,
-    pomIncludeRepository := { _ => false },
+    pomIncludeRepository   := { _ => false },
     developers := List(
       Developer(
         id = "dreamylost",
@@ -41,7 +41,7 @@ object Publishing {
       )
     ),
     sonatypeProfileName := organization.value,
-    homepage := Some(url("https://bitlap.org")),
+    homepage            := Some(url("https://bitlap.org")),
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/bitlap/scala-macro-tools"),

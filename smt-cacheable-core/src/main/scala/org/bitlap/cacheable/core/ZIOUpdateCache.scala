@@ -23,11 +23,11 @@ package org.bitlap.cacheable.core
 
 import zio.ZIO
 
-/**
- * Redis Update Cache for ZIO.
+/** Redis Update Cache for ZIO.
  *
- * @author 梦境迷离
- * @version 2.0,2022/3/18
+ *  @author
+ *    梦境迷离
+ *  @version 2.0,2022/3/18
  */
 trait ZIOUpdateCache[R, E, T] extends Cache[ZIO[R, E, T]] {
 

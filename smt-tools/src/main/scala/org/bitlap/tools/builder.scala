@@ -25,12 +25,12 @@ import org.bitlap.tools.macros.builderMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate builder pattern for classes.
+/** annotation to generate builder pattern for classes.
  *
- * @author 梦境迷离
- * @since 2021/6/19
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/6/19
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class builder extends StaticAnnotation {

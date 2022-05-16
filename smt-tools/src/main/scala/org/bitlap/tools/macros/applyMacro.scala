@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 object applyMacro {
 
@@ -34,13 +34,15 @@ object applyMacro {
 
     import c.universe._
 
-    /**
-     * We generate apply method with currying, and we have to deal with the first layer of currying alone.
+    /** We generate apply method with currying, and we have to deal with the first layer of currying alone.
      *
-     * @param typeName
-     * @param fieldss
-     * @return A apply method with currying.
-     * @example Return a tree, such as `def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new B3(int)(j)(k)(t)`
+     *  @param typeName
+     *  @param fieldss
+     *  @return
+     *    A apply method with currying.
+     *  @example
+     *    Return a tree, such as `def apply(int: Int)(j: Int)(k: Option[String])(t: Option[Long]): B3 = new
+     *    B3(int)(j)(k)(t)`
      */
     private def getApplyMethodWithCurrying(
       typeName: TypeName,
@@ -48,7 +50,7 @@ object applyMacro {
       classTypeParams: List[Tree]
     ): Tree = {
       val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
-      val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      val returnTypeParams  = extractClassTypeParamsTypeName(classTypeParams)
       // not currying
       val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
         q"def apply[..$classTypeParams](..${allFieldsTermName.flatten}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"

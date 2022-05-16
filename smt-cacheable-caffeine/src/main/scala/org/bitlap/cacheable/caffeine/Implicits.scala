@@ -28,11 +28,11 @@ import org.bitlap.cacheable.core._
 import zio.ZIO
 import zio.stream.ZStream
 
-/**
- * redis cache
+/** redis cache
  *
- * @author 梦境迷离
- * @version 1.0,2022/3/21
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/21
  */
 object Implicits {
 
@@ -53,10 +53,10 @@ object Implicits {
     override def getIfPresent(
       business: => ZStream[Any, Throwable, T]
     )(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
-      val key = cacheKey(identities)
-      val field = cacheField(args)
+      val key              = cacheKey(identities)
+      val field            = cacheField(args)
       val syncResultFuture = zio.Runtime.global.unsafeRunToFuture(business.runCollect)
-      lazy val result = Await.result(syncResultFuture, ZCaffeine.calculateResultTimeout)
+      lazy val result      = Await.result(syncResultFuture, ZCaffeine.calculateResultTimeout)
       for {
         chunk <- ZStream.fromEffect(
           ZCaffeine
@@ -95,7 +95,7 @@ object Implicits {
     override def getIfPresent(
       business: => ZIO[Any, Throwable, T]
     )(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
-      val key = cacheKey(identities)
+      val key   = cacheKey(identities)
       val field = cacheField(args)
       for {
         cacheValue <- ZCaffeine.hGet[T](key, field)

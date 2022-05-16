@@ -23,9 +23,9 @@ package org.bitlap.csv.core.macros
 
 import scala.reflect.macros.blackbox
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 object DeriveToString {
 
@@ -37,9 +37,9 @@ object DeriveToString {
 
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
       val (names, indexTypes) = super.checkCaseClassZip[T]
-      val clazzName = c.weakTypeOf[T].typeSymbol.name
-      val innerVarTermName = TermName("_t")
-      val indexByName = (i: Int) => TermName(names(i))
+      val clazzName           = c.weakTypeOf[T].typeSymbol.name
+      val innerVarTermName    = TermName("_t")
+      val indexByName         = (i: Int) => TermName(names(i))
       val fieldsToString = indexTypes.map { idxType =>
         if (idxType._2 <:< typeOf[Option[_]]) {
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head

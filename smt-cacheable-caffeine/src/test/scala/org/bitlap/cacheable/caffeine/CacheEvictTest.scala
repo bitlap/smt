@@ -29,10 +29,10 @@ import zio.stream.ZStream
 
 import scala.util.Random
 
-/**
- * @author 梦境迷离
- * @since 2022/3/19
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2022/3/19
+ *  @version 1.0
  */
 class CacheEvictTest extends AnyFlatSpec with Matchers {
 
@@ -45,7 +45,7 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   def readIOFunction: String = "hello world"
 
-  val readIOMethodName = "readIOFunction"
+  val readIOMethodName     = "readIOFunction"
   val readStreamMethodName = "readStreamFunction"
 
   "cacheEvict1" should "expected annotation pattern" in {
@@ -93,10 +93,10 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
       ZIO.effect(Random.nextInt() + "")
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-" + readIOMethodName)
-      read <- readIOFunction(1, "hello")
+      _      <- ZCaffeine.del("CacheableTest-" + readIOMethodName)
+      read   <- readIOFunction(1, "hello")
       update <- updateIOFunction(1, "hello")
-      cache <- ZCaffeine.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello")
+      cache  <- ZCaffeine.hGet[String]("CacheableTest-" + readIOMethodName, "1-hello")
     } yield cache)
     result shouldEqual None
   }
@@ -113,10 +113,10 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
       ZStream.fromEffect(ZIO.effect(Random.nextInt() + ""))
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-" + readStreamMethodName)
-      read <- readStreamFunction(1, "hello").runHead
+      _      <- ZCaffeine.del("CacheableTest-" + readStreamMethodName)
+      read   <- readStreamFunction(1, "hello").runHead
       update <- updateStreamFunction(1, "hello").runHead
-      cache <- ZCaffeine.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello")
+      cache  <- ZCaffeine.hGet[String]("CacheableTest-" + readStreamMethodName, "1-hello")
     } yield cache)
     result shouldEqual None
   }

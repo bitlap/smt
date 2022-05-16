@@ -28,15 +28,15 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import java.io.{ BufferedReader, InputStreamReader }
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/30
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/30
  */
 class StringUtilsTest extends AnyFlatSpec with Matchers {
 
   "StringUtilsTest1" should "ok" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
-    val csv = StringUtils.splitColumns(line, ',')
+    val csv  = StringUtils.splitColumns(line, ',')
     println(csv)
     assert(csv.size == 8)
   }
@@ -44,13 +44,13 @@ class StringUtilsTest extends AnyFlatSpec with Matchers {
   "StringUtilsTest2" should "ok" in {
     // only extract json `"{""a"":""b"",""c"":""d""}"`
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
-    val csv = StringUtils.extractJsonValues[Dimension3](line)((k, v) => Dimension3(k, v))
+    val csv  = StringUtils.extractJsonValues[Dimension3](line)((k, v) => Dimension3(k, v))
     println(csv)
     assert(csv.toString() == "List(Dimension3(\"a\",\"b\"), Dimension3(\"c\",\"d\"))")
   }
 
   "StringUtilsTest3" should "ok for file" in {
-    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream("simple_data.csv"))
+    val reader         = new InputStreamReader(ClassLoader.getSystemResourceAsStream("simple_data.csv"))
     val bufferedReader = new BufferedReader(reader)
     FileUtils.using(bufferedReader) { input =>
       var line: String = null

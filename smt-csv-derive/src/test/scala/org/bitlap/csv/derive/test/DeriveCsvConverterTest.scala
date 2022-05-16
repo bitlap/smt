@@ -25,9 +25,9 @@ import org.bitlap.csv.core.Converter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
 
@@ -50,7 +50,7 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
       |200,3,"{""city"":""北京"",""os"":""Mac""}",pv,2""".stripMargin
 
   "DeriveCsvConverter1" should "ok" in {
-    val line = "abc,cdf,d,12,2,false,0.1,0.23333"
+    val line      = "abc,cdf,d,12,2,false,0.1,0.23333"
     val dimension = Converter[CsvLine].toScala(line)
     assert(dimension.toString == "Some(CsvLine(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
     val csv = Converter[CsvLine].toCsvString(dimension.orNull)

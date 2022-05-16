@@ -28,11 +28,11 @@ import zio.stream.ZStream
 import zio.Chunk
 import java.util.concurrent.atomic.AtomicLong
 
-/**
- * redis cache
+/** redis cache
  *
- * @author 梦境迷离
- * @version 1.0,2022/3/21
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/21
  */
 object Implicits {
 
@@ -55,24 +55,25 @@ object Implicits {
     override def getIfPresent(
       business: => ZStream[Any, Throwable, T]
     )(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
-      val key = cacheKey(identities)
-      val field = cacheField(args)
-      lazy val ret = business.runCollect.tap(r => ZRedisService.hSet[Chunk[T]](key, field, r))
+      val key            = cacheKey(identities)
+      val field          = cacheField(args)
+      lazy val ret       = business.runCollect.tap(r => ZRedisService.hSet[Chunk[T]](key, field, r))
       lazy val resultFun = (chunk: Chunk[T]) => if (chunk.isEmpty) ret else ZIO.succeed(chunk)
-      lazy val count = new AtomicLong(0L)
+      lazy val count     = new AtomicLong(0L)
       for {
         // TODO fix it, cannot get case class from redis and not lock
         cacheValue <- ZStream.fromEffect(ZRedisService.hGet[Chunk[T]](key, field)).map(_.getOrElse(Chunk.empty))
         _ <- Utils
           .debugS(s"Redis ZStream getIfPresent >>> identity:[$key],field:[$field],cacheValue:[$cacheValue]")
           .when(!ZRedisConfiguration.disabledLog)
-        ret <- ZStream.fromEffect(resultFun(cacheValue))
+        ret    <- ZStream.fromEffect(resultFun(cacheValue))
         result <- ZStream.fromIterable(ret)
-        _ <- Utils
-          .debugS(
-            s"Redis ZStream getIfPresent >>> identity:[$key],field(${count.incrementAndGet()}):[$field],result:[$result]"
-          )
-          .when(!ZRedisConfiguration.disabledLog)
+        _ <-
+          Utils
+            .debugS(
+              s"Redis ZStream getIfPresent >>> identity:[$key],field(${count.incrementAndGet()}):[$field],result:[$result]"
+            )
+            .when(!ZRedisConfiguration.disabledLog)
       } yield result
     }
   }
@@ -91,7 +92,7 @@ object Implicits {
     override def getIfPresent(
       business: => ZIO[Any, Throwable, T]
     )(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
-      val key = cacheKey(identities)
+      val key   = cacheKey(identities)
       val field = cacheField(args)
       for {
         cacheValue <- ZRedisService.hGet[T](key, field)

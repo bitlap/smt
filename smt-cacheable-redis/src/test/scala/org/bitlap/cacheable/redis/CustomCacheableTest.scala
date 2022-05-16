@@ -30,10 +30,10 @@ import zio.schema.{ Schema, StandardType }
 
 import scala.util.Random
 
-/**
- * @author 梦境迷离
- * @since 2022/3/20
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2022/3/20
+ *  @version 1.0
  */
 class CustomCacheableTest extends AnyFlatSpec with Matchers {
 

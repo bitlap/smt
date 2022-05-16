@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 object constructorMacro {
 
@@ -34,23 +34,21 @@ object constructorMacro {
 
     import c.universe._
 
-    private val extractArgs: Seq[String] = {
+    private val extractArgs: Seq[String] =
       c.prefix.tree match {
         case q"new constructor(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
         case q"new constructor($excludeFields)"               => evalTree(excludeFields.asInstanceOf[Tree])
         case q"new constructor()"                             => Seq.empty[String]
-        case _                                                => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+        case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
       }
-    }
 
     private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] =
       getClassMemberValDefs(annotteeClassDefinitions).filter(v =>
         v.mods.hasFlag(Flag.MUTABLE) &&
-          !extractArgs.contains(v.name.decodedName.toString)
+        !extractArgs.contains(v.name.decodedName.toString)
       )
 
-    /**
-     * Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
+    /** Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.
      */
     private def getMemberVarDefTermNameWithType(annotteeClassDefinitions: Seq[Tree]): Seq[Tree] =
       getMutableValDefAndExcludeFields(annotteeClassDefinitions).map { v =>
@@ -62,8 +60,7 @@ object constructorMacro {
         }
       }
 
-    /**
-     * We generate this method with currying, and we have to deal with the first layer of currying alone.
+    /** We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
     private def getThisMethodWithCurrying(
       annotteeClassParams: List[List[Tree]],

@@ -23,10 +23,10 @@ package org.bitlap.cacheable
 
 import zio.Has
 
-/**
- * @author 梦境迷离
- * @since 2022/2/27
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2022/2/27
+ *  @version 1.0
  */
 package object redis {
 

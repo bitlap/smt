@@ -23,11 +23,11 @@ package org.bitlap.cacheable.core
 
 import zio.stream.ZStream
 
-/**
- * Redis Update Cache for ZStream.
+/** Redis Update Cache for ZStream.
  *
- * @author 梦境迷离
- * @version 2.0,2022/3/19
+ *  @author
+ *    梦境迷离
+ *  @version 2.0,2022/3/19
  */
 trait ZStreamUpdateCache[R, E, T] extends Cache[ZStream[R, E, T]] {
 

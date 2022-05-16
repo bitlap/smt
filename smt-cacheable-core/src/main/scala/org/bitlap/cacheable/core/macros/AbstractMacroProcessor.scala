@@ -27,20 +27,19 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2022/3/19
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2022/3/19
+ *  @version 1.0
  */
 abstract class AbstractMacroProcessor(val c: whitebox.Context) {
 
   import c.universe._
 
-  /**
-   * Output ast result.
+  /** Output ast result.
    *
-   * @param force
-   * @param resTree
+   *  @param force
+   *  @param resTree
    */
   def printTree(force: Boolean, resTree: Tree): Unit =
     c.info(
@@ -50,19 +49,19 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
       force = false
     )
 
-  /**
-   * Find the specified method Name in the enclosing class definition.
+  /** Find the specified method Name in the enclosing class definition.
    *
-   * @param t
-   * @return Return a optional [[scala.reflect.api.Names#TermName]]
+   *  @param t
+   *  @return
+   *    Return a optional [[scala.reflect.api.Names#TermName]]
    */
   def findDefDefInEnclosingClass(t: Name): Option[TermName] =
     getDefDefInEnclosingClass.find(_.decodedName.toString == t.decodedName.toString)
 
-  /**
-   * Find all method Name in the enclosing class definition.
+  /** Find all method Name in the enclosing class definition.
    *
-   * @return Return a sequence of [[scala.reflect.api.Names#TermName]]
+   *  @return
+   *    Return a sequence of [[scala.reflect.api.Names#TermName]]
    */
   def getDefDefInEnclosingClass: Set[TermName] = {
     val buffer = ListBuffer[TermName]()
@@ -92,10 +91,9 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     buffer.result().toSet
   }
 
-  /**
-   * Get enclosing class name
+  /** Get enclosing class name
    *
-   * @return
+   *  @return
    */
   def getEnclosingClassName: String =
     c.enclosingClass match {

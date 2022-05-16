@@ -24,11 +24,11 @@ package org.bitlap.cacheable.benchmark
 import zio.{ BootstrapRuntime, ZIO }
 import zio.internal.Platform
 
-/**
- * runtime
+/** runtime
  *
- * @author 梦境迷离
- * @version 1.0,2022/3/22
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/22
  */
 trait BenchmarkRuntime extends BootstrapRuntime {
 

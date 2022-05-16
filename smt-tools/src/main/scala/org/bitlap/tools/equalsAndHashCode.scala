@@ -25,13 +25,14 @@ import org.bitlap.tools.macros.equalsAndHashCodeMacro.EqualsAndHashCodeProcessor
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate equals and hashcode method for classes.
+/** annotation to generate equals and hashcode method for classes.
  *
- * @author 梦境迷离
- * @param excludeFields Whether to exclude the specified internal fields.
- * @since 2021/7/18
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @param excludeFields
+ *    Whether to exclude the specified internal fields.
+ *  @since 2021/7/18
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class equalsAndHashCode(excludeFields: Seq[String] = Nil) extends StaticAnnotation {

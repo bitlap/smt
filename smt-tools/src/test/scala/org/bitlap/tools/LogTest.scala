@@ -25,10 +25,10 @@ import org.bitlap.tools.logs.LogType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/6/28
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/6/28
+ *  @version 1.0
  */
 class LogTest extends AnyFlatSpec with Matchers {
 
@@ -96,7 +96,7 @@ class LogTest extends AnyFlatSpec with Matchers {
                 log.info("hello")
              }""" should compile
 
-    """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile //Use with multiple annotations
+    """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile // Use with multiple annotations
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
     """@log class TestClass4(val i: Int = 0, var j: Int)""" should compile
     """@log(logType=org.bitlap.tools.logs.LogType.Slf4j) class TestClass5(val i: Int = 0, var j: Int)""" should compile
@@ -110,7 +110,7 @@ class LogTest extends AnyFlatSpec with Matchers {
                     log.info("hello")
                  }""" should compile
 
-    """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile //Use with multiple annotations
+    """@toString @builder @log class TestClass2(val i: Int = 0, var j: Int)""" should compile // Use with multiple annotations
     """@log() class TestClass3(val i: Int = 0, var j: Int)""" should compile
     """@log class TestClass4(val i: Int = 0, var j: Int)""" should compile
     """@log(logType=org.bitlap.tools.logs.LogType.Slf4j) class TestClass5(val i: Int = 0, var j: Int)""" should compile

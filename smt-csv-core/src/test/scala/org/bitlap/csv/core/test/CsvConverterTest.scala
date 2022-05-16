@@ -25,14 +25,14 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.bitlap.csv.core.Converter
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 class CsvConverterTest extends AnyFlatSpec with Matchers {
 
   "CsvConverter1" should "ok" in {
-    val line = "abc,cdf,d,12,2,false,0.1,0.23333"
+    val line      = "abc,cdf,d,12,2,false,0.1,0.23333"
     val dimension = Converter[Dimension].toScala(line)
     assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
     val csv = Converter[Dimension].toCsvString(dimension.orNull)
@@ -90,7 +90,7 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
   }
 
   "CsvConverter6" should "ok when using json value" in {
-    val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
+    val line      = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
     val dimension = Converter[Dimension].toScala(line)
     println(dimension)
     assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")

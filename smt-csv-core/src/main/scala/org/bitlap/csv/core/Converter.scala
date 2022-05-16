@@ -23,12 +23,12 @@ package org.bitlap.csv.core
 
 import scala.collection.immutable.{ :: => Cons }
 
-/**
- * Csv encoder and decoder.
+/** Csv encoder and decoder.
  *
- * @author 梦境迷离
- * @since 2022/04/27
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2022/04/27
+ *  @version 1.0
  */
 trait Converter[T] {
 
@@ -97,7 +97,7 @@ object Converter {
       case Nil => Some(Nil)
       case Cons(s, ss) =>
         for {
-          x <- ec.toScala(s)
+          x  <- ec.toScala(s)
           xs <- listCsvLinesConverter(ss)(ec)
         } yield Cons(x, xs)
     }

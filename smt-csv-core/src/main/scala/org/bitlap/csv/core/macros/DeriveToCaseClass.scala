@@ -23,9 +23,9 @@ package org.bitlap.csv.core.macros
 
 import scala.reflect.macros.blackbox
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 object DeriveToCaseClass {
 
@@ -37,7 +37,7 @@ object DeriveToCaseClass {
 
     // scalafmt: { maxColumn = 400 }
     def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Option[T]] = {
-      val clazzName = c.weakTypeOf[T].typeSymbol.name
+      val clazzName         = c.weakTypeOf[T].typeSymbol.name
       val innerFuncTermName = TermName("_columns")
       val fields = (columnsFunc: TermName) =>
         checkCaseClassZipAll[T](columnsFunc).map { idxType =>

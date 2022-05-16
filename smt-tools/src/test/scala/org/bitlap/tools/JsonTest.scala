@@ -25,10 +25,10 @@ import play.api.libs.json.Json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/6/18
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/6/18
+ *  @version 1.0
  */
 class JsonTest extends AnyFlatSpec with Matchers {
 
@@ -54,7 +54,7 @@ class JsonTest extends AnyFlatSpec with Matchers {
 
   "json2" should "println case class, no companion object" in {
     val json = Json.toJson(TestClass2(1, 2, ""))
-    val ret = Json.prettyPrint(json)
+    val ret  = Json.prettyPrint(json)
     println(Json.fromJson[TestClass2](json))
     println(ret)
     assert(ret == "{\n  \"i\" : 1,\n  \"j\" : 2,\n  \"x\" : \"\",\n  \"o\" : \"\"\n}")

@@ -23,12 +23,12 @@ package org.bitlap.cacheable.core.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * GetAndSet cache
+/** GetAndSet cache
  *
- * @author 梦境迷离
- * @since 2022/3/18
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2022/3/18
+ *  @version 1.0
  */
 object CacheableMacro {
 
@@ -37,16 +37,15 @@ object CacheableMacro {
     import c.universe._
 
     private lazy val resultValName: c.universe.TermName = TermName("$result")
-    private lazy val keyValName: c.universe.TermName = TermName("$key")
+    private lazy val keyValName: c.universe.TermName    = TermName("$key")
 
-    protected val local: Boolean = {
+    protected val local: Boolean =
       c.prefix.tree match {
         case q"new cacheable(local=$local)" =>
           c.eval(c.Expr[Boolean](c.untypecheck(local.asInstanceOf[Tree].duplicate)))
         case q"new cacheable($local)" => c.eval(c.Expr[Boolean](c.untypecheck(local.asInstanceOf[Tree].duplicate)))
         case q"new cacheable()"       => true
       }
-    }
 
     private def getParamsName(vparamss: List[List[ValDef]]): List[List[TermName]] =
       vparamss.map(_.map(_.name))

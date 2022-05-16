@@ -28,13 +28,14 @@ import scala.concurrent.duration._
 import scala.reflect.macros.whitebox
 
 /**
- * 1. This annotation only support use on non-abstract method.
- * 2. For methods that are not future, `try finally` is used to implement the timing of the method.
- * 3. For methods that are Futures, `Future map` is used to implement the timing of the method.
+ *    1. This annotation only support use on non-abstract method. 2. For methods that are not future, `try finally` is
+ *       used to implement the timing of the method. 3. For methods that are Futures, `Future map` is used to implement
+ *       the timing of the method.
  *
- * @author 梦境迷离
- * @since 2021/8/7
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/8/7
+ *  @version 1.0
  */
 object elapsedMacro {
 
@@ -42,7 +43,7 @@ object elapsedMacro {
 
     import c.universe._
 
-    private lazy val start: c.universe.TermName = TermName("$elapsedBegin")
+    private lazy val start: c.universe.TermName  = TermName("$elapsedBegin")
     private lazy val valDef: c.universe.TermName = TermName("$elapsed")
 
     private def getLogLevel(logLevel: Tree): LogLevel =
@@ -99,10 +100,13 @@ object elapsedMacro {
     private def getNewMethodWithFuture(defDef: DefDef): DefDef =
       mapToNewMethod(
         defDef,
-        defDef => q"""
+        defDef =>
+          q"""
           $getStartExpr
           val resFuture = ${defDef.rhs}
-          resFuture.map { res => ..${getPrintlnLog(defDef.name)} ; res }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
+          resFuture.map { res => ..${getPrintlnLog(
+              defDef.name
+            )} ; res }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
         """
       )
 

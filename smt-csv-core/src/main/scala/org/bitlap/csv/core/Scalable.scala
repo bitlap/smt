@@ -21,20 +21,20 @@
 
 package org.bitlap.csv.core
 
-/**
- * a Custom Csv decoder.
+/** a Custom Csv decoder.
  *
- * @author 梦境迷离
- * @since 2022/04/30
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2022/04/30
+ *  @version 1.0
  */
 trait Scalable[T] {
 
-  /**
-   * API for processing a specific column value of CSV line data.
+  /** API for processing a specific column value of CSV line data.
    *
-   * @param column The column value of CSV line data.
-   * @return
+   *  @param column
+   *    The column value of CSV line data.
+   *  @return
    */
   def _toScala(column: String): Option[T]
 }

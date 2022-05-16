@@ -8,35 +8,35 @@ ThisBuild / resolvers ++= Seq(
   "New snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 )
 
-lazy val scala212 = "2.12.14"
-lazy val scala211 = "2.11.12"
-lazy val scala213 = "2.13.8"
+lazy val scala212               = "2.12.14"
+lazy val scala211               = "2.11.12"
+lazy val scala213               = "2.13.8"
 lazy val lastVersionForExamples = "0.5.2"
 
-lazy val scalatestVersion = "3.2.12"
-lazy val zioVersion = "1.0.14"
-lazy val zioLoggingVersion = "0.5.14"
-lazy val configVersion = "1.4.2"
-lazy val caffeineVersion = "2.9.3"
-lazy val zioRedisVersion = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
-lazy val zioSchemaVersion = "0.1.9"
+lazy val scalatestVersion    = "3.2.12"
+lazy val zioVersion          = "1.0.14"
+lazy val zioLoggingVersion   = "0.5.14"
+lazy val configVersion       = "1.4.2"
+lazy val caffeineVersion     = "2.9.3"
+lazy val zioRedisVersion     = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
+lazy val zioSchemaVersion    = "0.1.9"
 lazy val scalaLoggingVersion = "3.9.4"
-lazy val playJsonVersion = "2.7.4"
-lazy val log4jVersion = "2.17.2"
+lazy val playJsonVersion     = "2.7.4"
+lazy val log4jVersion        = "2.17.2"
 lazy val jacksonScalaVersion = "2.13.2"
-lazy val jraftVersion = "1.3.9"
-lazy val protocVersion = "3.20.1"
+lazy val jraftVersion        = "1.3.9"
+lazy val protocVersion       = "3.20.1"
 
 lazy val commonSettings =
   Seq(
-    organization := "org.bitlap",
+    organization     := "org.bitlap",
     organizationName := "bitlap",
-    startYear := Some(2022),
-    scalaVersion := scala213,
+    startYear        := Some(2022),
+    scalaVersion     := scala213,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "org.scalatest" %% "scalatest" % scalatestVersion % Test
+      "org.scala-lang" % "scala-reflect"  % scalaVersion.value,
+      "org.scalatest" %% "scalatest"      % scalatestVersion % Test
     ),
     Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -44,12 +44,12 @@ lazy val commonSettings =
         case _                       => List("-Ymacro-annotations", "-Ywarn-unused" /*, "-Ymacro-debug-verbose"*/ )
       }
     } ++ Seq("-language:experimental.macros"),
-    Compile / compile := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
+    Compile / compile             := (Compile / compile).dependsOn(Compile / headerCreateAll).value,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
-    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
+    headerLicense                 := Some(HeaderLicense.MIT("2022", "bitlap")),
     Test / testOptions += Tests.Argument("-oDF"),
-    Test / fork := true,
-    publishConfiguration := publishConfiguration.value.withOverwrite(true),
+    Test / fork               := true,
+    publishConfiguration      := publishConfiguration.value.withOverwrite(true),
     publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
   )
 
@@ -57,10 +57,10 @@ lazy val `smt-cacheable-core` = (project in file("smt-cacheable-core"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
-    name := "smt-cacheable-core",
+    name               := "smt-cacheable-core",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % zioVersion, // FIXME we should use compile or provide ???
+      "dev.zio" %% "zio"         % zioVersion, // FIXME we should use compile or provide ???
       "dev.zio" %% "zio-streams" % zioVersion,
       "dev.zio" %% "zio-logging" % zioLoggingVersion
     )
@@ -72,10 +72,10 @@ lazy val `smt-cacheable-caffeine` = (project in file("smt-cacheable-caffeine"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
-    name := "smt-cacheable-caffeine",
+    name               := "smt-cacheable-caffeine",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % configVersion,
+      "com.typesafe"                  % "config"   % configVersion,
       "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
     )
   )
@@ -87,14 +87,14 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
-    name := "smt-cacheable-redis",
+    name               := "smt-cacheable-redis",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-redis" % zioRedisVersion,
-      "com.typesafe" % "config" % configVersion,
-      "dev.zio" %% "zio-schema" % zioSchemaVersion,
-      "dev.zio" %% "zio-schema-json" % zioSchemaVersion,
-      "dev.zio" %% "zio-schema-derivation" % zioSchemaVersion % Test
+      "dev.zio"     %% "zio-redis"             % zioRedisVersion,
+      "com.typesafe" % "config"                % configVersion,
+      "dev.zio"     %% "zio-schema"            % zioSchemaVersion,
+      "dev.zio"     %% "zio-schema-json"       % zioSchemaVersion,
+      "dev.zio"     %% "zio-schema-derivation" % zioSchemaVersion % Test
     )
   )
   .dependsOn(`smt-cacheable-core` % "compile->compile;test->test")
@@ -104,7 +104,7 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
 lazy val `smt-benchmark` = (project in file("smt-benchmark"))
   .settings(commonSettings)
   .settings(
-    name := "smt-benchmark",
+    name           := "smt-benchmark",
     publish / skip := true
   )
   .dependsOn(`smt-cacheable-core`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
@@ -114,7 +114,7 @@ lazy val `smt-benchmark` = (project in file("smt-benchmark"))
 lazy val `smt-csv-core` = (project in file("smt-csv-core"))
   .settings(commonSettings)
   .settings(
-    name := "smt-csv-core",
+    name               := "smt-csv-core",
     crossScalaVersions := List(scala213, scala212, scala211)
   )
   .settings(Publishing.publishSettings)
@@ -124,7 +124,7 @@ lazy val `smt-csv-core` = (project in file("smt-csv-core"))
 lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
   .settings(commonSettings)
   .settings(
-    name := "smt-csv-derive",
+    name               := "smt-csv-derive",
     crossScalaVersions := List(scala213, scala212, scala211)
   )
   .settings(Publishing.publishSettings)
@@ -135,17 +135,17 @@ lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
 lazy val `smt-tools` = (project in file("smt-tools"))
   .settings(commonSettings)
   .settings(
-    name := "smt-tools",
+    name               := "smt-tools",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
-      "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
-      "com.typesafe.play" %% "play-json" % playJsonVersion % Test,
-      "org.apache.logging.log4j" % "log4j-api" % log4jVersion % Test,
-      "org.apache.logging.log4j" % "log4j-core" % log4jVersion % Test,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion % Test,
+      "com.typesafe.scala-logging"   %% "scala-logging"        % scalaLoggingVersion,
+      "com.typesafe.play"            %% "play-json"            % playJsonVersion     % Test,
+      "org.apache.logging.log4j"      % "log4j-api"            % log4jVersion        % Test,
+      "org.apache.logging.log4j"      % "log4j-core"           % log4jVersion        % Test,
+      "org.apache.logging.log4j"      % "log4j-slf4j-impl"     % log4jVersion        % Test,
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test,
-      "com.alipay.sofa" % "jraft-core" % jraftVersion % Test,
-      "com.google.protobuf" % "protobuf-java" % protocVersion % Test
+      "com.alipay.sofa"               % "jraft-core"           % jraftVersion        % Test,
+      "com.google.protobuf"           % "protobuf-java"        % protocVersion       % Test
     )
   )
   .settings(Publishing.publishSettings)
@@ -164,12 +164,12 @@ lazy val root = (project in file("."))
   )
   .settings(
     commands ++= Commands.value,
-    crossScalaVersions := Nil,
-    publish / skip := true,
-    headerLicense := Some(HeaderLicense.MIT("2022", "bitlap")),
-    releaseIgnoreUntrackedFiles := true,
-    releaseCrossBuild := false, //@see https://www.scala-sbt.org/1.x/docs/Cross-Build.html
-    releaseTagName := (ThisBuild / version).value,
+    crossScalaVersions            := Nil,
+    publish / skip                := true,
+    headerLicense                 := Some(HeaderLicense.MIT("2022", "bitlap")),
+    releaseIgnoreUntrackedFiles   := true,
+    releaseCrossBuild             := false, // @see https://www.scala-sbt.org/1.x/docs/Cross-Build.html
+    releaseTagName                := (ThisBuild / version).value,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
@@ -192,9 +192,9 @@ lazy val `scala2-13` = (project in file("examples/scala2-13"))
   .settings(scalaVersion := scala213)
   .settings(
     libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-tools" % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
+      "org.bitlap" %% "smt-tools"              % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-core"     % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
     )
   )
@@ -207,9 +207,9 @@ lazy val `scala2-12` = (project in file("examples/scala2-12"))
   .settings(scalaVersion := scala212)
   .settings(
     libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-tools" % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-core" % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-redis" % lastVersionForExamples,
+      "org.bitlap" %% "smt-tools"              % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-core"     % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
     )
   )

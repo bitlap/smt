@@ -25,13 +25,14 @@ import org.bitlap.tools.macros.constructorMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate secondary constructor method for classes.
+/** annotation to generate secondary constructor method for classes.
  *
- * @author 梦境迷离
- * @param excludeFields Whether to exclude the specified var fields.
- * @since 2021/7/3
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @param excludeFields
+ *    Whether to exclude the specified var fields.
+ *  @since 2021/7/3
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class constructor(excludeFields: Seq[String] = Nil) extends StaticAnnotation {

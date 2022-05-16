@@ -28,9 +28,9 @@ import scala.util.control.Exception.ignoring
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * @author 梦境迷离
- * @version 1.0,5/13/22
+/** @author
+ *    梦境迷离
+ *  @version 1.0,5/13/22
  */
 object FileUtils {
 
@@ -40,23 +40,28 @@ object FileUtils {
 
   def using[R <: Closable, T](resource: => R)(f: R => T): T =
     try f(resource)
-    finally ignoring(classOf[Throwable]) apply {
-      resource.close()
-    }
+    finally
+      ignoring(classOf[Throwable]) apply {
+        resource.close()
+      }
 
   def writer(file: File, lines: List[String]): Boolean = {
     checkFile(file)
     val bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file))
-    try using(new PrintWriter(bufferedOutputStream, true)) { r =>
-      lines.foreach(r.println)
-    } finally bufferedOutputStream.close()
+    try
+      using(new PrintWriter(bufferedOutputStream, true)) { r =>
+        lines.foreach(r.println)
+      }
+    finally bufferedOutputStream.close()
     true
   }
 
   def reader(file: InputStream, charset: String = "UTF-8"): List[String] =
-    try using(Source.fromInputStream(new BufferedInputStream(file), charset)) { lines =>
-      lines.getLines().toList
-    } finally file.close()
+    try
+      using(Source.fromInputStream(new BufferedInputStream(file), charset)) { lines =>
+        lines.getLines().toList
+      }
+    finally file.close()
 
   def checkFile(file: File): Unit = {
     if (file.isDirectory) {
@@ -68,7 +73,7 @@ object FileUtils {
   }
 
   def readFileFunc[T](reader: BufferedReader, func: String => Option[T]): List[Option[T]] = {
-    val ts = ListBuffer[Option[T]]()
+    val ts           = ListBuffer[Option[T]]()
     var line: String = null
     FileUtils.using(new BufferedReader(reader)) { input =>
       while ({

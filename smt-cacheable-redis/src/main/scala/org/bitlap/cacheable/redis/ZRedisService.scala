@@ -25,39 +25,38 @@ import zio.redis.RedisError
 import zio.schema.Schema
 import zio.{ IO, Layer, ZIO }
 
-/**
- * Redis service.
+/** Redis service.
  *
- * @author 梦境迷离
- * @version 2.0,2022/1/10
+ *  @author
+ *    梦境迷离
+ *  @version 2.0,2022/1/10
  */
 trait ZRedisService {
 
-  /**
-   * @param key
-   * @return Long
+  /** @param key
+   *  @return
+   *    Long
    */
   def del(key: String): ZIO[ZRedisCacheService, RedisError, Long]
 
-  /**
-   * @param key
-   * @param field
-   * @param value
-   * @return Long
+  /** @param key
+   *  @param field
+   *  @param value
+   *  @return
+   *    Long
    */
   def hSet[T: Schema](key: String, field: String, value: T): ZIO[ZRedisCacheService, RedisError, Long]
 
-  /**
-   * @param key
-   * @param field
-   * @return Option[T]
+  /** @param key
+   *  @param field
+   *  @return
+   *    Option[T]
    */
   def hGet[T: Schema](key: String, field: String): ZIO[ZRedisCacheService, RedisError, Option[T]]
 
-  /**
-   * @param key
-   * @tparam T
-   * @return
+  /** @param key
+   *  @tparam T
+   *  @return
    */
   def hGetAll[T: Schema](key: String): ZIO[ZRedisCacheService, RedisError, Map[String, T]]
 

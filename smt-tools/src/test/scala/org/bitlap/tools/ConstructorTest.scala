@@ -24,10 +24,10 @@ package org.bitlap.tools
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/7/3
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/3
+ *  @version 1.0
  */
 class ConstructorTest extends AnyFlatSpec with Matchers {
 
@@ -129,8 +129,8 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
     @builder
     @constructor(excludeFields = Seq("c"))
     class A2(int: Int, val j: Int, var k: Option[String] = None, t: Option[Long] = Some(1L)) {
-      private val a: Int = 1
-      var b: Int = 1
+      private val a: Int   = 1
+      var b: Int           = 1
       protected var c: Int = _
 
       def helloWorld: String = "hello world"
@@ -143,19 +143,14 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
     @toString
     @constructor
     class TestClass12(val i: Int = 0)(var j: Int)(val k: Int) {
-      private val a: Int = 1
-      var b: Int = 1
+      private val a: Int   = 1
+      var b: Int           = 1
       protected var c: Int = _
     }
 
     println(new TestClass12(1, 1, 1)(2)(3))
 
-    /**
-     * def <init>(i: Int, b: Int, c: Int)(j: Int)(k: Int) = {
-     * <init>(i)(j)(k);
-     * this.b = b;
-     * this.c = c
-     * }
+    /** def <init>(i: Int, b: Int, c: Int)(j: Int)(k: Int) = { <init>(i)(j)(k); this.b = b; this.c = c }
      */
 
   }
@@ -166,8 +161,8 @@ class ConstructorTest extends AnyFlatSpec with Matchers {
     @toString
     @constructor
     class TestClass12(val i: Int = 0)(var j: Int)(val k: Int) {
-      var b = "hello" //primitive type, support no type declared
-      var c: B = new B() //not support no type declared, `var c = new B ()` cannot be compiled.
+      var b    = "hello" // primitive type, support no type declared
+      var c: B = new B() // not support no type declared, `var c = new B ()` cannot be compiled.
     }
     val t = new TestClass12(1, "helloo", new B())(1)(1)
     println(t)

@@ -29,10 +29,10 @@ import zio.stream.ZStream
 
 import scala.util.Random
 
-/**
- * @author 梦境迷离
- * @since 2022/3/19
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2022/3/19
+ *  @version 1.0
  */
 class CacheEvictTest extends AnyFlatSpec with Matchers {
 
@@ -45,7 +45,7 @@ class CacheEvictTest extends AnyFlatSpec with Matchers {
 
   def readIOFunction: String = "hello world"
 
-  val readIOMethodName = "readIOFunction"
+  val readIOMethodName     = "readIOFunction"
   val readStreamMethodName = "readStreamFunction"
 
   "cacheEvict1" should "ok" in {

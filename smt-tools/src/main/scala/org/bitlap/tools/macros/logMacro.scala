@@ -27,10 +27,10 @@ import org.bitlap.tools.{ logs, PACKAGE }
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 object logMacro {
 

@@ -28,17 +28,17 @@ import zio.schema.codec.{ Codec, JsonCodec }
 import zio.{ Has, Layer, ULayer, ZLayer }
 import zio.logging.Logging
 
-/**
- * redis configuration
+/** redis configuration
  *
- * @author 梦境迷离
- * @since 2022/1/10
- * @version 2.0
+ *  @author
+ *    梦境迷离
+ *  @since 2022/1/10
+ *  @version 2.0
  */
 object ZRedisConfiguration {
 
-  private lazy val conf: Config = ConfigFactory.load("reference.conf")
-  private lazy val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
+  private lazy val conf: Config           = ConfigFactory.load("reference.conf")
+  private lazy val custom: Config         = ConfigFactory.load("application.conf").withFallback(conf)
   private lazy val redisConf: RedisConfig = RedisConfig(custom.getString("redis.host"), custom.getInt("redis.port"))
 
   private[redis] lazy val disabledLog: Boolean = custom.getBoolean("redis.disabledLog")

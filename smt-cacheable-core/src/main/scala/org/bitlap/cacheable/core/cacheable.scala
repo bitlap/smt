@@ -25,13 +25,14 @@ import org.bitlap.cacheable.core.macros.CacheableMacro.CacheableProcessor
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * A distributed cache for zio.
+/** A distributed cache for zio.
  *
- * @author 梦境迷离
- * @param local Whether to enable local cache by caffeine.
- * @since 2022/3/18
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @param local
+ *    Whether to enable local cache by caffeine.
+ *  @since 2022/3/18
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class cacheable(local: Boolean = true) extends StaticAnnotation {

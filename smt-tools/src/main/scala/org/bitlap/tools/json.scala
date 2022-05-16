@@ -25,12 +25,12 @@ import org.bitlap.tools.macros.jsonMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate play-json implicit object for case classes.
+/** annotation to generate play-json implicit object for case classes.
  *
- * @author 梦境迷离
- * @since 2021/6/13
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/6/13
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class json extends StaticAnnotation {

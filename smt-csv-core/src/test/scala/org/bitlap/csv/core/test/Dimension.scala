@@ -24,9 +24,9 @@ package org.bitlap.csv.core.test
 import org.bitlap.csv.core.Converter
 import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
 

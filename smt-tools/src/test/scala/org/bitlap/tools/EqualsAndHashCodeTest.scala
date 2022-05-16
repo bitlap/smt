@@ -24,10 +24,10 @@ package org.bitlap.tools
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/7/18
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/18
+ *  @version 1.0
  */
 class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
 
@@ -41,8 +41,8 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
 
   "equals1" should "ok" in {
     // these first two instances should be equal
-    val nimoy = new Person("Leonard Nimoy", 82)
-    val nimoy2 = new Person("Leonard Nimoy", 82)
+    val nimoy   = new Person("Leonard Nimoy", 82)
+    val nimoy2  = new Person("Leonard Nimoy", 82)
     val shatner = new Person("William Shatner", 82)
     val stewart = new Person("Patrick Stewart", 47)
 
@@ -71,9 +71,9 @@ class EqualsAndHashCodeTest extends AnyFlatSpec with Matchers {
 
   "equals2" should "ok" in {
     // these first two instance should be equal
-    val eNimoy1 = new Employee("Leonard Nimoy", 82, "Actor")
-    val eNimoy2 = new Employee("Leonard Nimoy", 82, "Actor")
-    val pNimoy = new Person("Leonard Nimoy", 82)
+    val eNimoy1  = new Employee("Leonard Nimoy", 82, "Actor")
+    val eNimoy2  = new Employee("Leonard Nimoy", 82, "Actor")
+    val pNimoy   = new Person("Leonard Nimoy", 82)
     val eShatner = new Employee("William Shatner", 82, "Actor")
 
     // canEqual

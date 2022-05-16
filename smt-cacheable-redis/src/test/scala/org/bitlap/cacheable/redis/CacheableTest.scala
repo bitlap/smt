@@ -30,14 +30,14 @@ import zio.Chunk
 
 import scala.util.Random
 
-/**
- * @author 梦境迷离
- * @since 2021/8/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/8/7
+ *  @version 1.0
  */
 class CacheableTest extends AnyFlatSpec with Matchers {
 
-  val runtime = zio.Runtime.default
+  val runtime          = zio.Runtime.default
   val readIOMethodName = "readIOFunction"
 
   "cacheable1" should "ok" in {
@@ -67,9 +67,9 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
     println(chunk)
     val result = runtime.unsafeRun(for {
-      _ <- ZRedisService.del("CacheableTest-readStreamFunction")
+      _      <- ZRedisService.del("CacheableTest-readStreamFunction")
       method <- readStreamFunction(1, "hello").runCollect
-      cache <- ZRedisService.hGet[Chunk[String]]("CacheableTest-readStreamFunction", "1-hello")
+      cache  <- ZRedisService.hGet[Chunk[String]]("CacheableTest-readStreamFunction", "1-hello")
     } yield method -> cache.getOrElse(Chunk.empty))
     result._1 shouldEqual result._2
   }
@@ -82,7 +82,7 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       ZStream.fromEffect(ZIO.effect(cacheValue))
 
     val result = runtime.unsafeRun(for {
-      _ <- ZRedisService.del("CacheableTest-readEntityStreamFunction")
+      _      <- ZRedisService.del("CacheableTest-readEntityStreamFunction")
       method <- readEntityStreamFunction(1, "hello").runHead
     } yield method)
 
@@ -97,9 +97,9 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       ZIO.effect(cacheValue)
 
     val result = runtime.unsafeRun(for {
-      _ <- ZRedisService.del("CacheableTest-readEntityIOFunction")
+      _      <- ZRedisService.del("CacheableTest-readEntityIOFunction")
       method <- readEntityIOFunction(1, "hello")
-      cache <- ZRedisService.hGet[CacheValue]("CacheableTest-readEntityIOFunction", "1-hello")
+      cache  <- ZRedisService.hGet[CacheValue]("CacheableTest-readEntityIOFunction", "1-hello")
     } yield Some(method) -> cache)
 
     result._1 shouldEqual result._2

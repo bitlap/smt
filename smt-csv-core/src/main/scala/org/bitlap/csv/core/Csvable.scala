@@ -21,20 +21,20 @@
 
 package org.bitlap.csv.core
 
-/**
- * a Custom Csv encoder.
+/** a Custom Csv encoder.
  *
- * @author 梦境迷离
- * @since 2022/04/27
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2022/04/27
+ *  @version 1.0
  */
 trait Csvable[T] {
 
-  /**
-   * API for processing a specific field of case class object.
+  /** API for processing a specific field of case class object.
    *
-   * @param t case class object
-   * @return
+   *  @param t
+   *    case class object
+   *  @return
    */
   def _toCsvString(t: T): String
 

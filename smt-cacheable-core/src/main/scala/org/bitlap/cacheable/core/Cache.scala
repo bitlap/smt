@@ -24,45 +24,52 @@ package org.bitlap.cacheable.core
 import zio.ZIO
 import zio.stream.ZStream
 
-/**
- * A distributed cache for zio.
+/** A distributed cache for zio.
  *
- * @tparam Z The result type of the function that returns the ZIO or ZStream effect.
+ *  @tparam Z
+ *    The result type of the function that returns the ZIO or ZStream effect.
  */
 trait Cache[Z] {
 
-  /**
-   * Get cache or getAndSet cache from Cache while read data.
+  /** Get cache or getAndSet cache from Cache while read data.
    *
-   * @param business   The function that returns the ZIO or ZStream effect.
-   * @param identities Append all strings for cache key.
-   * @param args       The parameters of the business function.
-   * @return The result fo the business function.
+   *  @param business
+   *    The function that returns the ZIO or ZStream effect.
+   *  @param identities
+   *    Append all strings for cache key.
+   *  @param args
+   *    The parameters of the business function.
+   *  @return
+   *    The result fo the business function.
    */
   def getIfPresent(business: => Z)(identities: List[String], args: List[_]): Z
 
-  /**
-   * Evict cache while data update.
+  /** Evict cache while data update.
    *
-   * @param business   The function that returns the ZIO or ZStream effect.
-   * @param identities Append all strings for cache key.
-   * @return The result fo the business function.
+   *  @param business
+   *    The function that returns the ZIO or ZStream effect.
+   *  @param identities
+   *    Append all strings for cache key.
+   *  @return
+   *    The result fo the business function.
    */
   def evict(business: => Z)(identities: List[String]): Z
 
-  /**
-   * Build a string for cache key.
+  /** Build a string for cache key.
    *
-   * @param keys Append all strings for hash key
-   * @return string
+   *  @param keys
+   *    Append all strings for hash key
+   *  @return
+   *    string
    */
   def cacheKey(keys: List[String]): String = keys.mkString("-")
 
-  /**
-   * Build a string for cache field.
+  /** Build a string for cache field.
    *
-   * @param args The parameters of the business function.
-   * @return hash field
+   *  @param args
+   *    The parameters of the business function.
+   *  @return
+   *    hash field
    */
   def cacheField(args: List[_]): String = args.map(_.toString).mkString("-")
 

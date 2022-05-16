@@ -21,12 +21,12 @@
 
 package org.bitlap.tools
 
-/**
- * Log Level for elapsed
+/** Log Level for elapsed
  *
- * @author 梦境迷离
- * @since 2021/8/7
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/8/7
+ *  @version 1.0
  */
 object LogLevel extends Enumeration {
 
@@ -35,7 +35,7 @@ object LogLevel extends Enumeration {
 
   private[bitlap] def getLogLevel(shortType: String): LogLevel = {
     // TODO not good way
-    val tpe1 = s"$PACKAGE.elapsed.$shortType" //LogLevel.INFO
+    val tpe1 = s"$PACKAGE.elapsed.$shortType"          // LogLevel.INFO
     val tpe2 = s"$PACKAGE.elapsed.LogLevel.$shortType" // INFO
     val v = LogLevel.values.find { p =>
       s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe1 ||

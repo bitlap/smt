@@ -25,10 +25,11 @@ import zio.{ redis, Has, ULayer, ZIO, ZLayer }
 import zio.redis.{ Redis, RedisError }
 import zio.schema.Schema
 
-/**
- * @author 梦境迷离
- * @see https://zio.dev/version-1.x/datatypes/contextual/#module-pattern-20
- * @version 2.0,2022/1/17
+/** @author
+ *    梦境迷离
+ *  @see
+ *    https://zio.dev/version-1.x/datatypes/contextual/#module-pattern-20
+ *  @version 2.0,2022/1/17
  */
 case class ZRedisLive(private val rs: Redis) extends ZRedisService {
 

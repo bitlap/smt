@@ -21,10 +21,10 @@
 
 package org.bitlap.tools
 
-/**
- * @author 梦境迷离
- * @since 2021/6/29
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/6/29
+ *  @version 1.0
  */
 object LogMain extends App {
 

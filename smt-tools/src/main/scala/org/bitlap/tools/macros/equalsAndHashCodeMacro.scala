@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/18
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/18
+ *  @version 1.0
  */
 object equalsAndHashCodeMacro {
 
@@ -38,7 +38,7 @@ object equalsAndHashCodeMacro {
       case q"new equalsAndHashCode(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
       case q"new equalsAndHashCode($excludeFields)"               => evalTree(excludeFields.asInstanceOf[Tree])
       case q"new equalsAndHashCode()"                             => Nil
-      case _                                                      => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
     override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
@@ -49,8 +49,7 @@ object equalsAndHashCodeMacro {
       }
     }
 
-    /**
-     * Extract the internal fields of members belonging to the class.
+    /** Extract the internal fields of members belonging to the class.
      */
     private def getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
       if (annotteeClassDefinitions.exists(f => isNotLocalClassMember(f))) {
@@ -59,7 +58,7 @@ object equalsAndHashCodeMacro {
       getClassMemberValDefs(annotteeClassDefinitions)
         .filter(p =>
           isNotLocalClassMember(p) &&
-            !extractArgs.contains(p.name.decodedName.toString)
+          !extractArgs.contains(p.name.decodedName.toString)
         )
         .map(_.name.toTermName)
     }
@@ -88,9 +87,9 @@ object equalsAndHashCodeMacro {
           override def equals(that: Any): Boolean =
             that match {
               case t: $className => t.canEqual(this) && Seq(..$equalsExprs).forall(f => f) && ${if (
-          existsSuperClassExcludeSdkClass(superClasses)
-        ) q"super.equals(that)"
-        else q"true"}
+            existsSuperClassExcludeSdkClass(superClasses)
+          ) q"super.equals(that)"
+          else q"true"}
               case _ => false
           }
          """
@@ -105,20 +104,19 @@ object equalsAndHashCodeMacro {
          override def hashCode(): Int = {
             val state = Seq(..$termNames)
             state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b) + ${if (
-        existsSuperClassExcludeSdkClass(superClasses)
-      ) superTree
-      else q"0"}
+          existsSuperClassExcludeSdkClass(superClasses)
+        ) superTree
+        else q"0"}
           }
        """
     }
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
-      lazy val map = (classDefinition: ClassDefinition) => {
+      lazy val map = (classDefinition: ClassDefinition) =>
         getClassConstructorValDefsFlatten(classDefinition.classParamss)
           .filter(cf => isNotLocalClassMember(cf))
           .map(_.name.toTermName) ++
           getInternalFieldsTermNameExcludeLocal(classDefinition.body)
-      }
       val classDefinition = mapToClassDeclInfo(classDecl)
       val res = appendClassBody(
         classDecl,

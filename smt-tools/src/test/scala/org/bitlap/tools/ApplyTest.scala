@@ -24,10 +24,10 @@ package org.bitlap.tools
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/6/30
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/6/30
+ *  @version 1.0
  */
 class ApplyTest extends AnyFlatSpec with Matchers {
 

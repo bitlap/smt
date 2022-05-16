@@ -21,10 +21,10 @@
 
 package org.bitlap.tools
 
-/**
- * @author 梦境迷离
- * @since 2021/12/4
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/12/4
+ *  @version 1.0
  */
 class NetService {
 

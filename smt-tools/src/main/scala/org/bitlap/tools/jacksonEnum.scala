@@ -25,14 +25,16 @@ import org.bitlap.tools.macros.jacksonEnumMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate equals and hashcode method for classes.
+/** annotation to generate equals and hashcode method for classes.
  *
- * @author 梦境迷离
- * @author choly
- * @param nonTypeRefers Whether to not generate the subclass of the TypeReference for paramTypes of class.
- * @since 2021/8/3
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @author
+ *    choly
+ *  @param nonTypeRefers
+ *    Whether to not generate the subclass of the TypeReference for paramTypes of class.
+ *  @since 2021/8/3
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class jacksonEnum(nonTypeRefers: Seq[String] = Nil) extends StaticAnnotation {

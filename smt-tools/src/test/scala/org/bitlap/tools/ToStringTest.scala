@@ -24,16 +24,16 @@ package org.bitlap.tools
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/6/13
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/6/13
+ *  @version 1.0
  */
 class ToStringTest extends AnyFlatSpec with Matchers {
   "toString1" should "not contains internal field" in {
     @toString(includeInternalFields = false, includeFieldNames = false, callSuper = false)
     class TestClass(val i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -45,7 +45,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString2" should "contains internal field and with name" in {
     @toString(includeInternalFields = true)
     class TestClass(val i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -57,7 +57,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString3" should "not contains internal field but with name" in {
     @toString(includeInternalFields = false, includeFieldNames = true)
     class TestClass(val i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -69,7 +69,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString4" should "contains internal field but without name" in {
     @toString(includeInternalFields = true, includeFieldNames = false)
     class TestClass(val i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -81,7 +81,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString5" should "case class without name" in {
     @toString(includeInternalFields = false, includeFieldNames = false)
     case class TestClass(i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -93,12 +93,12 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString6" should "case class not contains internal field and with name" in {
     @toString(includeInternalFields = false, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
     case class TestClass2(i: Int = 0, var j: Int) // No method body, use default toString
-    val s = TestClass(1, 2).toString
+    val s  = TestClass(1, 2).toString
     val s2 = TestClass2(1, 2).toString
     println(s)
     println(s2)
@@ -110,7 +110,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString7" should "case class contains internal field and with name" in {
     @toString(includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -122,7 +122,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString8" should "case class contains internal field and with name, itself" in {
     @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int, k: TestClass) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }
@@ -134,9 +134,9 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString9" should "case class contains internal field and with name, itself2" in {
     @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int) {
-      val y: Int = 0
-      var z: String = "hello"
-      var x: String = "world"
+      val y: Int       = 0
+      var z: String    = "hello"
+      var x: String    = "world"
       val t: TestClass = null // if not null, will error
     }
     val s = TestClass(1, 2).toString
@@ -147,7 +147,7 @@ class ToStringTest extends AnyFlatSpec with Matchers {
   "toString10" should "case class contains internal field with name, itself3" in {
     @toString(includeInternalFields = true, includeFieldNames = true)
     case class TestClass(i: Int = 0, var j: Int, k: TestClass) {
-      val y: Int = 0
+      val y: Int    = 0
       var z: String = "hello"
       var x: String = "world"
     }

@@ -26,9 +26,9 @@ import org.bitlap.tools.logs.LogType.LogType
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/3/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/29
  */
 object Log4J2Impl extends BaseLog {
 
@@ -38,12 +38,12 @@ object Log4J2Impl extends BaseLog {
     import c.universe._
     if (logArgument.isClass) {
       q"""@transient private final val log: org.apache.logging.log4j.Logger = org.apache.logging.log4j.LogManager.getLogger(classOf[${TypeName(
-        logArgument.classNameStr
-      )}].getName)"""
+          logArgument.classNameStr
+        )}].getName)"""
     } else {
       q"""@transient private final val log: org.apache.logging.log4j.Logger = org.apache.logging.log4j.LogManager.getLogger(${TermName(
-        logArgument.classNameStr
-      )}.getClass.getName)"""
+          logArgument.classNameStr
+        )}.getClass.getName)"""
     }
   }
 

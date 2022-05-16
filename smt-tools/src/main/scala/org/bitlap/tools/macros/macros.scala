@@ -21,18 +21,18 @@
 
 package org.bitlap.tools
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 package object macros {
 
   private[macros] object ErrorMessage {
     // common error msg
-    final lazy val ONLY_CLASS: String = "Annotation is only supported on class."
-    final lazy val ONLY_CASE_CLASS: String = "Annotation is only supported on case class."
-    final lazy val ONLY_OBJECT_CLASS: String = "Annotation is only supported on class or object."
+    final lazy val ONLY_CLASS: String         = "Annotation is only supported on class."
+    final lazy val ONLY_CASE_CLASS: String    = "Annotation is only supported on case class."
+    final lazy val ONLY_OBJECT_CLASS: String  = "Annotation is only supported on class or object."
     final lazy val UNEXPECTED_PATTERN: String = "Unexpected annotation pattern!"
   }
 

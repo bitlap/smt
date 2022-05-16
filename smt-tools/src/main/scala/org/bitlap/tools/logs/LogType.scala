@@ -25,9 +25,9 @@ import org.bitlap.tools.PACKAGE
 import org.bitlap.tools.logs.extension.{ ScalaLoggingLazyImpl, ScalaLoggingStrictImpl }
 import org.bitlap.tools.logs.impl.{ JLogImpl, Log4J2Impl, Slf4jImpl }
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/3/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/29
  */
 object LogType extends Enumeration {
 
@@ -35,11 +35,11 @@ object LogType extends Enumeration {
   val JLog, Log4j2, Slf4j, ScalaLoggingLazy, ScalaLoggingStrict = Value
 
   private lazy val types: Map[LogType, BaseLog] = Map(
-    JLogImpl.`type` -> JLogImpl,
-    Log4J2Impl.`type` -> Log4J2Impl,
-    Slf4jImpl.`type` -> Slf4jImpl,
+    JLogImpl.`type`               -> JLogImpl,
+    Log4J2Impl.`type`             -> Log4J2Impl,
+    Slf4jImpl.`type`              -> Slf4jImpl,
     ScalaLoggingStrictImpl.`type` -> ScalaLoggingStrictImpl,
-    ScalaLoggingLazyImpl.`type` -> ScalaLoggingLazyImpl
+    ScalaLoggingLazyImpl.`type`   -> ScalaLoggingLazyImpl
   )
 
   def getLogImpl(logType: LogType): BaseLog =
@@ -47,12 +47,14 @@ object LogType extends Enumeration {
 
   // TODO not use Enumeratio
   def getLogType(shortType: String): LogType = {
-    val tpe1 = s"$PACKAGE.logs.$shortType" //LogType.JLog
+    val tpe1 = s"$PACKAGE.logs.$shortType"         // LogType.JLog
     val tpe2 = s"$PACKAGE.logs.LogType.$shortType" // JLog
     val v = LogType.values.find { p =>
       s"$PACKAGE.logs.LogType.${p.toString}" == tpe1 ||
       s"$PACKAGE.logs.LogType.${p.toString}" == tpe2 || s"$PACKAGE.logs.LogType.${p.toString}" == shortType
-    }.getOrElse(throw new Exception(s"Not support log type: $shortType")).toString
+    }
+      .getOrElse(throw new Exception(s"Not support log type: $shortType"))
+      .toString
     LogType.withName(v)
   }
 }

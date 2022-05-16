@@ -26,15 +26,15 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Future
 
-/**
- * @author 梦境迷离
- * @since 2021/8/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/8/7
+ *  @version 1.0
  */
 class ElapsedTest extends AnyFlatSpec with Matchers {
 
   "elapsed1" should "failed, not calculate anything, the return type is not specified" in {
-    //Duration and TimeUnit must Full class name
+    // Duration and TimeUnit must Full class name
     """
       |    class A {
       |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
@@ -63,7 +63,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
   }
 
   "elapsed2" should "ok, get the returnType of the method " in {
-    //Duration and TimeUnit must Full class name
+    // Duration and TimeUnit must Full class name
     """
       |class A {
       |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.NANOSECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
@@ -86,7 +86,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
   }
 
   "elapsed3" should "ok" in {
-    //Duration and TimeUnit must Full class name
+    // Duration and TimeUnit must Full class name
     """
       |    class A {
       |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.NANOSECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
@@ -112,7 +112,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
   }
 
   "elapsed4" should "ok, return early" in {
-    //Duration and TimeUnit must Full class name
+    // Duration and TimeUnit must Full class name
     """
       |    class A {
       |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
@@ -210,7 +210,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     }
   }
 
-  "elapsed7" should "ok at object but has runTime Error" in { //Why?
+  "elapsed7" should "ok at object but has runTime Error" in { // Why?
     """
       |    object A {
       |      private final val log1: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(A.getClass)
@@ -273,7 +273,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |      println("")
       |      "hello"
       |    }
-      |""".stripMargin shouldNot compile //args not in order
+      |""".stripMargin shouldNot compile // args not in order
   }
   "elapsed10" should "multi-return" in {
     class A {
@@ -344,7 +344,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
         val i = 0
         for (i <- Seq(1))
           if (i == 1) {
-            return 1 //not support
+            return 1 // not support
           }
         0
       }

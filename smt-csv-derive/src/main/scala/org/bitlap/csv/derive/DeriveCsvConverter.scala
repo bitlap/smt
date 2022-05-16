@@ -26,11 +26,11 @@ import org.bitlap.csv.core.macros.AbstractMacroProcessor
 
 import scala.reflect.macros.blackbox
 
-/**
- * This is a tool macro for automatic derivation of the base CSV converter.
+/** This is a tool macro for automatic derivation of the base CSV converter.
  *
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 object DeriveCsvConverter {
 
@@ -43,7 +43,7 @@ object DeriveCsvConverter {
     def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[CC] = {
       import c.universe._
       val clazzName = c.weakTypeOf[CC].typeSymbol.name
-      val typeName = TypeName(clazzName.decodedName.toString)
+      val typeName  = TypeName(clazzName.decodedName.toString)
       val tree =
         q"""
         new Converter[$typeName] {

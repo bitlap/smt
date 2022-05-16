@@ -25,10 +25,10 @@ import org.bitlap.tools.utils.ScalaReflectionUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @since 2021/12/5
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/12/5
+ *  @version 1.0
  */
 class ScalaReflectionUtilsTest extends AnyFlatSpec with Matchers {
   "Creator" should "ok" in {

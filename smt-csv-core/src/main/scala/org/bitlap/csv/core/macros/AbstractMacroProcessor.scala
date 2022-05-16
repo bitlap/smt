@@ -25,12 +25,12 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import scala.reflect.macros.blackbox
 
-/**
- * This is a generic implementation of macro handling, and subclasses need to inherit it to reduce redundant code.
+/** This is a generic implementation of macro handling, and subclasses need to inherit it to reduce redundant code.
  *
- * @author 梦境迷离
- * @since 2021/7/24
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @since 2021/7/24
+ *  @version 1.0
  */
 abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
@@ -38,20 +38,22 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   protected val packageName = q"_root_.org.bitlap.csv.core"
 
-  /**
-   * Get the list of case class constructor parameters and return the column index, column name, and parameter type that zip as a `List[((Int, Tree), Type)]`.
+  /** Get the list of case class constructor parameters and return the column index, column name, and parameter type
+   *  that zip as a `List[((Int, Tree), Type)]`.
    *
-   * @param columnsFunc The function to get CSV row data temporary identifier, also known as a line.
-   * @tparam T Type of the case class.
-   * @return
+   *  @param columnsFunc
+   *    The function to get CSV row data temporary identifier, also known as a line.
+   *  @tparam T
+   *    Type of the case class.
+   *  @return
    */
   private[macros] def checkCaseClassZipAll[T: c.WeakTypeTag](
     columnsFunc: TermName
   ): List[((Int, Tree), Type)] = {
-    val idxColumn = (i: Int) => q"$columnsFunc()($i)"
-    val params = getCaseClassParams[T]()
-    val paramsSize = params.size
-    val types = params.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
+    val idxColumn    = (i: Int) => q"$columnsFunc()($i)"
+    val params       = getCaseClassParams[T]()
+    val paramsSize   = params.size
+    val types        = params.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
     val indexColumns = (0 until paramsSize).toList.map(i => i -> idxColumn(i))
     if (indexColumns.size != types.size) {
       c.abort(c.enclosingPosition, "The column num of CSV file is different from that in case class constructor!")
@@ -60,11 +62,11 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     indexColumns zip types
   }
 
-  /**
-   * Get only the symbol of the case class constructor parameters.
+  /** Get only the symbol of the case class constructor parameters.
    *
-   * @tparam T Type of the case class.
-   * @return
+   *  @tparam T
+   *    Type of the case class.
+   *  @return
    */
   private[macros] def getCaseClassParams[T: c.WeakTypeTag](): List[Symbol] = {
     val parameters = resolveParameters[T]
@@ -74,13 +76,12 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     parameters.flatten
   }
 
-  /**
-   * Print the expanded code of macro.
+  /** Print the expanded code of macro.
    *
-   * @param force
-   * @param resTree
-   * @tparam T
-   * @return
+   *  @param force
+   *  @param resTree
+   *  @tparam T
+   *  @return
    */
   def exprPrintTree[T: c.WeakTypeTag](force: Boolean, resTree: c.Tree): c.Expr[T] = {
     c.info(
@@ -92,42 +93,43 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     c.Expr[T](resTree)
   }
 
-  /**
-   * Get the constructor symbol of the case class.
+  /** Get the constructor symbol of the case class.
    *
-   * @tparam T Type of the case class.
-   * @return The parameters may be currying, so it's a two-level list.
+   *  @tparam T
+   *    Type of the case class.
+   *  @return
+   *    The parameters may be currying, so it's a two-level list.
    */
   private[macros] def resolveParameters[T: c.WeakTypeTag]: List[List[Symbol]] =
     c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
 
-  /**
-   * Get the `TypeName` of the class.
+  /** Get the `TypeName` of the class.
    *
-   * @tparam T Type of the case class.
-   * @return
+   *  @tparam T
+   *    Type of the case class.
+   *  @return
    */
   private[macros] def resolveClazzTypeName[T: c.WeakTypeTag]: c.universe.TypeName =
     TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
 
-  /**
-   * Get the list of case class constructor parameters and return the column index and parameter type that zip as a `List[(Int, Type)])`.
+  /** Get the list of case class constructor parameters and return the column index and parameter type that zip as a
+   *  `List[(Int, Type)])`.
    *
-   * @tparam T Type of the case class.
-   * @return
+   *  @tparam T
+   *    Type of the case class.
+   *  @return
    */
   private[macros] def checkCaseClassZip[T: c.WeakTypeTag]: (List[String], List[(Int, Type)]) = {
-    val params = getCaseClassParams[T]()
+    val params     = getCaseClassParams[T]()
     val paramsSize = params.size
-    val names = params.map(p => p.name.decodedName.toString)
+    val names      = params.map(p => p.name.decodedName.toString)
     names -> params.zip(0 until paramsSize).map(f => f._2 -> c.typecheck(tq"${f._1}", c.TYPEmode).tpe)
   }
 
-  /**
-   * Get the builderId of the current class which generated by *Builder,apply  macro.
+  /** Get the builderId of the current class which generated by *Builder,apply macro.
    *
-   * @param annoBuilderPrefix
-   * @return
+   *  @param annoBuilderPrefix
+   *  @return
    */
   private[macros] def getBuilderId(annoBuilderPrefix: String): Int =
     c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt

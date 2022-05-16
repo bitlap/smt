@@ -22,13 +22,13 @@
 package org.bitlap.csv.core.macros
 import scala.collection.mutable
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/5/1
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/5/1
  */
 object MacroCache {
 
-  private var builderCount = 0
+  private var builderCount  = 0
   private var identityCount = 0
 
   def getBuilderId: Int = builderCount.synchronized {

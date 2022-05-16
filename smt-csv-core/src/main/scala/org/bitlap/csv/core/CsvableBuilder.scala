@@ -24,59 +24,63 @@ package org.bitlap.csv.core
 import org.bitlap.csv.core.macros.DeriveCsvableBuilder
 import java.io.File
 
-/**
- * Builder to create a custom Csv Encoder.
+/** Builder to create a custom Csv Encoder.
  *
- * @author 梦境迷离
- * @version 1.0,2022/4/30
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/30
  */
 class CsvableBuilder[T] {
 
-  /**
-   * Convert this CSV column string to any Scala types.
+  /** Convert this CSV column string to any Scala types.
    *
-   * @param scalaField The field in scala case class.
-   * @param value      This function specifies how you want to convert this field to a CSV string.
-   * @tparam SF The field type, generally, it is not necessary to specify, but it is safer if specify.
-   * @return
+   *  @param scalaField
+   *    The field in scala case class.
+   *  @param value
+   *    This function specifies how you want to convert this field to a CSV string.
+   *  @tparam SF
+   *    The field type, generally, it is not necessary to specify, but it is safer if specify.
+   *  @return
    */
   def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
     macro DeriveCsvableBuilder.setFieldImpl[T, SF]
 
-  /**
-   * Create a custom builder for converting this scala value to CSV line string.
+  /** Create a custom builder for converting this scala value to CSV line string.
    *
-   * @param t               The value of Scala case class.
-   * @param columnSeparator The separator for CSV column value.
-   * @return
+   *  @param t
+   *    The value of Scala case class.
+   *  @param columnSeparator
+   *    The separator for CSV column value.
+   *  @return
    */
   def convert(t: T, columnSeparator: Char): String = macro DeriveCsvableBuilder.convertOneImpl[T]
 
-  /**
-   * Make columnSeparator assign to `,` as default value.
+  /** Make columnSeparator assign to `,` as default value.
    */
   def convert(t: T): String = macro DeriveCsvableBuilder.convertOneDefaultImpl[T]
 
-  /**
-   * Convert the sequence of Scala case class to CSV string.
+  /** Convert the sequence of Scala case class to CSV string.
    *
-   * @param ts              The sequence of Scala case class.
-   * @param columnSeparator The separator for CSV column value.
-   * @return It combines CSV lines by '\n'.
+   *  @param ts
+   *    The sequence of Scala case class.
+   *  @param columnSeparator
+   *    The separator for CSV column value.
+   *  @return
+   *    It combines CSV lines by '\n'.
    */
   def convert(ts: List[T], columnSeparator: Char): String = macro DeriveCsvableBuilder.convertImpl[T]
 
-  /**
-   * Make columnSeparator assign to `,` as default value.
+  /** Make columnSeparator assign to `,` as default value.
    */
   def convert(ts: List[T]): String = macro DeriveCsvableBuilder.convertDefaultImpl[T]
 
-  /**
-   * Convert the sequence of Scala case class to CSV string and write to file.
+  /** Convert the sequence of Scala case class to CSV string and write to file.
    *
-   * @param ts   The sequence of Scala case class.
-   * @param file File to save CSV string.
-   * @return
+   *  @param ts
+   *    The sequence of Scala case class.
+   *  @param file
+   *    File to save CSV string.
+   *  @return
    */
   def convertTo(ts: List[T], file: File): Boolean = macro DeriveCsvableBuilder.convertToFileImpl[T]
 

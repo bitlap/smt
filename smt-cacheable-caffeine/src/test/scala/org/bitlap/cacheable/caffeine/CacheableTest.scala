@@ -30,10 +30,10 @@ import zio.{ Chunk, Task, ZIO }
 import java.util
 import scala.util.Random
 
-/**
- * @author 梦境迷离
- * @since 2021/8/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/8/7
+ *  @version 1.0
  */
 class CacheableTest extends AnyFlatSpec with Matchers {
 
@@ -89,9 +89,9 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       ZIO.effect(cacheValue)
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
+      _      <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(1, "hello")
-      cache <- ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello")
+      cache  <- ZCaffeine.hGet[String]("CacheableTest-readIOFunction", "1-hello")
     } yield method -> cache)
     Some(result._1) shouldEqual result._2
   }
@@ -119,10 +119,10 @@ class CacheableTest extends AnyFlatSpec with Matchers {
       )
 
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
+      _      <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(globalId.toInt).runHead
       update <- updateIOFunction("lisi").runHead
-      after <- readIOFunction(globalId.toInt).runHead
+      after  <- readIOFunction(globalId.toInt).runHead
     } yield Some("lisi") -> after.map(_.name))
     result._1 shouldEqual result._2
   }
@@ -142,10 +142,10 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
     val newId = Random.nextInt().toString
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
+      _      <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(globalId.toInt).runHead
       update <- updateIOFunction(newId).runHead
-      after <- readIOFunction(globalId.toInt).runHead
+      after  <- readIOFunction(globalId.toInt).runHead
     } yield Some(newId) -> after.map(_.id))
     result._1 shouldEqual result._2
   }
@@ -159,9 +159,9 @@ class CacheableTest extends AnyFlatSpec with Matchers {
 
     println(chunk)
     val result = runtime.unsafeRun(for {
-      _ <- ZCaffeine.del("CacheableTest-readIOFunction")
+      _      <- ZCaffeine.del("CacheableTest-readIOFunction")
       method <- readIOFunction(1, "hello")
-      cache <- ZCaffeine.hGet[Chunk[String]]("CacheableTest-readIOFunction", "1-hello").map(_.getOrElse(Chunk.empty))
+      cache  <- ZCaffeine.hGet[Chunk[String]]("CacheableTest-readIOFunction", "1-hello").map(_.getOrElse(Chunk.empty))
     } yield method -> cache)
     result._1 shouldEqual result._2
   }

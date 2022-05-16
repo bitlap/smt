@@ -25,16 +25,16 @@ import java.util.regex.Pattern
 import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
 
-/**
- * split csv column value by columnSeparator.
+/** split csv column value by columnSeparator.
  *
- * @author 梦境迷离
- * @version 1.0,2022/4/30
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/30
  */
 object StringUtils {
 
-  private val regex: Regex = "\\{(.*?)\\}".r
-  private val kvr: Regex = "(.*):(.*)".r
+  private val regex: Regex     = "\\{(.*?)\\}".r
+  private val kvr: Regex       = "(.*):(.*)".r
   private val pattern: Pattern = Pattern.compile(regex.toString())
 
   def extraJsonPairs(input: String): String = {
@@ -60,9 +60,9 @@ object StringUtils {
   }
 
   def splitColumns(line: => String, columnSeparator: Char): List[String] = {
-    val listBuffer = ListBuffer[String]()
+    val listBuffer   = ListBuffer[String]()
     val columnBuffer = ListBuffer[Char]()
-    val chars = line.toCharArray
+    val chars        = line.toCharArray
 
     var idx = 0
     while (idx < chars.length)

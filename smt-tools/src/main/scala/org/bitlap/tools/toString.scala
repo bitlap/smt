@@ -25,15 +25,18 @@ import org.bitlap.tools.macros.toStringMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
-/**
- * annotation to generate toString for classes.
+/** annotation to generate toString for classes.
  *
- * @author 梦境迷离
- * @param includeInternalFields Whether to include the fields defined within a class.
- * @param includeFieldNames     Whether to include the name of the field in the toString.
- * @param callSuper             Whether to include the super's toString.
- * @since 2021/6/13
- * @version 1.0
+ *  @author
+ *    梦境迷离
+ *  @param includeInternalFields
+ *    Whether to include the fields defined within a class.
+ *  @param includeFieldNames
+ *    Whether to include the name of the field in the toString.
+ *  @param callSuper
+ *    Whether to include the super's toString.
+ *  @since 2021/6/13
+ *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class toString(

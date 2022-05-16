@@ -23,11 +23,11 @@ package org.bitlap.csv.core
 
 import java.io.{ BufferedReader, File, FileReader, InputStreamReader }
 
-/**
- * Tool class for parsing CSV files.
+/** Tool class for parsing CSV files.
  *
- * @author 梦境迷离
- * @version 1.0,2022/5/13
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/5/13
  */
 object ScalableHelper {
 

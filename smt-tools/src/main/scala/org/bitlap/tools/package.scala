@@ -21,10 +21,10 @@
 
 package org.bitlap
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 package object tools {
   final val PACKAGE: String = "org.bitlap.tools"

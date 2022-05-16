@@ -23,10 +23,10 @@ package org.bitlap.tools.macros
 
 import scala.reflect.macros.whitebox
 
-/**
- * @author 梦境迷离
- * @since 2021/7/7
- * @version 1.0
+/** @author
+ *    梦境迷离
+ *  @since 2021/7/7
+ *  @version 1.0
  */
 object jsonMacro {
 
@@ -51,8 +51,8 @@ object jsonMacro {
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       val classDefinition = mapToClassDeclInfo(classDecl)
-      val format = jsonFormatter(classDefinition.className, classDefinition.classParamss.flatten)
-      val compDecl = appendModuleBody(compDeclOpt, List(format), classDefinition.className)
+      val format          = jsonFormatter(classDefinition.className, classDefinition.classParamss.flatten)
+      val compDecl        = appendModuleBody(compDeclOpt, List(format), classDefinition.className)
       // Return both the class and companion object declarations
       c.Expr(q"""
         $classDecl

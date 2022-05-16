@@ -25,14 +25,14 @@ import org.bitlap.csv.core.{ CsvableBuilder, ScalableBuilder }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author 梦境迷离
- * @version 1.0,2022/4/29
+/** @author
+ *    梦境迷离
+ *  @version 1.0,2022/4/29
  */
 class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
 
   "CustomConverterBuilder1" should "ok" in {
-    val line = "abc,cdf,d,12,2,false,0.1,0.23333"
+    val line      = "abc,cdf,d,12,2,false,0.1,0.23333"
     val dimension = ScalableBuilder[Dimension2].convert(line, ',')
     assert(dimension.toString == "Some(Dimension2(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
     val csv = CsvableBuilder[Dimension2].convert(dimension.get, ',')
@@ -103,7 +103,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     val dimension1 = es.map(e => CsvableBuilder[Dimension2].convert(e, ','))
     assert(dimension1 == List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2"))
 
-    val csv = List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2")
+    val csv   = List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2")
     val scala = csv.map(f => ScalableBuilder[Dimension2].convert(f, ','))
     assert(
       scala.toString() == "List(Some(Dimension2(1,Some(hello),c,1,1,true,0.1,0.2)), Some(Dimension2(2,Some(hello bitlap),c,1,1,false,0.1,0.2)))"
@@ -111,8 +111,8 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
 
   }
 
-  private val csv = """100,1,"{""city"":""北京"",""os"":""Mac""}",vv,1"""
-  private val metric = Metric(1, 2, Nil, "name", 2)
+  private val csv     = """100,1,"{""city"":""北京"",""os"":""Mac""}",vv,1"""
+  private val metric  = Metric(1, 2, Nil, "name", 2)
   private val metric2 = Metric2(1, 2, Nil, "name", 2)
 
   "CustomConverterBuilder6" should "fail when find List or Seq but without using setFiled" in {
@@ -137,7 +137,7 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
   }
 
   "CustomConverterBuilder8" should "ok when not pass columnSeparator" in {
-    val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
+    val e   = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
     val csv = CsvableBuilder[Dimension2].convert(e)
     println(csv)
     assert(csv == "1,hello,c,1,1,false,0.1,0.2")
