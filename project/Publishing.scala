@@ -41,7 +41,7 @@ object Publishing {
       )
     ),
     sonatypeProfileName := organization.value,
-    homepage            := Some(url("https://bitlap.org")),
+    homepage            := Some(url("https://github.com/bitlap/scala-macro-tools")),
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/bitlap/scala-macro-tools"),
