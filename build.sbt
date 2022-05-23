@@ -29,9 +29,9 @@ lazy val protocVersion       = "3.20.1"
 
 lazy val commonSettings =
   Seq(
-    organization     := "org.bitlap",
-    startYear        := Some(2022),
-    scalaVersion     := scala213,
+    organization := "org.bitlap",
+    startYear    := Some(2022),
+    scalaVersion := scala213,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-lang" % "scala-reflect"  % scalaVersion.value,
