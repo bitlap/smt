@@ -36,7 +36,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   import c.universe._
 
-  protected val packageName = q"_root_.org.bitlap.csv.core"
+  protected val packageName       = q"_root_.org.bitlap.csv.core"
+  protected val delimiterTermName = TermName("delimiter")
 
   /** Get the list of case class constructor parameters and return the column index, column name, and parameter type
    *  that zip as a `List[((Int, Tree), Type)]`.

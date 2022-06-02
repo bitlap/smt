@@ -22,6 +22,7 @@
 package org.bitlap.csv.core.macros
 
 import scala.reflect.macros.blackbox
+import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -29,14 +30,14 @@ import scala.reflect.macros.blackbox
  */
 object DeriveToCaseClass {
 
-  def apply[T <: Product](line: String, columnSeparator: Char): Option[T] = macro Macro.macroImpl[T]
+  def apply[T <: Product](line: String)(implicit format: CsvFormat): Option[T] = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
     // scalafmt: { maxColumn = 400 }
-    def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Option[T]] = {
+    def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String])(format: c.Expr[CsvFormat]): c.Expr[Option[T]] = {
       val clazzName         = c.weakTypeOf[T].typeSymbol.name
       val innerFuncTermName = TermName("_columns")
       val fields = (columnsFunc: TermName) =>
@@ -80,7 +81,7 @@ object DeriveToCaseClass {
         }
       val tree =
         q"""
-           lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
+           lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
            Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)

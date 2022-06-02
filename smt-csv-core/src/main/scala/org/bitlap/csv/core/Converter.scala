@@ -22,6 +22,7 @@
 package org.bitlap.csv.core
 
 import scala.collection.immutable.{ :: => Cons }
+import org.bitlap.csv.core._
 
 /** Csv encoder and decoder.
  *
@@ -39,9 +40,7 @@ trait Converter[T] {
 
 object Converter {
 
-  lazy val LINE_SEPARATOR: String = System.lineSeparator()
-
-  def apply[T](implicit st: Converter[T]): Converter[T] = st
+  def apply[T](implicit st: Converter[T], format: CsvFormat): Converter[T] = st
 
   // Primitives
   implicit val stringCSVConverter: Converter[String] = new Converter[String] {
@@ -102,10 +101,12 @@ object Converter {
         } yield Cons(x, xs)
     }
 
-  implicit def listCsvConverter[A <: Product](implicit ec: Converter[A]): Converter[List[A]] = new Converter[List[A]] {
-    def toScala(line: String): Option[List[A]] = listCsvLinesConverter[A](line.split(LINE_SEPARATOR).toList)(ec)
+  implicit def listCsvConverter[A <: Product](implicit ec: Converter[A], format: CsvFormat): Converter[List[A]] =
+    new Converter[List[A]] {
+      val lineSeparator                          = format.lineTerminator
+      def toScala(line: String): Option[List[A]] = listCsvLinesConverter[A](line.split(lineSeparator).toList)(ec)
 
-    def toCsvString(l: List[A]): String =
-      if (l == null) "" else l.map(ec.toCsvString).mkString(LINE_SEPARATOR)
-  }
+      def toCsvString(l: List[A]): String =
+        if (l == null) "" else l.map(ec.toCsvString).mkString(lineSeparator)
+    }
 }

@@ -59,6 +59,43 @@ object StringUtils {
     kvs.toList.map(f => func(f._1, f._2))
   }
 
+  def splitColumns(line: => String, format: CsvFormat): List[String] = {
+    val listBuffer   = ListBuffer[String]()
+    val columnBuffer = ListBuffer[Char]()
+    val chars        = line.toCharArray
+
+    var idx = 0
+    while (idx < chars.length)
+      chars(idx) match {
+        case c if c == format.delimiter =>
+          listBuffer.append(columnBuffer.mkString)
+          columnBuffer.clear()
+          idx += 1
+        case c if c == format.escapeChar =>
+          idx += 1
+          var isTail = false
+          while (idx < chars.length && !isTail)
+            if (chars(idx) == format.escapeChar && idx + 1 < chars.length && chars(idx + 1) == format.escapeChar) {
+              columnBuffer.append(format.escapeChar)
+              idx += 2
+            } else if (chars(idx) == format.escapeChar) {
+              isTail = true
+              idx += 1
+            } else {
+              columnBuffer.append(chars(idx))
+              idx += 1
+            }
+        case c =>
+          columnBuffer.append(c)
+          idx += 1
+      }
+    if (columnBuffer.nonEmpty) {
+      listBuffer.append(columnBuffer.mkString)
+      columnBuffer.clear()
+    }
+    listBuffer.result()
+  }
+
   def splitColumns(line: => String, columnSeparator: Char): List[String] = {
     val listBuffer   = ListBuffer[String]()
     val columnBuffer = ListBuffer[Char]()

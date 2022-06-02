@@ -151,7 +151,7 @@ lazy val `smt-tools` = (project in file("smt-tools"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val root = (project in file("."))
+lazy val `scala-macro-tools` = (project in file("."))
   .aggregate(
     `smt-tools`,
     `smt-cacheable-core`,

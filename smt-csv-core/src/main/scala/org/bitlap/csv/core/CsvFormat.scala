@@ -19,22 +19,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.derive.test
+package org.bitlap.csv.core
 
-import org.bitlap.csv.core.Converter
-import org.bitlap.csv.derive.DeriveCsvConverter
-import org.bitlap.csv.core.DefaultCsvFormat
+trait CsvFormat extends Serializable {
+  val delimiter: Char
+  val escapeChar: Char
+  val lineTerminator: String
+  val append: Boolean          = false
+  val encoding: String         = "utf-8"
+  val withHeader: Boolean      = true // skip when parser from csv lines
+  val ignoreEmptyLine: Boolean = false
+}
 
-/** @author
- *    梦境迷离
- *  @version 1.0,2022/4/29
- */
-case class CsvLine2(key: String, value: Option[String])
+trait DefaultCsvFormat extends CsvFormat {
+  val delimiter: Char        = ','
+  val escapeChar: Char       = '"'
+  val lineTerminator: String = "\n"
+}
 
-object CsvLine2 {
-
-  implicit val customFormat = new DefaultCsvFormat {
-    override val delimiter: Char = ' '
-  }
-  implicit val lineCsvConverter: Converter[CsvLine2] = DeriveCsvConverter.gen[CsvLine2]
+trait TsvFormat extends CsvFormat {
+  val delimiter: Char        = '\t'
+  val escapeChar: Char       = '\\'
+  val lineTerminator: String = "\n"
 }
