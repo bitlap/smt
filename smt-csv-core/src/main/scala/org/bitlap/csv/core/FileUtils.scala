@@ -45,25 +45,44 @@ object FileUtils {
         resource.close()
       }
 
-  def writer(file: File, lines: List[String]): Boolean = {
+  def writer(file: File, lines: List[String], format: CsvFormat): Boolean = {
     checkFile(file)
-    val bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file))
+    val bufferedWriter = new BufferedWriter(
+      new OutputStreamWriter(new FileOutputStream(file, format.append), format.encoding)
+    )
     try
-      using(new PrintWriter(bufferedOutputStream, true)) { r =>
-        lines.foreach(r.println)
+      using(new PrintWriter(bufferedWriter, true)) { r =>
+        lines.zipWithIndex.foreach { case (line, index) =>
+          if (format.ignoreEmptyLines && line.isEmpty) {} else if (format.headerRow.nonEmpty && index == 0) {
+            r.println(format.headerRow.mkString(format.delimiter.toString))
+            r.println(line)
+          } else {
+            r.println(line)
+          }
+        }
       }
-    finally bufferedOutputStream.close()
+    finally bufferedWriter.close()
     true
   }
 
-  def reader(file: InputStream, charset: String = "UTF-8"): List[String] =
+  // TODO read url
+  def reader(file: InputStream, format: CsvFormat): List[String] =
     try
-      using(Source.fromInputStream(new BufferedInputStream(file), charset)) { lines =>
-        lines.getLines().toList
+      using(Source.fromInputStream(file, format.encoding)) { lines =>
+        val ls = if (format.ignoreHeader) {
+          lines.getLines().toList.tail
+        } else {
+          lines.getLines().toList
+        }
+        if (format.ignoreEmptyLines) {
+          ls.filter(_.nonEmpty)
+        } else {
+          ls
+        }
       }
     finally file.close()
 
-  def checkFile(file: File): Unit = {
+  private def checkFile(file: File): Unit = {
     if (file.isDirectory) {
       throw new Exception(s"File path: $file is a directory.")
     }

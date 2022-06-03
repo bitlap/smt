@@ -25,10 +25,26 @@ trait CsvFormat extends Serializable {
   val delimiter: Char
   val escapeChar: Char
   val lineTerminator: String
-  val append: Boolean          = false
-  val encoding: String         = "utf-8"
-  val withHeader: Boolean      = true // skip when parser from csv lines
-  val ignoreEmptyLine: Boolean = false
+
+  /** Mode for writing string into files.
+   */
+  val append: Boolean = false
+
+  /** Character encoding of the file.
+   */
+  val encoding: String = "utf-8"
+
+  /** Write the column name in the first row.
+   */
+  val headerRow: List[String] = Nil
+
+  /** Ignore the first row when reading from file.
+   */
+  val ignoreHeader: Boolean = false
+
+  /** Ignore empty lines when reading, or ignore empty strings when writing.
+   */
+  val ignoreEmptyLines: Boolean = false
 }
 
 trait DefaultCsvFormat extends CsvFormat {
