@@ -36,13 +36,13 @@ trait CsvFormat extends Serializable {
 
   /** Write the column name in the first row.
    */
-  def headerRow: List[String] = Nil
+  def prependHeader: List[String] = Nil
 
   /** Ignore the first row when reading from file.
    */
   def ignoreHeader: Boolean = false
 
-  /** Ignore empty lines when reading, or ignore empty strings when writing.
+  /** Ignore empty lines when reading and ignore empty strings when writing.
    */
   def ignoreEmptyLines: Boolean = false
 }
