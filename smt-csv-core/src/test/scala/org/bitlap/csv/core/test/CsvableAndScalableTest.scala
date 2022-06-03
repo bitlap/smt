@@ -22,6 +22,7 @@
 package org.bitlap.csv.core.test
 
 import org.bitlap.csv.core.StringUtils
+import org.bitlap.csv.core.DefaultCsvFormat
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -301,6 +302,39 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       .convertTo(metrics.filter(_.isDefined).map(_.get), file)
 
     file.delete()
+  }
+
+  "CsvableAndScalable9" should "ok when use custom format" in {
+    implicit val format = new DefaultCsvFormat {
+      override val ignoreEmptyLines: Boolean = true
+      override val ignoreHeader: Boolean     = true
+    }
+    val metrics =
+      ScalableBuilder[Metric2]
+        .setField[Seq[Dimension3]](
+          _.dimensions,
+          dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+        )
+        .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data_header.csv"))
+
+    println(metrics)
+    assert(metrics.nonEmpty)
+
+    val file = new File("./simple_data_header.csv")
+    // NOTE: not support pass anonymous objects to convertTo method.
+    val format2 = new DefaultCsvFormat {
+      override val ignoreEmptyLines: Boolean = true
+      override val ignoreHeader: Boolean     = true
+      override val headerRow: List[String]   = List("time", "entity", "dimensions", "metricName", "metricValue")
+    }
+    CsvableBuilder[Metric2]
+      .setField[Seq[Dimension3]](
+        _.dimensions,
+        ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+      )
+      .convertTo(metrics.filter(_.isDefined).map(_.get), file)(format2)
+
+    //    file.delete()
   }
 
 }

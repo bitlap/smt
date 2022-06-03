@@ -26,6 +26,7 @@ import org.bitlap.csv.core.ScalableBuilder
 import java.io.InputStream
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
+import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -34,7 +35,6 @@ import scala.reflect.macros.whitebox
 class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
-  import org.bitlap.csv.core.CsvFormat
 
   private val annoBuilderPrefix = "_AnonScalableBuilder$"
 
