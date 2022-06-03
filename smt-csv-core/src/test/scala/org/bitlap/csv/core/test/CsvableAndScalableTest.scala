@@ -323,9 +323,8 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     val file = new File("./simple_data_header.csv")
     // NOTE: not support pass anonymous objects to convertTo method.
     val format2 = new DefaultCsvFormat {
-      override val ignoreEmptyLines: Boolean = true
-      override val ignoreHeader: Boolean     = true
-      override val headerRow: List[String]   = List("time", "entity", "dimensions", "metricName", "metricValue")
+      override val ignoreEmptyLines: Boolean   = true
+      override val prependHeader: List[String] = List("time", "entity", "dimensions", "metricName", "metricValue")
     }
     CsvableBuilder[Metric2]
       .setField[Seq[Dimension3]](

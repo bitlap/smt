@@ -53,8 +53,8 @@ object FileUtils {
     try
       using(new PrintWriter(bufferedWriter, true)) { r =>
         lines.zipWithIndex.foreach { case (line, index) =>
-          if (format.ignoreEmptyLines && line.isEmpty) {} else if (format.headerRow.nonEmpty && index == 0) {
-            r.println(format.headerRow.mkString(format.delimiter.toString))
+          if (format.ignoreEmptyLines && line.isEmpty) {} else if (format.prependHeader.nonEmpty && index == 0) {
+            r.println(format.prependHeader.mkString(format.delimiter.toString))
             r.println(line)
           } else {
             r.println(line)
