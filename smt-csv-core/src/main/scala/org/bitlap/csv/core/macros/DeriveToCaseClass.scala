@@ -22,6 +22,7 @@
 package org.bitlap.csv.core.macros
 
 import scala.reflect.macros.blackbox
+import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -29,14 +30,14 @@ import scala.reflect.macros.blackbox
  */
 object DeriveToCaseClass {
 
-  def apply[T <: Product](line: String, columnSeparator: Char): Option[T] = macro Macro.macroImpl[T]
+  def apply[T <: Product](line: String)(implicit format: CsvFormat): Option[T] = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
     // scalafmt: { maxColumn = 400 }
-    def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String], columnSeparator: c.Expr[Char]): c.Expr[Option[T]] = {
+    def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String])(format: c.Expr[CsvFormat]): c.Expr[Option[T]] = {
       val clazzName         = c.weakTypeOf[T].typeSymbol.name
       val innerFuncTermName = TermName("_columns")
       val fields = (columnsFunc: TermName) =>
@@ -45,13 +46,13 @@ object DeriveToCaseClass {
           idxType._2 match {
             case t if t <:< typeOf[Option[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
+              tryOption(q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)")
             case t if t <:< typeOf[List[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues).getOrElse(Nil)"
+              tryOptionGetOrElse(q"$packageName.Converter[List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
             case t if t <:< typeOf[Seq[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues).getOrElse(Nil)"
+              tryOptionGetOrElse(q"$packageName.Converter[Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
             case t =>
               val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
               t match {
@@ -74,13 +75,13 @@ object DeriveToCaseClass {
                 case tt if tt =:= typeOf[Long] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
                 case _ =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(null)"
+                  tryOptionGetOrElse(q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues)", q"null")
               }
           }
         }
       val tree =
         q"""
-           lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
+           lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
            Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)

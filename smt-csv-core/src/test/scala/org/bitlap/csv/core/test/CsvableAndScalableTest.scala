@@ -22,6 +22,7 @@
 package org.bitlap.csv.core.test
 
 import org.bitlap.csv.core.StringUtils
+import org.bitlap.csv.core.DefaultCsvFormat
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -74,7 +75,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
               kvs.map(kv => Dimension3(kv._1, kv._2)).toList
             }
           )
-          .convert(csv, ',')
+          .convert(csv)
       )
 
     println(metrics)
@@ -89,7 +90,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
           (ds: List[Dimension3]) =>
             s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
         )
-        .convert(metric.get, ',')
+        .convert(metric.get)
     )
 
     println(csv)
@@ -116,7 +117,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
               kvs.map(kv => Dimension3(kv._1, kv._2)).toSeq
             }
           )
-          .convert(csv, ',')
+          .convert(csv)
       )
 
     println(metrics)
@@ -197,83 +198,6 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     println(csv)
   }
 
-  "CsvableAndScalable7" should "ok macro expose code" in {
-    // to scala
-    lazy val _ScalableBuilderFunction$dimensions: String => List[org.bitlap.csv.core.test.Dimension3] =
-      (dims: String) =>
-        org.bitlap.csv.core.StringUtils.extractJsonValues[org.bitlap.csv.core.test.Dimension3](dims)(
-          (k: String, v: String) => Dimension3.apply(k, v)
-        );
-    object _ScalaAnno$1 extends _root_.org.bitlap.csv.core.Scalable[Metric2] {
-      var _line: String    = _;
-      private val _columns = () => _root_.org.bitlap.csv.core.StringUtils.splitColumns(_ScalaAnno$1._line, ',');
-
-      override def _toScala(column: String): Option[Metric2] = Option(
-        Metric2(
-          _root_.org.bitlap.csv.core.Scalable[Long]._toScala(_columns()(0)).getOrElse(0L),
-          _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(1)).getOrElse(0),
-          _ScalableBuilderFunction$dimensions
-            .apply(_columns()(2))
-            .asInstanceOf[Seq[org.bitlap.csv.core.test.Dimension3]],
-          _root_.org.bitlap.csv.core.Scalable[String]._toScala(_columns()(3)).getOrElse(""),
-          _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(4)).getOrElse(0)
-        )
-      )
-    };
-    lazy val _scalableInstance = _ScalaAnno$1;
-    val metrics = scala.Predef
-      .wrapRefArray[String](CsvableAndScalableTest.this.csvData.split("\n"))
-      .toList
-      .map { (_l: String) =>
-        _scalableInstance._line = _l;
-        _scalableInstance._toScala(_l)
-      }
-
-    metrics.foreach(println)
-
-    // to csv
-    lazy val _CsvableBuilderFunction$dimensions: Seq[org.bitlap.csv.core.test.Dimension3] => String =
-      (ds: Seq[org.bitlap.csv.core.test.Dimension3]) =>
-        "\"{"
-          .+(
-            ds.map[String]((kv: org.bitlap.csv.core.test.Dimension3) =>
-              "\"\"".+(kv.key).+("\"\":\"\"").+(kv.value).+("\"\""): String
-            ).mkString(",")
-          )
-          .+("}\""): String;
-    object _CsvAnno$2 extends _root_.org.bitlap.csv.core.Csvable[Metric2] {
-      var _tt: Metric2 = _;
-      lazy private val toCsv = (temp: Metric2) => {
-        val fields = Metric2.unapply(temp).orNull;
-        if (null.$eq$eq(fields))
-          ""
-        else
-          scala.collection.immutable
-            .List(
-              _root_.org.bitlap.csv.core.Csvable[Long]._toCsvString(temp.time),
-              _root_.org.bitlap.csv.core.Csvable[Int]._toCsvString(temp.entity),
-              _CsvableBuilderFunction$dimensions.apply(temp.dimensions),
-              _root_.org.bitlap.csv.core.Csvable[String]._toCsvString(temp.metricName),
-              _root_.org.bitlap.csv.core.Csvable[Int]._toCsvString(temp.metricValue)
-            )
-            .mkString(','.toString)
-      };
-
-      override def _toCsvString(t: Metric2): String = toCsv(_CsvAnno$2._tt)
-    };
-    lazy val _csvableInstance = _CsvAnno$2;
-    val csv = metrics
-      .filter((x$3: Option[org.bitlap.csv.core.test.Metric2]) => x$3.isDefined)
-      .map[org.bitlap.csv.core.test.Metric2]((x$4: Option[org.bitlap.csv.core.test.Metric2]) => x$4.get)
-      .map { (_t: Metric2) =>
-        _csvableInstance._tt = _t;
-        _csvableInstance._toCsvString(_t)
-      }
-      .mkString("\n")
-
-    println(csv)
-  }
-
   "CsvableAndScalable8" should "ok when reading from file" in {
     val metrics =
       ScalableBuilder[Metric2]
@@ -281,7 +205,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
         )
-        .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data.csv"), "utf-8")
+        .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data.csv"))
 
     println(metrics)
     assert(metrics.nonEmpty)
@@ -295,6 +219,43 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       .convertTo(metrics.filter(_.isDefined).map(_.get), file)
 
     file.delete()
+  }
+
+  "CsvableAndScalable9" should "ok when use custom format" in {
+    implicit val format = new DefaultCsvFormat {
+      override val ignoreEmptyLines: Boolean   = true
+      override val ignoreHeader: Boolean       = true
+      override val prependHeader: List[String] = List("time", "entity", "dimensions", "metricName", "metricValue")
+    }
+    val metrics =
+      ScalableBuilder[Metric2]
+        .setField[Seq[Dimension3]](
+          _.dimensions,
+          dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
+        )
+        .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data_header.csv"))
+
+    println(metrics)
+    assert(metrics.nonEmpty)
+
+    val file = new File("./simple_data_header.csv")
+    CsvableBuilder[Metric2]
+      .setField[Seq[Dimension3]](
+        _.dimensions,
+        ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+      ) // NOTE: not support pass anonymous object to convertTo method.
+      .convertTo(metrics.filter(_.isDefined).map(_.get), file)
+    file.delete()
+  }
+
+  "CsvableAndScalable10" should "failure if not setField" in {
+    """
+      |val metrics = ScalableBuilder[Metric].convert(csvData.split("\n").toList)
+      |val csv = CsvableBuilder[Metric].convert(metrics.filter(_.isDefined).map(_.get))
+      |
+      |val metrics2 = ScalableBuilder[Metric2].convert(csvData.split("\n").toList)
+      |val csv2 = CsvableBuilder[Metric2].convert(metrics2.filter(_.isDefined).map(_.get))
+      |""".stripMargin shouldNot compile
   }
 
 }

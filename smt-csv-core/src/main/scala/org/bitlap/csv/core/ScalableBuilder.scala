@@ -49,39 +49,32 @@ class ScalableBuilder[T] {
    *
    *  @param line
    *    One CSV line.
-   *  @param columnSeparator
-   *    The separator for CSV column value.
+   *  @param format
+   *    For processing CSV in the specified format.
    *  @return
    */
-  def convert(line: String, columnSeparator: Char): Option[T] = macro DeriveScalableBuilder.convertOneImpl[T]
-
-  /** Make columnSeparator assign to `,` as default value.
-   */
-  def convert(line: String): Option[T] = macro DeriveScalableBuilder.convertOneDefaultImpl[T]
+  def convert(line: String)(implicit format: CsvFormat): Option[T] = macro DeriveScalableBuilder.convertOneImpl[T]
 
   /** Convert all CSV lines to the sequence of Scala case class.
    *
    *  @param lines
    *    All CSV lines.
-   *  @param columnSeparator
-   *    The separator for CSV column value.
+   *  @param format
+   *    For processing CSV in the specified format.
    *  @return
    */
-  def convert(lines: List[String], columnSeparator: Char): List[Option[T]] = macro DeriveScalableBuilder.convertImpl[T]
-
-  /** Make columnSeparator assign to `,` as default value.
-   */
-  def convert(lines: List[String]): List[Option[T]] = macro DeriveScalableBuilder.convertDefaultImpl[T]
+  def convert(lines: List[String])(implicit format: CsvFormat): List[Option[T]] =
+    macro DeriveScalableBuilder.convertAllImpl[T]
 
   /** Read all CSV lines of the file and convert them to the sequence of Scala case class.
    *
    *  @param file
    *    InputStream of the CSV file.
-   *  @param charset
-   *    String charset of the CSV file content.
+   *  @param format
+   *    For processing CSV in the specified format. Passing anonymous objects is not supported.
    *  @return
    */
-  def convertFrom(file: InputStream, charset: String): List[Option[T]] =
+  def convertFrom(file: InputStream)(implicit format: CsvFormat): List[Option[T]] =
     macro DeriveScalableBuilder.convertFromFileImpl[T]
 
 }

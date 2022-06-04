@@ -25,6 +25,7 @@ import org.bitlap.csv.core.Converter
 import org.bitlap.csv.core.macros.AbstractMacroProcessor
 
 import scala.reflect.macros.blackbox
+import org.bitlap.csv.core.CsvFormat
 
 /** This is a tool macro for automatic derivation of the base CSV converter.
  *
@@ -34,30 +35,25 @@ import scala.reflect.macros.blackbox
  */
 object DeriveCsvConverter {
 
-  def gen[CC]: Converter[CC] = macro Macro.macroImpl[CC]
-
-  def gen[CC](columnSeparator: Char): Converter[CC] = macro Macro.macroImplWithColumnSeparator[CC]
+  def gen[CC](implicit csvFormat: CsvFormat): Converter[CC] = macro Macro.macroImpl[CC]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
+    import c.universe._
 
-    def macroImplWithColumnSeparator[CC: c.WeakTypeTag](columnSeparator: c.Expr[Char]): c.Expr[CC] = {
-      import c.universe._
+    private val lineTermName = TermName("line")
+    private val tTermName    = TermName("t")
+
+    def macroImpl[CC: c.WeakTypeTag](csvFormat: c.Expr[CsvFormat]): c.Expr[CC] = {
       val clazzName = c.weakTypeOf[CC].typeSymbol.name
       val typeName  = TypeName(clazzName.decodedName.toString)
       val tree =
         q"""
         new Converter[$typeName] {
-            override def toScala(line: String): Option[$typeName] = org.bitlap.csv.core.macros.DeriveToCaseClass[$typeName](line, $columnSeparator)
-            override def toCsvString(t: $typeName): String = org.bitlap.csv.core.macros.DeriveToString[$typeName](t, $columnSeparator)
+            override def toScala($lineTermName: String): Option[$typeName] = $packageName.macros.DeriveToCaseClass[$typeName]($lineTermName)($csvFormat)
+            override def toCsvString($tTermName: $typeName): String = $packageName.macros.DeriveToString[$typeName]($tTermName)($csvFormat)
         }
        """
       exprPrintTree[CC](force = false, tree)
-    }
-
-    def macroImpl[CC: c.WeakTypeTag]: c.Expr[CC] = {
-      import c.universe._
-      val columnSeparator = ','
-      macroImplWithColumnSeparator[CC](c.Expr[Char](q"$columnSeparator"))
     }
   }
 }

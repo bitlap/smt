@@ -22,6 +22,7 @@
 package org.bitlap.csv.core.macros
 
 import scala.reflect.macros.blackbox
+import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -29,13 +30,13 @@ import scala.reflect.macros.blackbox
  */
 object DeriveToString {
 
-  def apply[T <: Product](t: T, columnSeparator: Char): String = macro Macro.macroImpl[T]
+  def apply[T <: Product](t: T)(implicit csvFormat: CsvFormat): String = macro Macro.macroImpl[T]
 
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
 
-    def macroImpl[T: c.WeakTypeTag](t: c.Expr[T], columnSeparator: c.Expr[Char]): c.Expr[String] = {
+    def macroImpl[T: c.WeakTypeTag](t: c.Expr[T])(csvFormat: c.Expr[CsvFormat]): c.Expr[String] = {
       val (names, indexTypes) = super.checkCaseClassZip[T]
       val clazzName           = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName    = TermName("_t")
@@ -61,12 +62,12 @@ object DeriveToString {
           }
         }
       }
-      val separator = q"$columnSeparator"
       val tree =
         q"""
         val $innerVarTermName = $t    
         val fields = ${TermName(clazzName.decodedName.toString)}.unapply($innerVarTermName).orNull
-        if (null == fields) "" else $fieldsToString.mkString($separator.toString)
+        val values = if (null == fields) List.empty else $fieldsToString
+        $packageName.StringUtils.combineColumns(values, $csvFormat)
        """
       exprPrintTree[String](force = false, tree)
     }

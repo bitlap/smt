@@ -19,22 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.derive.test
-
-import org.bitlap.csv.core.Converter
-import org.bitlap.csv.derive.DeriveCsvConverter
-import org.bitlap.csv.core.DefaultCsvFormat
+package org.bitlap.csv
 
 /** @author
  *    梦境迷离
- *  @version 1.0,2022/4/29
+ *  @version 1.0,6/2/22
  */
-case class CsvLine2(key: String, value: Option[String])
+package object core {
 
-object CsvLine2 {
+  implicit val defaultCsvFormat: CsvFormat = new DefaultCsvFormat {}
 
-  implicit val customFormat = new DefaultCsvFormat {
-    override val delimiter: Char = ' '
-  }
-  implicit val lineCsvConverter: Converter[CsvLine2] = DeriveCsvConverter.gen[CsvLine2]
 }

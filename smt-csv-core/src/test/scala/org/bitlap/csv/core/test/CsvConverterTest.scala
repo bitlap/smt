@@ -54,13 +54,12 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
 
   "CsvConverter3" should "failed when case class currying" in {
     """
-      | case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float)( h: Double)
+      | case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float)(h: Double)
       |    object Dimension {
-      |      implicit def dimensionCsvConverter: CsvConverter[Dimension] = new CsvConverter[Dimension] {
-      |        override def toScala(line: String): Option[Dimension] = Option(DeriveCaseClassBuilder[Dimension](line, ","))
-      |        override def toCsvString(t: Dimension): String = DeriveStringBuilder[Dimension](t)
-      |      }
-      |
+      |       implicit val dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
+      |          override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line)
+      |          override def toCsvString(t: Dimension): String = DeriveToString[Dimension](t)
+      |       }
       |    }
       |""".stripMargin shouldNot compile
   }
@@ -91,6 +90,14 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
 
   "CsvConverter6" should "ok when using json value" in {
     val line      = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
+    val dimension = Converter[Dimension].toScala(line)
+    println(dimension)
+    assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
+  }
+
+  "CsvConverter7" should "get None when error" in {
+    // xxx should be Boolean, but failure, can get false
+    val line      = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,xxx,0.1,0.23333"""
     val dimension = Converter[Dimension].toScala(line)
     println(dimension)
     assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")

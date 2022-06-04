@@ -26,6 +26,7 @@ import org.bitlap.csv.core.ScalableBuilder
 import java.io.InputStream
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
+import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -57,29 +58,19 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   def applyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
-  def convertOneImpl[T: WeakTypeTag](line: Expr[String], columnSeparator: Expr[Char]): Expr[Option[T]] = {
+  def convertOneImpl[T: WeakTypeTag](line: Expr[String])(format: c.Expr[CsvFormat]): Expr[Option[T]] = {
     val clazzName = resolveClazzTypeName[T]
-    deriveScalableImpl[T](clazzName, line, columnSeparator)
+    deriveScalableImpl[T](clazzName, line, format)
   }
 
-  def convertImpl[T: WeakTypeTag](lines: Expr[List[String]], columnSeparator: Expr[Char]): Expr[List[Option[T]]] = {
+  def convertAllImpl[T: WeakTypeTag](lines: Expr[List[String]])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
     val clazzName = resolveClazzTypeName[T]
-    deriveFullScalableImpl[T](clazzName, lines, columnSeparator)
+    deriveFullScalableImpl[T](clazzName, lines, format)
   }
 
-  def convertDefaultImpl[T: WeakTypeTag](lines: Expr[List[String]]): Expr[List[Option[T]]] = {
+  def convertFromFileImpl[T: WeakTypeTag](file: Expr[InputStream])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
     val clazzName = resolveClazzTypeName[T]
-    deriveFullScalableImpl[T](clazzName, lines, c.Expr[Char](q"','"))
-  }
-
-  def convertOneDefaultImpl[T: WeakTypeTag](line: Expr[String]): Expr[Option[T]] = {
-    val clazzName = resolveClazzTypeName[T]
-    deriveScalableImpl[T](clazzName, line, c.Expr[Char](q"','"))
-  }
-
-  def convertFromFileImpl[T: WeakTypeTag](file: Expr[InputStream], charset: Expr[String]): Expr[List[Option[T]]] = {
-    val clazzName = resolveClazzTypeName[T]
-    deriveFullFromFileScalableImpl[T](clazzName, file, charset, c.Expr[Char](q"','"))
+    deriveFullFromFileScalableImpl[T](clazzName, file, format)
   }
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] = {
@@ -106,13 +97,13 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveFullFromFileScalableImpl[T: WeakTypeTag](clazzName: TypeName, file: Expr[InputStream], charset: Expr[String], columnSeparator: Expr[Char]): Expr[List[Option[T]]] = {
+  private def deriveFullFromFileScalableImpl[T: WeakTypeTag](clazzName: TypeName, file: Expr[InputStream], format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
     // NOTE: preTrees must be at the same level as Scalable
     val tree =
       q"""
          ..$getPreTree
-         ..${getAnnoClassObject[T](clazzName, columnSeparator)}
-         $packageName.FileUtils.reader($file, $charset).map { ($innerLName: String) =>
+         ..${getAnnoClassObject[T](clazzName, format)}
+         $packageName.FileUtils.reader($file, $format).map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
              $scalableInstanceTermName._toScala($innerLName) 
          }
@@ -121,12 +112,12 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveFullScalableImpl[T: WeakTypeTag](clazzName: TypeName, lines: Expr[List[String]], columnSeparator: Expr[Char]): Expr[List[Option[T]]] = {
+  private def deriveFullScalableImpl[T: WeakTypeTag](clazzName: TypeName, lines: Expr[List[String]], format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
     // NOTE: preTrees must be at the same level as Scalable
     val tree =
       q"""
          ..$getPreTree
-         ..${getAnnoClassObject[T](clazzName, columnSeparator)}
+         ..${getAnnoClassObject[T](clazzName, format)}
          $lines.map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
              $scalableInstanceTermName._toScala($innerLName) 
@@ -135,12 +126,12 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     exprPrintTree[List[Option[T]]](force = false, tree)
   }
 
-  private def getAnnoClassObject[T: WeakTypeTag](clazzName: TypeName, columnSeparator: Expr[Char]): Tree = {
+  private def getAnnoClassObject[T: WeakTypeTag](clazzName: TypeName, format: c.Expr[CsvFormat]): Tree = {
     val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
     q"""
        object $annoClassName extends $packageName.Scalable[$clazzName] {
            var $innerTempTermName: String = _
-           private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns(${annoClassName.toTermName}.$innerTempTermName, $columnSeparator)
+           private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns(${annoClassName.toTermName}.$innerTempTermName, $format)
             ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
        }
        private final lazy val $scalableInstanceTermName = $annoClassName
@@ -148,14 +139,14 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveScalableImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], columnSeparator: Expr[Char]): Expr[Option[T]] = {
+  private def deriveScalableImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], format: c.Expr[CsvFormat]): Expr[Option[T]] = {
     val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
     // NOTE: preTrees must be at the same level as Scalable
     val tree =
       q"""
          ..$getPreTree
          object $annoClassName extends $packageName.Scalable[$clazzName] {
-            final lazy private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns($line, $columnSeparator)
+            final lazy private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
             ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
          }
          $annoClassName._toScala($line)
@@ -177,7 +168,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[List[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[List[$genericType]]"
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[List[$genericType]]", q"Nil")
           } else {
             c.abort(
               c.enclosingPosition,
@@ -188,7 +179,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[Seq[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[Seq[$genericType]]"
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[Seq[$genericType]]", q"Nil")
           } else {
             c.abort(
               c.enclosingPosition,
@@ -199,13 +190,13 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[Option[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[Option[$genericType]]"
+            tryOption(q"${customFunction()}.asInstanceOf[Option[$genericType]]")
           } else {
-            q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
+            tryOption(q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)")
           }
         case _ =>
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[$fieldTypeName]"
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[$fieldTypeName]", getDefaultValue(idxType._2))
           } else {
             idxType._2 match {
               case t if t =:= typeOf[Int] =>
@@ -227,13 +218,14 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
               case t if t =:= typeOf[Long] =>
                 q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
               case _ =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(null)"
+                tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues)", q"null")
             }
           }
       }
     }
 
     // input args not need used
-    q"override def _toScala(column: String): Option[$clazzName] = Option(${TermName(clazzName.decodedName.toString)}(..$fields))"
+    q"""override def _toScala(column: String): Option[$clazzName] = 
+       ${tryOption(q"Option(${TermName(clazzName.decodedName.toString)}(..$fields))")}"""
   }
 }

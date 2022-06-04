@@ -49,30 +49,23 @@ class CsvableBuilder[T] {
    *
    *  @param t
    *    The value of Scala case class.
-   *  @param columnSeparator
-   *    The separator for CSV column value.
+   *  @param format
+   *    For processing CSV in the specified format.
    *  @return
+   *    The string of one CSV line.
    */
-  def convert(t: T, columnSeparator: Char): String = macro DeriveCsvableBuilder.convertOneImpl[T]
-
-  /** Make columnSeparator assign to `,` as default value.
-   */
-  def convert(t: T): String = macro DeriveCsvableBuilder.convertOneDefaultImpl[T]
+  def convert(t: T)(implicit format: CsvFormat): String = macro DeriveCsvableBuilder.convertOneImpl[T]
 
   /** Convert the sequence of Scala case class to CSV string.
    *
    *  @param ts
    *    The sequence of Scala case class.
-   *  @param columnSeparator
-   *    The separator for CSV column value.
+   *  @param format
+   *    For processing CSV in the specified format.
    *  @return
-   *    It combines CSV lines by '\n'.
+   *    The string of all CSV lines.
    */
-  def convert(ts: List[T], columnSeparator: Char): String = macro DeriveCsvableBuilder.convertImpl[T]
-
-  /** Make columnSeparator assign to `,` as default value.
-   */
-  def convert(ts: List[T]): String = macro DeriveCsvableBuilder.convertDefaultImpl[T]
+  def convert(ts: List[T])(implicit format: CsvFormat): String = macro DeriveCsvableBuilder.convertAllImpl[T]
 
   /** Convert the sequence of Scala case class to CSV string and write to file.
    *
@@ -80,9 +73,13 @@ class CsvableBuilder[T] {
    *    The sequence of Scala case class.
    *  @param file
    *    File to save CSV string.
+   *  @param format
+   *    For processing CSV in the specified format. Passing anonymous objects is not supported.
    *  @return
+   *    The string of all CSV lines.
    */
-  def convertTo(ts: List[T], file: File): Boolean = macro DeriveCsvableBuilder.convertToFileImpl[T]
+  def convertTo(ts: List[T], file: File)(implicit format: CsvFormat): Boolean =
+    macro DeriveCsvableBuilder.convertToFileImpl[T]
 
 }
 
