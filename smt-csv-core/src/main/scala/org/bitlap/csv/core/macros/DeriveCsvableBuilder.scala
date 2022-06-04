@@ -26,6 +26,7 @@ import org.bitlap.csv.core.CsvableBuilder
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
 import java.io.File
+import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -57,20 +58,14 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   def applyImpl[T: WeakTypeTag]: Expr[CsvableBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
-  def convertOneDefaultImpl[T: WeakTypeTag](t: Expr[T]): Expr[String] =
-    deriveCsvableImpl[T](t, c.Expr[Char](q"','"))
+  def convertOneImpl[T: WeakTypeTag](t: Expr[T])(format: c.Expr[CsvFormat]): Expr[String] =
+    deriveCsvableImpl[T](t, format)
 
-  def convertOneImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[String] =
-    deriveCsvableImpl[T](t, columnSeparator)
+  def convertAllImpl[T: WeakTypeTag](ts: Expr[List[T]])(format: c.Expr[CsvFormat]): Expr[String] =
+    deriveFullCsvableImpl[T](ts, format)
 
-  def convertImpl[T: WeakTypeTag](ts: Expr[List[T]], columnSeparator: Expr[Char]): Expr[String] =
-    deriveFullCsvableImpl[T](ts, columnSeparator)
-
-  def convertDefaultImpl[T: WeakTypeTag](ts: Expr[List[T]]): Expr[String] =
-    deriveFullCsvableImpl[T](ts, c.Expr[Char](q"','"))
-
-  def convertToFileImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File]): Expr[Boolean] =
-    deriveFullIntoFileCsvableImpl[T](ts, file, c.Expr[Char](q"','"))
+  def convertToFileImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File])(format: c.Expr[CsvFormat]): Expr[Boolean] =
+    deriveFullIntoFileCsvableImpl[T](ts, file, format)
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[CsvableBuilder[T]] = {
     val className     = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
@@ -96,48 +91,50 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveFullIntoFileCsvableImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File], columnSeparator: Expr[Char]): Expr[Boolean] = {
+  private def deriveFullIntoFileCsvableImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File], format: c.Expr[CsvFormat]): Expr[Boolean] = {
     val clazzName               = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
-    val tree = q"""
+    val tree =
+      q"""
          ..$preTrees
-         ..${getAnnoClassObject[T](customTrees, columnSeparator)}
+         ..${getAnnoClassObject[T](customTrees, format)}
          $packageName.FileUtils.writer($file, $ts.map { ($innerTName: $clazzName) =>
                $csvableInstanceTermName.$innerTmpTermName = $innerTName
                $csvableInstanceTermName._toCsvString($innerTName)
-           }
+           }, $format
          )
       """
     exprPrintTree[Boolean](force = false, tree)
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveFullCsvableImpl[T: WeakTypeTag](ts: Expr[List[T]], columnSeparator: Expr[Char]): Expr[String] = {
+  private def deriveFullCsvableImpl[T: WeakTypeTag](ts: Expr[List[T]], format: c.Expr[CsvFormat]): Expr[String] = {
     val clazzName               = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val tree =
       q"""
          ..$preTrees
-         ..${getAnnoClassObject[T](customTrees, columnSeparator)}
-         $ts.map { ($innerTName: $clazzName) =>
+         ..${getAnnoClassObject[T](customTrees, format)}
+         lazy val lines = $ts.map { ($innerTName: $clazzName) =>
              $csvableInstanceTermName.$innerTmpTermName = $innerTName
              $csvableInstanceTermName._toCsvString($innerTName)
-         }.mkString("\n")
+         }
+         $packageName.StringUtils.combineRows(lines, $format)
       """
     exprPrintTree[String](force = false, tree)
   }
 
-  private def getAnnoClassObject[T: WeakTypeTag](customTrees: mutable.Map[String, Any], columnSeparator: Expr[Char]): Tree = {
+  private def getAnnoClassObject[T: WeakTypeTag](customTrees: mutable.Map[String, Any], format: c.Expr[CsvFormat]): Tree = {
     val clazzName     = resolveClazzTypeName[T]
     val annoClassName = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
-    val separator     = q"$columnSeparator"
     q"""
        object $annoClassName extends $packageName.Csvable[$clazzName] {
            var $innerTmpTermName: $clazzName = _
            
            lazy private val toCsv = ($funcArgsTempTermName: $clazzName) => {
                 val fields = ${clazzName.toTermName}.unapply($funcArgsTempTermName).orNull
-                if (null == fields) "" else ${fieldsToString[T](funcArgsTempTermName, customTrees)}.mkString($separator.toString)
+                val values = if (null == fields) List.empty else ${fieldsToString[T](funcArgsTempTermName, customTrees)}
+                $packageName.StringUtils.combineColumns(values, $format)
            }
            override def _toCsvString(t: $clazzName): String = toCsv($annoClassName.$innerTmpTermName)
        }
@@ -146,12 +143,10 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
      """
   }
 
-  private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], columnSeparator: Expr[Char]): Expr[String] = {
+  private def deriveCsvableImpl[T: WeakTypeTag](t: Expr[T], format: c.Expr[CsvFormat]): Expr[String] = {
     val clazzName               = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val annoClassName           = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
-    val separator               = q"$columnSeparator"
-
     val tree =
       q"""
          ..$preTrees
@@ -160,7 +155,8 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
            
             override def _toCsvString(t: $clazzName): String = {
                 val fields = ${clazzName.toTermName}.unapply($innerTmpTermName).orNull
-                if (null == fields) "" else ${fieldsToString[T](innerTmpTermName, customTrees)}.mkString($separator.toString) 
+                val values = if (null == fields) List.empty else ${fieldsToString[T](innerTmpTermName, customTrees)}
+                $packageName.StringUtils.combineColumns(values, $format)
             }
          }
          $annoClassName._toCsvString($t)
@@ -202,7 +198,8 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
             // scalafmt: { maxColumn = 400 }
             q"""
               $packageName.Csvable[${genericType.typeSymbol.name.toTypeName}]._toCsvString {
-                if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(idxType._1)}.get
+                if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" 
+                else $innerVarTermName.${indexByName(idxType._1)}.get
               }
             """
           }

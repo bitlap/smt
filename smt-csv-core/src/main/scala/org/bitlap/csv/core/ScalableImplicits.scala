@@ -21,6 +21,8 @@
 
 package org.bitlap.csv.core
 
+import scala.util.Try
+
 /** @author
  *    梦境迷离
  *  @version 1.0,2022/5/1
@@ -32,30 +34,30 @@ trait ScalableImplicits {
   }
 
   implicit val intScalable: Scalable[Int] = new Scalable[Int] {
-    override def _toScala(column: String): Option[Int] = Option(column.toInt)
+    override def _toScala(column: String): Option[Int] = Try(column.toInt).toOption
   }
 
   implicit val charScalable: Scalable[Char] = new Scalable[Char] {
-    override def _toScala(column: String): Option[Char] = if (column.isEmpty) None else Some(column.charAt(0))
+    override def _toScala(column: String): Option[Char] = if (column.isEmpty) None else Try(column.charAt(0)).toOption
   }
 
   implicit val longScalable: Scalable[Long] = new Scalable[Long] {
-    override def _toScala(column: String): Option[Long] = Option(column.toLong)
+    override def _toScala(column: String): Option[Long] = Try(column.toLong).toOption
   }
 
   implicit val shortScalable: Scalable[Short] = new Scalable[Short] {
-    override def _toScala(column: String): Option[Short] = Option(column.toShort)
+    override def _toScala(column: String): Option[Short] = Try(column.toShort).toOption
   }
 
   implicit val doubleScalable: Scalable[Double] = new Scalable[Double] {
-    override def _toScala(column: String): Option[Double] = Option(column.toDouble)
+    override def _toScala(column: String): Option[Double] = Try(column.toDouble).toOption
   }
 
   implicit val floatScalable: Scalable[Float] = new Scalable[Float] {
-    override def _toScala(column: String): Option[Float] = Option(column.toFloat)
+    override def _toScala(column: String): Option[Float] = Try(column.toFloat).toOption
   }
 
   implicit val booleanScalable: Scalable[Boolean] = new Scalable[Boolean] {
-    override def _toScala(column: String): Option[Boolean] = Option(column.toBoolean)
+    override def _toScala(column: String): Option[Boolean] = Try(column.toBoolean).toOption
   }
 }

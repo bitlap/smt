@@ -27,6 +27,7 @@ import org.bitlap.csv.core.StringUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import java.io.{ BufferedReader, InputStreamReader }
+import org.bitlap.csv.core.defaultCsvFormat
 
 /** @author
  *    梦境迷离
@@ -36,7 +37,7 @@ class StringUtilsTest extends AnyFlatSpec with Matchers {
 
   "StringUtilsTest1" should "ok" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
-    val csv  = StringUtils.splitColumns(line, ',')
+    val csv  = StringUtils.splitColumns(line, defaultCsvFormat)
     println(csv)
     assert(csv.size == 8)
   }
