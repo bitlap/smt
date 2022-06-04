@@ -248,4 +248,11 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     file.delete()
   }
 
+  "CsvableAndScalable10" should "failure if not setField" in {
+    """
+      |val metrics = ScalableBuilder[Metric].convert(csvData.split("\n").toList)
+      |val csv = CsvableBuilder[Metric].convert(metrics.filter(_.isDefined).map(_.get))
+      |""".stripMargin shouldNot compile
+  }
+
 }

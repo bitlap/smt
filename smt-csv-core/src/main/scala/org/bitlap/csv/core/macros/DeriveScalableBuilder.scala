@@ -225,6 +225,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     }
 
     // input args not need used
-    q"override def _toScala(column: String): Option[$clazzName] = Option(${TermName(clazzName.decodedName.toString)}(..$fields))"
+    q"""override def _toScala(column: String): Option[$clazzName] = 
+       ${tryOption(q"Option(${TermName(clazzName.decodedName.toString)}(..$fields))")}"""
   }
 }
