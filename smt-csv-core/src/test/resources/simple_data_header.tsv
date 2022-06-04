@@ -1,0 +1,6 @@
+time entity dimensions metricName metricValue
+100 1 \\{"city":"北京","os":"Mac"}\\ vv 1
+100 1 \\{"city":"北京","os":"Mac"}\\ pv 2
+
+100 1 \\{"city":"北京","os":"Windows"}\\ vv 1
+100 1 \\{"city":"北京","os":"Windows"}\\ pv 3
