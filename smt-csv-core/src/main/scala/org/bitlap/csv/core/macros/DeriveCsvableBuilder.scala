@@ -115,10 +115,11 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
       q"""
          ..$preTrees
          ..${getAnnoClassObject[T](customTrees, format)}
-         $ts.map { ($innerTName: $clazzName) =>
+         lazy val lines = $ts.map { ($innerTName: $clazzName) =>
              $csvableInstanceTermName.$innerTmpTermName = $innerTName
              $csvableInstanceTermName._toCsvString($innerTName)
-         }.mkString($format.$lineTerminatorTermName.toString)
+         }
+         $packageName.StringUtils.combineRows(lines, $format)
       """
     exprPrintTree[String](force = false, tree)
   }
@@ -126,14 +127,14 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   private def getAnnoClassObject[T: WeakTypeTag](customTrees: mutable.Map[String, Any], format: c.Expr[CsvFormat]): Tree = {
     val clazzName     = resolveClazzTypeName[T]
     val annoClassName = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
-    val separator     = q"$format.$delimiterTermName"
     q"""
        object $annoClassName extends $packageName.Csvable[$clazzName] {
            var $innerTmpTermName: $clazzName = _
            
            lazy private val toCsv = ($funcArgsTempTermName: $clazzName) => {
                 val fields = ${clazzName.toTermName}.unapply($funcArgsTempTermName).orNull
-                if (null == fields) "" else ${fieldsToString[T](funcArgsTempTermName, customTrees)}.mkString($separator.toString)
+                val values = if (null == fields) List.empty else ${fieldsToString[T](funcArgsTempTermName, customTrees)}
+                $packageName.StringUtils.combineColumns(values, $format)
            }
            override def _toCsvString(t: $clazzName): String = toCsv($annoClassName.$innerTmpTermName)
        }
@@ -146,7 +147,6 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     val clazzName               = resolveClazzTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val annoClassName           = TermName(csvableImplClassNamePrefix + MacroCache.getIdentityId)
-    val separator               = q"$format.$delimiterTermName"
     val tree =
       q"""
          ..$preTrees
@@ -155,7 +155,8 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
            
             override def _toCsvString(t: $clazzName): String = {
                 val fields = ${clazzName.toTermName}.unapply($innerTmpTermName).orNull
-                if (null == fields) "" else ${fieldsToString[T](innerTmpTermName, customTrees)}.mkString($separator.toString) 
+                val values = if (null == fields) List.empty else ${fieldsToString[T](innerTmpTermName, customTrees)}
+                $packageName.StringUtils.combineColumns(values, $format)
             }
          }
          $annoClassName._toCsvString($t)

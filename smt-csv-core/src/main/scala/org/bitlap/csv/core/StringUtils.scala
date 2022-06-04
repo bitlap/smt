@@ -59,6 +59,20 @@ object StringUtils {
     kvs.toList.map(f => func(f._1, f._2))
   }
 
+  /** Using in macro impl
+   */
+  def combineColumns(values: List[String], format: CsvFormat): String =
+    if (values.isEmpty) ""
+    else values.mkString(format.delimiter.toString)
+
+  /** Using in macro impl
+   */
+  def combineRows(list: List[String], format: CsvFormat): String =
+    if (list.isEmpty) ""
+    else list.mkString(format.lineTerminator)
+
+  /** Using in macro impl
+   */
   def splitColumns(line: => String, format: CsvFormat): List[String] = {
     val listBuffer   = ListBuffer[String]()
     val columnBuffer = ListBuffer[Char]()

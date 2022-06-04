@@ -62,12 +62,12 @@ object DeriveToString {
           }
         }
       }
-      val separator = q"$csvFormat.$delimiterTermName"
       val tree =
         q"""
         val $innerVarTermName = $t    
         val fields = ${TermName(clazzName.decodedName.toString)}.unapply($innerVarTermName).orNull
-        if (null == fields) "" else $fieldsToString.mkString($separator.toString)
+        val values = if (null == fields) List.empty else $fieldsToString
+        $packageName.StringUtils.combineColumns(values, $csvFormat)
        """
       exprPrintTree[String](force = false, tree)
     }

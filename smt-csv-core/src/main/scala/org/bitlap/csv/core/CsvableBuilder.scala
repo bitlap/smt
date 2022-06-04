@@ -74,7 +74,7 @@ class CsvableBuilder[T] {
    *  @param file
    *    File to save CSV string.
    *  @param format
-   *    For processing CSV in the specified format.
+   *    For processing CSV in the specified format. Passing anonymous objects is not supported.
    *  @return
    *    The string of all CSV lines.
    */

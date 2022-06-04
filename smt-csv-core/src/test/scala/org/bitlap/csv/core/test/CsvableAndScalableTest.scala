@@ -198,89 +198,6 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     println(csv)
   }
 
-  "CsvableAndScalable7" should "ok macro expose code" in {
-    // TO SCALA
-    // These code are almost identical to the macro expansion code. Only some modification, in order to compile in the test
-    val metrics: List[Option[Metric2]] = Nil
-    lazy val _ScalableBuilderFunction$dimensions: String => List[org.bitlap.csv.core.test.Dimension3] =
-      (dims: String) =>
-        org.bitlap.csv.core.StringUtils.extractJsonValues[org.bitlap.csv.core.test.Dimension3](dims)(
-          (k: String, v: String) => Dimension3.apply(k, v)
-        );
-    object _ScalaAnno$10 extends _root_.org.bitlap.csv.core.Scalable[Metric2] {
-      var _line: String = _;
-      private val _columns = () =>
-        _root_.org.bitlap.csv.core.StringUtils.splitColumns(_ScalaAnno$10._line, org.bitlap.csv.core.defaultCsvFormat);
-
-      override def _toScala(column: String): Option[Metric2] = Option(
-        Metric2(
-          _root_.org.bitlap.csv.core.Scalable[Long]._toScala(_columns()(0)).getOrElse(0L),
-          _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(1)).getOrElse(0),
-          _ScalableBuilderFunction$dimensions
-            .apply(_columns()(2))
-            .asInstanceOf[Seq[org.bitlap.csv.core.test.Dimension3]],
-          _root_.org.bitlap.csv.core.Scalable[String]._toScala(_columns()(3)).getOrElse(""),
-          _root_.org.bitlap.csv.core.Scalable[Int]._toScala(_columns()(4)).getOrElse(0)
-        )
-      )
-    };
-    lazy val _scalableInstance = _ScalaAnno$10;
-    _root_.org.bitlap.csv.core.FileUtils
-      .reader(java.lang.ClassLoader.getSystemResourceAsStream("simple_data.csv"), org.bitlap.csv.core.defaultCsvFormat)
-      .map { (_l: String) =>
-        _scalableInstance._line = _l;
-        _scalableInstance._toScala(_l)
-      }
-
-    // TO CSV
-    val file = new File("./simple_data.csv")
-
-    lazy val _CsvableBuilderFunction$dimensions: Seq[org.bitlap.csv.core.test.Dimension3] => String =
-      (ds: Seq[org.bitlap.csv.core.test.Dimension3]) =>
-        ("\"{"
-          .+(
-            ds.map[String](
-              (
-                (kv: org.bitlap.csv.core.test.Dimension3) =>
-                  ("\"\"".+(kv.key).+("\"\":\"\"").+(kv.value).+("\"\""): String)
-              )
-            ).mkString(",")
-          )
-          .+("}\""): String);
-    object _CsvAnno$11 extends _root_.org.bitlap.csv.core.Csvable[Metric2] {
-      var _tt: Metric2 = _;
-      lazy private val toCsv = (temp: Metric2) => {
-        val fields = Metric2.unapply(temp).orNull;
-        if (null.$eq$eq(fields))
-          ""
-        else
-          scala.collection.immutable
-            .List(
-              _root_.org.bitlap.csv.core.Csvable[Long]._toCsvString(temp.time),
-              _root_.org.bitlap.csv.core.Csvable[Int]._toCsvString(temp.entity),
-              _CsvableBuilderFunction$dimensions.apply(temp.dimensions),
-              _root_.org.bitlap.csv.core.Csvable[String]._toCsvString(temp.metricName),
-              _root_.org.bitlap.csv.core.Csvable[Int]._toCsvString(temp.metricValue)
-            )
-            .mkString(org.bitlap.csv.core.defaultCsvFormat.delimiter.toString)
-      };
-
-      override def _toCsvString(t: Metric2): String = toCsv(_CsvAnno$11._tt)
-    };
-    lazy val _csvableInstance = _CsvAnno$11;
-    _root_.org.bitlap.csv.core.FileUtils.writer(
-      file,
-      metrics
-        .filter((x$18: Option[org.bitlap.csv.core.test.Metric2]) => x$18.isDefined)
-        .map[org.bitlap.csv.core.test.Metric2]((x$19: Option[org.bitlap.csv.core.test.Metric2]) => x$19.get)
-        .map { (_t: Metric2) =>
-          _csvableInstance._tt = _t;
-          _csvableInstance._toCsvString(_t)
-        },
-      org.bitlap.csv.core.defaultCsvFormat
-    )
-  }
-
   "CsvableAndScalable8" should "ok when reading from file" in {
     val metrics =
       ScalableBuilder[Metric2]
@@ -306,8 +223,9 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
 
   "CsvableAndScalable9" should "ok when use custom format" in {
     implicit val format = new DefaultCsvFormat {
-      override val ignoreEmptyLines: Boolean = true
-      override val ignoreHeader: Boolean     = true
+      override val ignoreEmptyLines: Boolean   = true
+      override val ignoreHeader: Boolean       = true
+      override val prependHeader: List[String] = List("time", "entity", "dimensions", "metricName", "metricValue")
     }
     val metrics =
       ScalableBuilder[Metric2]
@@ -321,19 +239,13 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.nonEmpty)
 
     val file = new File("./simple_data_header.csv")
-    // NOTE: not support pass anonymous objects to convertTo method.
-    val format2 = new DefaultCsvFormat {
-      override val ignoreEmptyLines: Boolean   = true
-      override val prependHeader: List[String] = List("time", "entity", "dimensions", "metricName", "metricValue")
-    }
     CsvableBuilder[Metric2]
       .setField[Seq[Dimension3]](
         _.dimensions,
         ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
-      )
-      .convertTo(metrics.filter(_.isDefined).map(_.get), file)(format2)
-
-    //    file.delete()
+      ) // NOTE: not support pass anonymous object to convertTo method.
+      .convertTo(metrics.filter(_.isDefined).map(_.get), file)
+    file.delete()
   }
 
 }

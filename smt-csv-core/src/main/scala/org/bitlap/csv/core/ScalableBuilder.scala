@@ -71,7 +71,7 @@ class ScalableBuilder[T] {
    *  @param file
    *    InputStream of the CSV file.
    *  @param format
-   *    For processing CSV in the specified format.
+   *    For processing CSV in the specified format. Passing anonymous objects is not supported.
    *  @return
    */
   def convertFrom(file: InputStream)(implicit format: CsvFormat): List[Option[T]] =

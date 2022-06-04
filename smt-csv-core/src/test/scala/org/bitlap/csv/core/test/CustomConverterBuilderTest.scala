@@ -24,6 +24,7 @@ package org.bitlap.csv.core.test
 import org.bitlap.csv.core.{ CsvableBuilder, ScalableBuilder }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.bitlap.csv.core.DefaultCsvFormat
 
 /** @author
  *    梦境迷离
@@ -78,7 +79,6 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
   }
 
   "CustomConverterBuilder4" should "ok when using toCsvString" in {
-    import org.bitlap.csv.core.DefaultCsvFormat
     val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
     val dimension1 = CsvableBuilder[Dimension2]
       .convert(e)
