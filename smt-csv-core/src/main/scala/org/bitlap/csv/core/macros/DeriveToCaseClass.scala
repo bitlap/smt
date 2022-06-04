@@ -46,13 +46,13 @@ object DeriveToCaseClass {
           idxType._2 match {
             case t if t <:< typeOf[Option[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)"
+              tryOption(q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)")
             case t if t <:< typeOf[List[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues).getOrElse(Nil)"
+              tryOptionGetOrElse(q"$packageName.Converter[List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
             case t if t <:< typeOf[Seq[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues).getOrElse(Nil)"
+              tryOptionGetOrElse(q"$packageName.Converter[Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
             case t =>
               val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
               t match {
@@ -75,7 +75,7 @@ object DeriveToCaseClass {
                 case tt if tt =:= typeOf[Long] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
                 case _ =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(null)"
+                  tryOptionGetOrElse(q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues)", q"null")
               }
           }
         }

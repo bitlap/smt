@@ -94,4 +94,12 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     println(dimension)
     assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
   }
+
+  "CsvConverter7" should "get None when error" in {
+    // xxx should be Boolean, but failure, can get false
+    val line      = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,xxx,0.1,0.23333"""
+    val dimension = Converter[Dimension].toScala(line)
+    println(dimension)
+    assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
+  }
 }

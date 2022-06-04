@@ -114,10 +114,6 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
 
   }
 
-  private val csv     = """100,1,"{""city"":""北京"",""os"":""Mac""}",vv,1"""
-  private val metric  = Metric(1, 2, Nil, "name", 2)
-  private val metric2 = Metric2(1, 2, Nil, "name", 2)
-
   "CustomConverterBuilder6" should "fail when find List or Seq but without using setFiled" in {
     """
       |ScalableBuilder[Metric2].convert(csv)
@@ -156,5 +152,21 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
       |    val t = Test(1)("hello")
       |    CsvableBuilder[Test].convert(t)
       |""".stripMargin shouldNot compile
+  }
+
+  "CustomConverterBuilder10" should "get None when error" in {
+    val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.0)
+    // aaa should be Double, but failure, can get 0.0D
+    val csv   = "1,hello,c,1,1,false,0.1,aaa"
+    val scala = ScalableBuilder[Dimension2].convert(csv)
+    println(scala)
+    assert(scala.get == e)
+
+    val scala2 = ScalableBuilder[Dimension2].setField(_.h, v => throw new Exception).convert(csv)
+    assert(scala2.get == e)
+
+    val scala3 = ScalableBuilder[Dimension2].setField(_.value, v => throw new Exception).convert(csv)
+
+    assert(scala3.get == Dimension2("1", None, 'c', 1L, 1, false, 0.1f, 0.0))
   }
 }

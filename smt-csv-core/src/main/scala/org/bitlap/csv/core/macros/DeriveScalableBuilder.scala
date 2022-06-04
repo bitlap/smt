@@ -168,7 +168,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[List[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[List[$genericType]]"
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[List[$genericType]]", q"Nil")
           } else {
             c.abort(
               c.enclosingPosition,
@@ -179,7 +179,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[Seq[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[Seq[$genericType]]"
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[Seq[$genericType]]", q"Nil")
           } else {
             c.abort(
               c.enclosingPosition,
@@ -190,13 +190,13 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[Option[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[Option[$genericType]]"
+            tryOption(q"${customFunction()}.asInstanceOf[Option[$genericType]]")
           } else {
-            q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
+            tryOption(q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)")
           }
         case _ =>
           if (customTrees.contains(fieldNames(idx))) {
-            q"${customFunction()}.asInstanceOf[$fieldTypeName]"
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[$fieldTypeName]", getDefaultValue(idxType._2))
           } else {
             idxType._2 match {
               case t if t =:= typeOf[Int] =>
@@ -218,7 +218,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
               case t if t =:= typeOf[Long] =>
                 q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
               case _ =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(null)"
+                tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues)", q"null")
             }
           }
       }

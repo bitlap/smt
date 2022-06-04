@@ -36,8 +36,40 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   import c.universe._
 
-  protected val packageName            = q"_root_.org.bitlap.csv.core"
-  protected val lineTerminatorTermName = TermName("lineTerminator")
+  protected val packageName = q"_root_.org.bitlap.csv.core"
+
+  private[macros] def tryGetOrElse(tree: Tree, default: Tree): Tree =
+    q"_root_.scala.util.Try($tree).getOrElse($default)"
+
+  private[macros] def tryOptionGetOrElse(optionTree: Tree, default: Tree): Tree =
+    q"_root_.scala.util.Try($optionTree.getOrElse($default)).getOrElse($default)"
+
+  private[macros] def tryOption(optionTree: Tree): Tree =
+    q"_root_.scala.util.Try($optionTree).getOrElse(None)"
+
+  private[macros] def getDefaultValue(typ: Type): Tree =
+    typ match {
+      case t if t =:= typeOf[Int] =>
+        q"0"
+      case t if t =:= typeOf[String] =>
+        val empty = ""
+        q"$empty"
+      case t if t =:= typeOf[Float] =>
+        q"0.asInstanceOf[Float]"
+      case t if t =:= typeOf[Double] =>
+        q"0D"
+      case t if t =:= typeOf[Char] =>
+        q"'?'"
+      case t if t =:= typeOf[Byte] =>
+        q"0"
+      case t if t =:= typeOf[Short] =>
+        q"0"
+      case t if t =:= typeOf[Boolean] =>
+        q"false"
+      case t if t =:= typeOf[Long] =>
+        q"0L"
+      case _ => q"null"
+    }
 
   /** Get the list of case class constructor parameters and return the column index, column name, and parameter type
    *  that zip as a `List[((Int, Tree), Type)]`.
