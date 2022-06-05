@@ -32,9 +32,10 @@ Learn Scala macro and abstract syntax tree.
 
 ## csv-core
 
-- `Converter` A basic CSV converter
+- `Converter` A basic CSV converter.
 - `CsvableBuilder` Support for converting Scala`case class`to one CSV line in a custom way.
 - `ScalableBuilder` Support for converting one CSV line to Scala`case class`in a custom way.
+- `CsvFormat` Custom format and TSV file support.
 - Zero dependency, type-safe
 
 ```scala

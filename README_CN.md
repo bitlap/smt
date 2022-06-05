@@ -36,9 +36,10 @@
 
 ## csv-core
 
-- `Converter` 基础的CSV转换器
-- `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为一行CSV字符串
-- `ScalableBuilder` 支持以自定义的方式将一行CSV字符串转化为Scala`case class`
+- `Converter` 基础的CSV转换器。
+- `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为一行CSV字符串。
+- `ScalableBuilder` 支持以自定义的方式将一行CSV字符串转化为Scala`case class`。
+- `CsvFormat` 支持自定义格式和TSV文件。
 - 零依赖，类型安全
 
 ```scala
