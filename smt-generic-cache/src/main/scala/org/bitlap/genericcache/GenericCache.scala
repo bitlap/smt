@@ -18,17 +18,19 @@ object GenericCache {
 
   type Aux[K, Out0] = GenericCache[K] { type Out = Out0 }
 
-  def apply[K, Out0](maxSize: Int): Aux[K, Out0] = new GenericCache[K] {
-
-    private val lruCache = new java.util.LinkedHashMap[String, Out0](maxSize, 0.75f, true)
+  def apply[K, Out0](cacheType: CacheType): Aux[K, Out0] = new GenericCache[K] {
+    private val typedCache = cacheType match {
+      case CacheType.Lru(maxSize) => new java.util.LinkedHashMap[String, Out0](maxSize, 0.75f, true)
+      case CacheType.Normal       => new java.util.LinkedHashMap[String, Out0]()
+    }
 
     override type Out = Out0
     override def get(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Option[Out] = {
-      val v = lruCache.get(keyBuilder.generateKey(key))
+      val v = typedCache.get(keyBuilder.generateKey(key))
       if (v == null) None else Option(v)
     }
 
     private[genericcache] override def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Unit =
-      lruCache.put(keyBuilder.generateKey(key), value)
+      typedCache.put(keyBuilder.generateKey(key), value)
   }
 }

@@ -3,6 +3,7 @@ package org.bitlap.genericcache
 import scala.reflect.runtime.{ universe => ru }
 import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** @author
  *    梦境迷离
@@ -10,29 +11,32 @@ import scala.reflect.ClassTag
  */
 object DefaultCacheFactory {
 
-  def createAndInitCache[T <: Product](kvs: => Map[String, T], maxSize: Int = 1000)(implicit
+  def createCache[T <: Product](cacheType: CacheType)(implicit
     classTag: ClassTag[T],
     typeTag: TypeTag[T]
-  ): CacheRef[String, T] = {
-    val uc: CacheRef[String, T] = new CacheRef[String, T] {
-      private lazy val Cache: GenericCache.Aux[String, T] = GenericCache[String, T](maxSize)
-      private[genericcache] def refresh(initKvs: => Map[String, T]): Unit =
-        initKvs.foreach(kv => Cache.put(kv._1, kv._2))
+  ): CacheRef[String, T] =
+    new CacheRef[String, T] {
+      private lazy val Cache: GenericCache.Aux[String, T] = GenericCache[String, T](cacheType)
+      private lazy val initFlag                           = new AtomicBoolean(false)
+      override def putTAll(map: => Map[String, T]): Unit =
+        map.foreach(kv => Cache.put(kv._1, kv._2))
 
       override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Option[T] =
         Cache.get(key)
 
-      override def put(key: String, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit =
+      override def putT(key: String, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit =
         Cache.put(key, value)
 
       override def getTField(key: String, field: CacheField)(implicit
         keyBuilder: CacheKeyBuilder[String]
       ): Option[field.Field] =
         getT(key).flatMap(t => getCaseClassFieldValue[T](t, field))
+
+      override def init(initKvs: => Map[String, T]): Unit =
+        if (initFlag.compareAndSet(false, true)) {
+          putTAll(initKvs)
+        }
     }
-    uc.refresh(kvs)
-    uc
-  }
 
   private def getMethods[T: ru.TypeTag]: List[ru.MethodSymbol] = typeOf[T].members.collect {
     case m: MethodSymbol if m.isCaseAccessor => m

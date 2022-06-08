@@ -6,11 +6,13 @@ package org.bitlap.genericcache
  */
 trait CacheRef[In, T <: Product] {
 
-  private[genericcache] def refresh(initKvs: => Map[String, T]): Unit
+  def init(initKvs: => Map[String, T]): Unit
+
+  def putTAll(map: => Map[String, T]): Unit
 
   def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): Option[T]
 
-  def put(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit
+  def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit
 
   def getTField(key: In, field: CacheField)(implicit keyBuilder: CacheKeyBuilder[In]): Option[field.Field]
 }
