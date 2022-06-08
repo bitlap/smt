@@ -120,6 +120,16 @@ lazy val `smt-csv-core` = (project in file("smt-csv-core"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
+lazy val `smt-generic-cache` = (project in file("smt-generic-cache"))
+  .settings(commonSettings)
+  .settings(
+    name               := "smt-generic-cache",
+    crossScalaVersions := List(scala213, scala212, scala211)
+  )
+  .settings(Publishing.publishSettings)
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
 lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
   .settings(commonSettings)
   .settings(
@@ -159,7 +169,8 @@ lazy val root = (project in file("."))
     `smt-cacheable-caffeine`,
     `smt-benchmark`,
     `smt-csv-core`,
-    `smt-csv-derive`
+    `smt-csv-derive`,
+    `smt-generic-cache`
   )
   .settings(
     commands ++= Commands.value,
