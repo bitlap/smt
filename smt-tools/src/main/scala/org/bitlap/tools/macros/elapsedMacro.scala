@@ -98,15 +98,14 @@ object elapsedMacro {
     }
 
     private def getNewMethodWithFuture(defDef: DefDef): DefDef =
+      // scalafmt: { maxColumn = 400 }
       mapToNewMethod(
         defDef,
-        defDef =>
-          q"""
+        defDef => q"""
           $getStartExpr
           val resFuture = ${defDef.rhs}
-          resFuture.map { res => ..${getPrintlnLog(
-              defDef.name
-            )} ; res }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
+          resFuture.onComplete { case _ => ..${getPrintlnLog(defDef.name)} }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
+          resFuture
         """
       )
 

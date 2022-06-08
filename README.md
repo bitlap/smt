@@ -3,11 +3,11 @@
 # scala-macro-tools
 
 | Project Stage | CI              | Codecov                                   |
-| ------------- | --------------- | ----------------------------------------- |
+|---------------|-----------------|-------------------------------------------|
 | ![Stage]      | ![CI][Badge-CI] | [![codecov][Badge-Codecov]][Link-Codecov] |
 
 | Scaladex                                                                    | Jetbrains Plugin                              | Nexus Snapshots                                                  |
-| --------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+|-----------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------|
 | [![scala-macro-tools Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] | [![Sonatype Nexus (Snapshots)][Badge-Snapshots]][Link-Snapshots] |
 
 Motivation
@@ -32,9 +32,10 @@ Learn Scala macro and abstract syntax tree.
 
 ## csv-core
 
-- `Converter` A basic CSV converter
+- `Converter` A basic CSV converter.
 - `CsvableBuilder` Support for converting Scala`case class`to one CSV line in a custom way.
 - `ScalableBuilder` Support for converting one CSV line to Scala`case class`in a custom way.
+- `CsvFormat` Custom format and TSV file support.
 - Zero dependency, type-safe
 
 ```scala

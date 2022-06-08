@@ -59,7 +59,21 @@ object StringUtils {
     kvs.toList.map(f => func(f._1, f._2))
   }
 
-  def splitColumns(line: => String, columnSeparator: Char): List[String] = {
+  /** Using in macro impl
+   */
+  def combineColumns(values: List[String], format: CsvFormat): String =
+    if (values.isEmpty) ""
+    else values.mkString(format.delimiter.toString)
+
+  /** Using in macro impl
+   */
+  def combineRows(list: List[String], format: CsvFormat): String =
+    if (list.isEmpty) ""
+    else list.mkString(format.lineTerminator)
+
+  /** Using in macro impl
+   */
+  def splitColumns(line: => String, format: CsvFormat): List[String] = {
     val listBuffer   = ListBuffer[String]()
     val columnBuffer = ListBuffer[Char]()
     val chars        = line.toCharArray
@@ -67,18 +81,18 @@ object StringUtils {
     var idx = 0
     while (idx < chars.length)
       chars(idx) match {
-        case c if c == columnSeparator =>
+        case c if c == format.delimiter =>
           listBuffer.append(columnBuffer.mkString)
           columnBuffer.clear()
           idx += 1
-        case '\"' =>
+        case c if c == format.escapeChar =>
           idx += 1
           var isTail = false
           while (idx < chars.length && !isTail)
-            if (chars(idx) == '\"' && idx + 1 < chars.length && chars(idx + 1) == '\"') {
-              columnBuffer.append('\"')
+            if (chars(idx) == format.escapeChar && idx + 1 < chars.length && chars(idx + 1) == format.escapeChar) {
+              columnBuffer.append(format.escapeChar)
               idx += 2
-            } else if (chars(idx) == '\"') {
+            } else if (chars(idx) == format.escapeChar) {
               isTail = true
               idx += 1
             } else {

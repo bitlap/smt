@@ -47,5 +47,4 @@ object Dimension {
 object CsvLine4 {
 
   implicit val lineCsvConverter: Converter[CsvLine4] = DeriveCsvConverter.gen[CsvLine4]
-
 }
