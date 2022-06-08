@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
  */
 object DefaultCacheFactory {
 
-  def createAndInitCache[T <: Product](maxSize: Int, kvs: => Map[String, T])(implicit
+  def createAndInitCache[T <: Product](kvs: => Map[String, T], maxSize: Int = 1000)(implicit
     classTag: ClassTag[T],
     typeTag: TypeTag[T]
   ): CacheRef[String, T] = {
