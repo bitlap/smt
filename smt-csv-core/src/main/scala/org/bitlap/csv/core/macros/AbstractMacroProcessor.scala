@@ -121,7 +121,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
         .toString() + "\n###### Expanded macro end ######\n",
-      force = false
+      force = force
     )
     c.Expr[T](resTree)
   }
