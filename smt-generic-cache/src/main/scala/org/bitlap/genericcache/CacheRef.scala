@@ -4,7 +4,7 @@ package org.bitlap.genericcache
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-trait UnifiedCache[In, T <: Product] {
+trait CacheRef[In, T <: Product] {
 
   private[genericcache] def refresh(initKvs: => Map[String, T]): Unit
 

@@ -13,8 +13,8 @@ object DefaultCacheFactory {
   def createAndInitCache[T <: Product](maxSize: Int, kvs: => Map[String, T])(implicit
     classTag: ClassTag[T],
     typeTag: TypeTag[T]
-  ): UnifiedCache[String, T] = {
-    val uc: UnifiedCache[String, T] = new UnifiedCache[String, T] {
+  ): CacheRef[String, T] = {
+    val uc: CacheRef[String, T] = new CacheRef[String, T] {
       private lazy val Cache: GenericCache.Aux[String, T] = GenericCache[String, T](maxSize)
       private[genericcache] def refresh(initKvs: => Map[String, T]): Unit =
         initKvs.foreach(kv => Cache.put(kv._1, kv._2))

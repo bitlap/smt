@@ -8,7 +8,7 @@ object Test extends App {
     "etc" -> TestEntity("eth", "hello2", "world2")
   )
 
-  val cache: UnifiedCache[String, TestEntity] = DefaultCacheFactory.createAndInitCache(100, data)
+  val cache: CacheRef[String, TestEntity] = DefaultCacheFactory.createAndInitCache(100, data)
 
   val result1: Option[TestEntity] = cache.getT("etc")
   println(result1)
