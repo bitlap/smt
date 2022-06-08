@@ -20,7 +20,10 @@ object DefaultCacheFactory {
         initKvs.foreach(kv => Cache.put(kv._1, kv._2))
 
       override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Option[T] =
-        Cache.get(keyBuilder.generateKey(key))
+        Cache.get(key)
+
+      override def put(key: String, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit =
+        Cache.put(key, value)
 
       override def getTField(key: String, field: CacheField)(implicit
         keyBuilder: CacheKeyBuilder[String]

@@ -10,5 +10,7 @@ trait CacheRef[In, T <: Product] {
 
   def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): Option[T]
 
+  def put(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit
+
   def getTField(key: In, field: CacheField)(implicit keyBuilder: CacheKeyBuilder[In]): Option[field.Field]
 }
