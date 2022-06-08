@@ -18,14 +18,14 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   "cache1" should "get entity from cache successfully" in {
     val cache: CacheRef[String, TestEntity] = DefaultCacheFactory.createCache(Normal)
     cache.init(data)
-    val result: Option[TestEntity]          = cache.getT("etc")
+    val result: Option[TestEntity] = cache.getT("etc")
     result shouldBe data.get("etc")
   }
 
   "cache2" should "get entity's field from cache successfully" in {
     val cache: CacheRef[String, TestEntity] = DefaultCacheFactory.createCache(Normal)
     cache.init(data)
-    val result: Option[String]              = cache.getTField("etc", TestEntity.key)
+    val result: Option[String] = cache.getTField("etc", TestEntity.key)
     result shouldBe Some("world2")
   }
 

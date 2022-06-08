@@ -10,7 +10,7 @@ sealed trait GenericCache[K] {
 
   def get(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Option[Out]
 
-  private[genericcache] def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Unit
+  def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Unit
 
 }
 
@@ -30,7 +30,7 @@ object GenericCache {
       if (v == null) None else Option(v)
     }
 
-    private[genericcache] override def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Unit =
+    override def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Unit =
       typedCache.put(keyBuilder.generateKey(key), value)
   }
 }
