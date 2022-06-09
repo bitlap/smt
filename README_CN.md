@@ -141,7 +141,7 @@ addCompilerPlugin("org.scalamacros" % "paradise_<your-scala-version>" % "<plugin
 
 [Stage]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
 [Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ScalaCI.yml/badge.svg
-[Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-csv-derive/latest-by-scala-version.svg?platform=jvm
+[Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-csv-derive/latest.svg?platform=jvm
 [Badge-Jetbrains]: https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools
 [Badge-Codecov]: https://codecov.io/gh/bitlap/smt/branch/master/graph/badge.svg?token=IA596YRTOT
 [Badge-Snapshots]: https://img.shields.io/nexus/s/org.bitlap/smt-annotations_2.13?server=https%3A%2F%2Fs01.oss.sonatype.org
