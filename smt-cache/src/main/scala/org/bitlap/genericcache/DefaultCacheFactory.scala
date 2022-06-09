@@ -58,7 +58,7 @@ object DefaultCacheFactory {
         if (initFlag.compareAndSet(false, true)) {
           putTAll(initKvs)
         }
-        
+
     }
-    
+
 }

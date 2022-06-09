@@ -162,10 +162,10 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     println(scala)
     assert(scala.get == e)
 
-    val scala2 = ScalableBuilder[Dimension2].setField(_.h, v => throw new Exception).convert(csv)
+    val scala2 = ScalableBuilder[Dimension2].setField(_.h, _ => throw new Exception).convert(csv)
     assert(scala2.get == e)
 
-    val scala3 = ScalableBuilder[Dimension2].setField(_.value, v => throw new Exception).convert(csv)
+    val scala3 = ScalableBuilder[Dimension2].setField(_.value, _ => throw new Exception).convert(csv)
 
     assert(scala3.get == Dimension2("1", None, 'c', 1L, 1, false, 0.1f, 0.0))
   }
