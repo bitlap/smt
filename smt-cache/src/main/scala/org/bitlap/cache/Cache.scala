@@ -21,44 +21,44 @@
 
 package org.bitlap.cache
 
+import org.bitlap.cache.GenericCache.Aux
+import org.bitlap.common.{ CaseClassExtractor, CaseClassField }
+
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
-import org.bitlap.common.{ CaseClassExtractor, CaseClassField }
 
 /** @author
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-object DefaultCacheFactory {
+object Cache {
 
-  def createCache[T <: Product](cacheType: CacheType)(implicit
+  def getCache[T <: Product](implicit
+    cache: Aux[String, T],
     classTag: ClassTag[T],
     typeTag: TypeTag[T]
   ): CacheRef[String, T] =
-    new CacheRef[String, T] {
-      private lazy val Cache: GenericCache.Aux[String, T] = GenericCache[String, T](cacheType)
-      private lazy val initFlag                           = new AtomicBoolean(false)
+    new CacheRef[String, cache.Out] {
+      private lazy val initFlag = new AtomicBoolean(false)
 
-      override def putTAll(map: => Map[String, T]): Unit =
-        map.foreach(kv => Cache.put(kv._1, kv._2))
-
-      override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Option[T] =
-        Cache.get(key)
-
-      override def putT(key: String, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit =
-        Cache.put(key, value)
-
-      override def getTField(key: String, field: CaseClassField)(implicit
-        keyBuilder: CacheKeyBuilder[String]
-      ): Option[field.Field] =
-        getT(key).flatMap(t => CaseClassExtractor.getFieldValueUnSafely[T](t, field))
-
-      override def init(initKvs: => Map[String, T]): Unit =
+      override def init(initKvs: => Map[String, cache.Out]): Unit =
         if (initFlag.compareAndSet(false, true)) {
           putTAll(initKvs)
         }
 
+      override def putTAll(map: => Map[String, cache.Out]): Unit =
+        map.foreach(kv => cache.put(kv._1, kv._2))
+
+      override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Option[cache.Out] = cache.get(key)
+
+      override def putT(key: String, value: cache.Out)(implicit keyBuilder: CacheKeyBuilder[String]): Unit =
+        cache.put(key, value)
+
+      override def getTField(key: String, field: CaseClassField)(implicit
+        keyBuilder: CacheKeyBuilder[String]
+      ): Option[field.Field] =
+        getT(key).flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field))
     }
 
 }
