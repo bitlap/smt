@@ -28,6 +28,7 @@ smt-cacheable/target
 smt-csv-core/target
 smt-csv-derive/target
 smt-tools/target
-smt-generic-cache/target
+smt-genericcache/target
+smt-common/target
 
 .run/

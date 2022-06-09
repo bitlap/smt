@@ -25,7 +25,6 @@ lazy val playJsonVersion     = "2.7.4"
 lazy val log4jVersion        = "2.17.2"
 lazy val jacksonScalaVersion = "2.13.3"
 lazy val jraftVersion        = "1.3.9"
-lazy val protocVersion       = "3.20.1"
 
 lazy val commonSettings =
   Seq(
@@ -120,14 +119,25 @@ lazy val `smt-csv-core` = (project in file("smt-csv-core"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `smt-generic-cache` = (project in file("smt-generic-cache"))
+lazy val `smt-common` = (project in file("smt-common"))
   .settings(commonSettings)
   .settings(
-    name               := "smt-generic-cache",
+    name               := "smt-common",
     crossScalaVersions := List(scala213, scala212, scala211)
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
+lazy val `smt-genericcache` = (project in file("smt-genericcache"))
+  .settings(commonSettings)
+  .settings(
+    name               := "smt-genericcache",
+    crossScalaVersions := List(scala213, scala212, scala211)
+  )
+  .settings(Publishing.publishSettings)
+  .settings(paradise())
+  .dependsOn(`smt-common` % "compile->compile;test->test")
   .enablePlugins(HeaderPlugin)
 
 lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
@@ -152,9 +162,7 @@ lazy val `smt-tools` = (project in file("smt-tools"))
       "org.apache.logging.log4j"      % "log4j-api"            % log4jVersion        % Test,
       "org.apache.logging.log4j"      % "log4j-core"           % log4jVersion        % Test,
       "org.apache.logging.log4j"      % "log4j-slf4j-impl"     % log4jVersion        % Test,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test,
-      "com.alipay.sofa"               % "jraft-core"           % jraftVersion        % Test,
-      "com.google.protobuf"           % "protobuf-java"        % protocVersion       % Test
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test
     )
   )
   .settings(Publishing.publishSettings)
@@ -170,7 +178,8 @@ lazy val `scala-macro-tools` = (project in file("."))
     `smt-benchmark`,
     `smt-csv-core`,
     `smt-csv-derive`,
-    `smt-generic-cache`
+    `smt-genericcache`,
+    `smt-common`
   )
   .settings(
     commands ++= Commands.value,
