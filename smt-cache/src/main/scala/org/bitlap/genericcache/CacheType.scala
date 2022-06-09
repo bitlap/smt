@@ -19,11 +19,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
+package org.bitlap.genericcache
 
-trait CaseClassField {
+/** @author
+ *    梦境迷离
+ *  @version 1.0,6/8/22
+ */
+trait CacheType
 
-  def stringify: String
+object CacheType {
 
-  type Field
+  case class Lru(maxSize: Int = 1000) extends CacheType
+  case object Normal                  extends CacheType
 }

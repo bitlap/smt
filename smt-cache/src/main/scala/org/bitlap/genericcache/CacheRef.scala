@@ -19,11 +19,23 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
+package org.bitlap.genericcache
 
-trait CaseClassField {
+import org.bitlap.common.CaseClassField
 
-  def stringify: String
+/** @author
+ *    梦境迷离
+ *  @version 1.0,6/8/22
+ */
+trait CacheRef[In, T <: Product] {
 
-  type Field
+  def init(initKvs: => Map[String, T]): Unit
+
+  def putTAll(map: => Map[String, T]): Unit
+
+  def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): Option[T]
+
+  def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit
+
+  def getTField(key: In, field: CaseClassField)(implicit keyBuilder: CacheKeyBuilder[In]): Option[field.Field]
 }

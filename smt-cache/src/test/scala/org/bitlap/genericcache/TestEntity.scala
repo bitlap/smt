@@ -19,11 +19,27 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
+package org.bitlap.genericcache
 
-trait CaseClassField {
+import org.bitlap.common.CaseClassField
 
-  def stringify: String
+case class TestEntity(
+  name: String,
+  id: String,
+  key: String
+)
 
-  type Field
+object TestEntity {
+
+  case object id extends CaseClassField {
+    override def stringify: String = "id"
+
+    override type Field = String
+  }
+
+  case object key extends CaseClassField {
+    override def stringify: String = "key"
+
+    override type Field = String
+  }
 }

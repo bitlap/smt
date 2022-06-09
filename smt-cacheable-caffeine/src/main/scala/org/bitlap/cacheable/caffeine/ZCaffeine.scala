@@ -27,14 +27,13 @@ import org.bitlap.cacheable.core.Utils
 
 import java.util.concurrent.{ ConcurrentHashMap, TimeUnit }
 import scala.concurrent.duration.Duration
+import zio.Task
 
 /** @author
  *    梦境迷离
  *  @version 1.0,2022/3/21
  */
 object ZCaffeine {
-
-  import zio.Task
 
   private val conf: Config   = ConfigFactory.load("reference.conf")
   private val custom: Config = ConfigFactory.load("application.conf").withFallback(conf)
