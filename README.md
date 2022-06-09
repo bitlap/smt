@@ -43,7 +43,7 @@ Learn Scala macro and abstract syntax tree.
 
 - Some very general tool classes.
 ```scala
-"org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
+"org.bitlap" %% "smt-common" % "<VERSION>" // since 0.6.0 
 ```
 
 ## csv
