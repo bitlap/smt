@@ -34,13 +34,29 @@
 
 > 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`这种。其中，`2.12`表示Scala版本号。
 
+## cache
+
+- 内存缓存。
+- 零依赖，类型安全。
+- API与实现完全独立。
+```scala
+"org.bitlap" %% "smt-cache" % "<VERSION>" // 从0.6.0开始 
+```
+
+## common
+
+- 一些很通用的工具类。
+```scala
+"org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
+```
+
 ## csv
 
 - `Converter` 基础的CSV转换器。
 - `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为一行CSV字符串。
 - `ScalableBuilder` 支持以自定义的方式将一行CSV字符串转化为Scala`case class`。
 - `CsvFormat` 支持自定义格式和TSV文件。
-- 零依赖，类型安全
+- 零依赖，类型安全。
 
 ```scala
 "org.bitlap" %% "smt-csv" % "<VERSION>" // 从0.5.2开始 
@@ -48,13 +64,13 @@
 
 ## csv-derive
 
-- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例
+- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例。
 
 ```scala
 "org.bitlap" %% "smt-csv-derive" % "<VERSION>" // 从0.5.2开始 
 ```
 
-## tools
+## annotations
 
 - `@toString`
 - `@json`
@@ -70,7 +86,7 @@
 > Intellij插件 `Scala-Macro-Tools`。
 
 ```scala
-"org.bitlap" %% "smt-annotations" % "<VERSION>" //从0.6.0开始名字改成 smt-annotations 
+"org.bitlap" %% "smt-annotations" % "<VERSION>" // 从0.6.0开始名字改成 smt-annotations 
 ```
 
 ## cacheable

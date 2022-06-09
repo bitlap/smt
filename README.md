@@ -30,6 +30,22 @@ Learn Scala macro and abstract syntax tree.
 
 # How to use
 
+## cache
+
+- Memory cache.
+- Zero dependencies, type-safe.
+- API and implementation are completely independent.
+```scala
+"org.bitlap" %% "smt-cache" % "<VERSION>" // since 0.6.0 
+```
+
+## common
+
+- Some very general tool classes.
+```scala
+"org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
+```
+
 ## csv
 
 - `Converter` A basic CSV converter.
@@ -50,7 +66,7 @@ Learn Scala macro and abstract syntax tree.
 "org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.5.2
 ```
 
-## tools
+## annotations
 
 - `@toString`
 - `@json`
