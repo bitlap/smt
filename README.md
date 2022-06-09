@@ -62,7 +62,6 @@ Learn Scala macro and abstract syntax tree.
 - `@jacksonEnum`
 - `@elapsed`
 - `@javaCompatible`
-- `ProcessorCreator`
 
 > The intellij plugin named `Scala-Macro-Tools` in marketplace.
 
