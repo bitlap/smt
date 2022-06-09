@@ -25,7 +25,6 @@ lazy val playJsonVersion     = "2.7.4"
 lazy val log4jVersion        = "2.17.2"
 lazy val jacksonScalaVersion = "2.13.3"
 lazy val jraftVersion        = "1.3.9"
-lazy val protocVersion       = "3.20.1"
 
 lazy val commonSettings =
   Seq(
@@ -52,11 +51,11 @@ lazy val commonSettings =
     publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
   )
 
-lazy val `smt-cacheable-core` = (project in file("smt-cacheable-core"))
+lazy val `smt-cacheable` = (project in file("smt-cacheable"))
   .settings(commonSettings)
   .settings(Publishing.publishSettings)
   .settings(
-    name               := "smt-cacheable-core",
+    name               := "smt-cacheable",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio"         % zioVersion, // FIXME we should use compile or provide ???
@@ -78,7 +77,7 @@ lazy val `smt-cacheable-caffeine` = (project in file("smt-cacheable-caffeine"))
       "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
     )
   )
-  .dependsOn(`smt-cacheable-core` % "compile->compile;test->test")
+  .dependsOn(`smt-cacheable` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -96,7 +95,7 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
       "dev.zio"     %% "zio-schema-derivation" % zioSchemaVersion % Test
     )
   )
-  .dependsOn(`smt-cacheable-core` % "compile->compile;test->test")
+  .dependsOn(`smt-cacheable` % "compile->compile;test->test")
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -106,18 +105,39 @@ lazy val `smt-benchmark` = (project in file("smt-benchmark"))
     name           := "smt-benchmark",
     publish / skip := true
   )
-  .dependsOn(`smt-cacheable-core`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
+  .dependsOn(`smt-cacheable`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
   .settings(paradise())
   .enablePlugins(HeaderPlugin, JmhPlugin)
 
-lazy val `smt-csv-core` = (project in file("smt-csv-core"))
+lazy val `smt-csv` = (project in file("smt-csv"))
   .settings(commonSettings)
   .settings(
-    name               := "smt-csv-core",
+    name               := "smt-csv",
     crossScalaVersions := List(scala213, scala212, scala211)
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
+lazy val `smt-common` = (project in file("smt-common"))
+  .settings(commonSettings)
+  .settings(
+    name               := "smt-common",
+    crossScalaVersions := List(scala213, scala212, scala211)
+  )
+  .settings(Publishing.publishSettings)
+  .settings(paradise())
+  .enablePlugins(HeaderPlugin)
+
+lazy val `smt-cache` = (project in file("smt-cache"))
+  .settings(commonSettings)
+  .settings(
+    name               := "smt-cache",
+    crossScalaVersions := List(scala213, scala212, scala211)
+  )
+  .settings(Publishing.publishSettings)
+  .settings(paradise())
+  .dependsOn(`smt-common` % "compile->compile;test->test")
   .enablePlugins(HeaderPlugin)
 
 lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
@@ -129,12 +149,12 @@ lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
   .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
-  .dependsOn(`smt-csv-core` % "compile->compile;test->test")
+  .dependsOn(`smt-csv` % "compile->compile;test->test")
 
-lazy val `smt-tools` = (project in file("smt-tools"))
+lazy val `smt-annotations` = (project in file("smt-annotations"))
   .settings(commonSettings)
   .settings(
-    name               := "smt-tools",
+    name               := "smt-annotations",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging"   %% "scala-logging"        % scalaLoggingVersion,
@@ -142,24 +162,24 @@ lazy val `smt-tools` = (project in file("smt-tools"))
       "org.apache.logging.log4j"      % "log4j-api"            % log4jVersion        % Test,
       "org.apache.logging.log4j"      % "log4j-core"           % log4jVersion        % Test,
       "org.apache.logging.log4j"      % "log4j-slf4j-impl"     % log4jVersion        % Test,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test,
-      "com.alipay.sofa"               % "jraft-core"           % jraftVersion        % Test,
-      "com.google.protobuf"           % "protobuf-java"        % protocVersion       % Test
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test
     )
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `scala-macro-tools` = (project in file("."))
+lazy val `smt` = (project in file("."))
   .aggregate(
-    `smt-tools`,
-    `smt-cacheable-core`,
+    `smt-annotations`,
+    `smt-cacheable`,
     `smt-cacheable-redis`,
     `smt-cacheable-caffeine`,
     `smt-benchmark`,
-    `smt-csv-core`,
-    `smt-csv-derive`
+    `smt-csv`,
+    `smt-csv-derive`,
+    `smt-cache`,
+    `smt-common`
   )
   .settings(
     commands ++= Commands.value,

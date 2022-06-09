@@ -21,12 +21,14 @@ examples/scala2-11/project/target
 examples/scala2-12/project/target
 examples/scala2-13/project/target
 smt-benchmark/target
-smt-cacheable-core/target
+smt-cacheable/target
 smt-cacheable-caffeine/target
 smt-cacheable-redis/target
 smt-cacheable/target
-smt-csv-core/target
+smt-csv/target
 smt-csv-derive/target
-smt-tools/target
+smt-annotations/target
+smt-cache/target
+smt-common/target
 
 .run/
