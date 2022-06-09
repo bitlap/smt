@@ -23,7 +23,7 @@ package org.bitlap.cache
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.cache.CacheType.Normal
+import org.bitlap.cache.CacheImplicits._
 
 /** @author
  *    梦境迷离
@@ -37,21 +37,24 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   )
 
   "cache1" should "get entity from cache successfully" in {
-    val cache: CacheRef[String, TestEntity] = DefaultCacheFactory.createCache(Normal)
+    val cache: CacheRef[String, TestEntity] = Cache.getCache[TestEntity]
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("etc")
     result shouldBe data.get("etc")
   }
 
   "cache2" should "get entity's field from cache successfully" in {
-    val cache: CacheRef[String, TestEntity] = DefaultCacheFactory.createCache(Normal)
+    val cache: CacheRef[String, TestEntity] = Cache.getCache[TestEntity]
     cache.init(data)
     val result: Option[String] = cache.getTField("etc", TestEntity.key)
     result shouldBe Some("world2")
+
+    val result2: Option[String] = cache.getTField("etc", TestEntity.key)
+    result2 shouldBe Some("world2")
   }
 
   "cache3" should "get entity's field after refresh" in {
-    val cache: CacheRef[String, TestEntity] = DefaultCacheFactory.createCache(Normal)
+    val cache: CacheRef[String, TestEntity] = Cache.getCache[TestEntity]
     cache.init(data)
     val newData = Map(
       "btc"       -> TestEntity("btc", "hello1", "world1"),
