@@ -66,7 +66,6 @@
 - `@jacksonEnum`
 - `@elapsed`
 - `@javaCompatible`
-- `ProcessorCreator`
 
 > Intellij插件 `Scala-Macro-Tools`。
 
