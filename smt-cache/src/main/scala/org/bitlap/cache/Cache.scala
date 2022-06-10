@@ -63,10 +63,7 @@ object Cache {
       override def getTField(key: String, field: CaseClassField)(implicit
         keyBuilder: CacheKeyBuilder[String]
       ): Future[Option[field.Field]] =
-        for {
-          optT <- getT(key)
-          ret  <- Future(optT.flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field)))
-        } yield ret
+        getT(key).map(opt => opt.flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field)))
     }
 
   def getSyncCache[T <: Product](implicit
