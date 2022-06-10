@@ -47,7 +47,7 @@ object Cache {
       override def init(initKvs: => Map[String, cache.Out]): Future[Unit] =
         if (initFlag.compareAndSet(false, true)) {
           putTAll(initKvs)
-        } else Future.unit
+        } else Future.successful(())
 
       override def putTAll(map: => Map[String, cache.Out]): Future[Unit] =
         cache.putAll(map)

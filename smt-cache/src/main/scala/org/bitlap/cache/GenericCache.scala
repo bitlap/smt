@@ -23,7 +23,7 @@ package org.bitlap.cache
 import java.util
 import java.util.Collections
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.jdk.CollectionConverters.MapHasAsJava
+import scala.jdk.CollectionConverters._
 
 /** @author
  *    梦境迷离

@@ -13,18 +13,19 @@ lazy val scala211               = "2.11.12"
 lazy val scala213               = "2.13.8"
 lazy val lastVersionForExamples = "0.5.2"
 
-lazy val configVersion       = "1.4.2"
-lazy val scalatestVersion    = "3.2.12"
-lazy val zioVersion          = "1.0.14"
-lazy val zioLoggingVersion   = "0.5.14"
-lazy val caffeineVersion     = "2.9.3"
-lazy val zioRedisVersion     = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
-lazy val zioSchemaVersion    = "0.1.9"
-lazy val scalaLoggingVersion = "3.9.5"
-lazy val playJsonVersion     = "2.7.4"
-lazy val log4jVersion        = "2.17.2"
-lazy val jacksonScalaVersion = "2.13.3"
-lazy val jraftVersion        = "1.3.9"
+lazy val configVersion                = "1.4.2"
+lazy val scalatestVersion             = "3.2.12"
+lazy val zioVersion                   = "1.0.14"
+lazy val zioLoggingVersion            = "0.5.14"
+lazy val caffeineVersion              = "2.9.3"
+lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
+lazy val zioSchemaVersion             = "0.1.9"
+lazy val scalaLoggingVersion          = "3.9.5"
+lazy val playJsonVersion              = "2.7.4"
+lazy val log4jVersion                 = "2.17.2"
+lazy val jacksonScalaVersion          = "2.13.3"
+lazy val jraftVersion                 = "1.3.9"
+lazy val scalaCollectionCompatVersion = "2.7.0"
 
 lazy val commonSettings =
   Seq(
@@ -132,8 +133,9 @@ lazy val `smt-common` = (project in file("smt-common"))
 lazy val `smt-cache` = (project in file("smt-cache"))
   .settings(commonSettings)
   .settings(
-    name               := "smt-cache",
-    crossScalaVersions := List(scala213, scala212, scala211)
+    name                                            := "smt-cache",
+    crossScalaVersions                              := List(scala213, scala212, scala211),
+    libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % scalaCollectionCompatVersion
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())
