@@ -74,10 +74,10 @@ object GenericCache {
     }
   }
 
-  private def getCacheByType[Out0](cacheType: CacheStrategy): util.LinkedHashMap[String, Out0] =
+  private def getCacheByType[Out0](cacheType: CacheStrategy): util.Map[String, Out0] =
     cacheType match {
       case CacheStrategy.Lru(maxSize) => new java.util.LinkedHashMap[String, Out0](maxSize, 0.75f, true)
-      case CacheStrategy.Normal       => new java.util.LinkedHashMap[String, Out0]()
+      case CacheStrategy.Normal       => new java.util.concurrent.ConcurrentHashMap[String, Out0]()
       // TODO other cache
     }
 }

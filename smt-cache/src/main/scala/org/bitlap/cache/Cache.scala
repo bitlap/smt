@@ -51,7 +51,7 @@ object Cache {
 
       override def putTAll(map: => Map[String, cache.Out]): Future[Unit] = {
         val futures: List[Future[Unit]] = map.toList.map(kv => cache.put(kv._1, kv._2))
-        Future.sequence(futures).map(_.headOption.getOrElse(()))
+        Future.sequence(futures).map(_ => ())
       }
 
       override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Future[Option[cache.Out]] =
