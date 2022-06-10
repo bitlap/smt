@@ -25,10 +25,10 @@ package org.bitlap.cache
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-trait CacheType
+trait CacheStrategy
 
-object CacheType {
+object CacheStrategy {
 
-  case class Lru(maxSize: Int = 1000) extends CacheType
-  case object Normal                  extends CacheType
+  case class Lru(maxSize: Int = 1000) extends CacheStrategy
+  case object Normal                  extends CacheStrategy
 }

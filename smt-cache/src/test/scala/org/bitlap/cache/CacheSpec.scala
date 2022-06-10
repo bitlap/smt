@@ -24,6 +24,9 @@ package org.bitlap.cache
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.bitlap.cache.CacheImplicits._
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.DurationInt
 
 /** @author
  *    梦境迷离
@@ -37,14 +40,14 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   )
 
   "cache1" should "get entity from cache successfully" in {
-    val cache: CacheRef[String, TestEntity] = Cache.getCache[TestEntity]
+    val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("etc")
     result shouldBe data.get("etc")
   }
 
   "cache2" should "get entity's field from cache successfully" in {
-    val cache: CacheRef[String, TestEntity] = Cache.getCache[TestEntity]
+    val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
     val result: Option[String] = cache.getTField("etc", TestEntity.key)
     result shouldBe Some("world2")
@@ -54,7 +57,7 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   }
 
   "cache3" should "get entity's field after refresh" in {
-    val cache: CacheRef[String, TestEntity] = Cache.getCache[TestEntity]
+    val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
     val newData = Map(
       "btc"       -> TestEntity("btc", "hello1", "world1"),
@@ -65,5 +68,28 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val result: Option[TestEntity] = cache.getT("btc-zh-cn")
     result shouldBe newData.get("btc-zh-cn")
+  }
+
+  "cache4" should "async cache" in {
+    val newData = Map(
+      "btc"       -> TestEntity("btc", "id123", "btc_key123"),
+      "btc-zh-cn" -> TestEntity("btc", "id123", "btc_zh_key123")
+    )
+    val newData2 = Map(
+      "btc"       -> TestEntity("btc", "id456", "bt_key456"),
+      "btc-zh-cn" -> TestEntity("btc", "id456", "btc_zh_key456"),
+      "eth"       -> TestEntity("btc", "id456", "eth_key456")
+    )
+    val cache = Cache.getAsyncCache[TestEntity]
+
+    val ret = for {
+      _      <- cache.init(newData)
+      btcKey <- cache.getTField("btc", TestEntity.key)
+      _      <- cache.putTAll(newData2)
+      ethKey <- cache.getTField("eth", TestEntity.key)
+    } yield btcKey -> ethKey
+
+    Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> Option("eth_key456")
+
   }
 }

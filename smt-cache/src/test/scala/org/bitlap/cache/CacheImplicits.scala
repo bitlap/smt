@@ -20,10 +20,14 @@
  */
 
 package org.bitlap.cache
+import scala.concurrent.ExecutionContext
 
 object CacheImplicits {
 
-  implicit lazy val testEntityCache: GenericCache.Aux[String, TestEntity] =
-    GenericCache[String, TestEntity](CacheType.Normal)
+  implicit lazy val testEntitySyncCache =
+    GenericCache[String, TestEntity](CacheStrategy.Normal)
+
+  implicit lazy val testEntityAsyncCache =
+    GenericCache[String, TestEntity](CacheStrategy.Normal, ExecutionContext.Implicits.global)
 
 }

@@ -27,15 +27,16 @@ import org.bitlap.common.CaseClassField
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-trait CacheRef[In, T <: Product] {
+trait CacheRef[In, T <: Product, F[_]] {
 
-  def init(initKvs: => Map[String, T]): Unit
+  def init(initKvs: => Map[String, T]): F[Unit]
 
-  def putTAll(map: => Map[String, T]): Unit
+  def putTAll(map: => Map[String, T]): F[Unit]
 
-  def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): Option[T]
+  def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[T]]
 
-  def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): Unit
+  def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): F[Unit]
 
-  def getTField(key: In, field: CaseClassField)(implicit keyBuilder: CacheKeyBuilder[In]): Option[field.Field]
+  def getTField(key: In, field: CaseClassField)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[field.Field]]
+
 }

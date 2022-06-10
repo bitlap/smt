@@ -27,6 +27,7 @@ import org.bitlap.common.{ CaseClassExtractor, CaseClassField }
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
+import scala.concurrent.{ ExecutionContext, Future }
 
 /** @author
  *    梦境迷离
@@ -34,30 +35,65 @@ import scala.reflect.runtime.universe._
  */
 object Cache {
 
-  def getCache[T <: Product](implicit
-    cache: Aux[String, T],
+  def getAsyncCache[T <: Product](implicit
+    cache: Aux[String, T, Future],
+    executionContext: ExecutionContext,
     classTag: ClassTag[T],
     typeTag: TypeTag[T]
-  ): CacheRef[String, T] =
-    new CacheRef[String, cache.Out] {
+  ): CacheRef[String, T, Future] =
+    new CacheRef[String, cache.Out, Future] {
       private lazy val initFlag = new AtomicBoolean(false)
 
-      override def init(initKvs: => Map[String, cache.Out]): Unit =
+      override def init(initKvs: => Map[String, cache.Out]): Future[Unit] =
         if (initFlag.compareAndSet(false, true)) {
           putTAll(initKvs)
-        }
+        } else putTAll(Map.empty)
 
-      override def putTAll(map: => Map[String, cache.Out]): Unit =
-        map.foreach(kv => cache.put(kv._1, kv._2))
+      override def putTAll(map: => Map[String, cache.Out]): Future[Unit] = {
+        val futures: List[Future[Unit]] = map.toList.map(kv => cache.put(kv._1, kv._2))
+        Future.sequence(futures).map(_.headOption.getOrElse(()))
+      }
 
-      override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Option[cache.Out] = cache.get(key)
+      override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Future[Option[cache.Out]] =
+        cache.get(key)
 
-      override def putT(key: String, value: cache.Out)(implicit keyBuilder: CacheKeyBuilder[String]): Unit =
+      override def putT(key: String, value: cache.Out)(implicit keyBuilder: CacheKeyBuilder[String]): Future[Unit] =
         cache.put(key, value)
 
       override def getTField(key: String, field: CaseClassField)(implicit
         keyBuilder: CacheKeyBuilder[String]
-      ): Option[field.Field] =
+      ): Future[Option[field.Field]] =
+        for {
+          optT <- getT(key)
+          ret  <- Future(optT.flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field)))
+        } yield ret
+    }
+
+  def getSyncCache[T <: Product](implicit
+    cache: Aux[String, T, Identity],
+    classTag: ClassTag[T],
+    typeTag: TypeTag[T]
+  ): CacheRef[String, T, Identity] =
+    new CacheRef[String, cache.Out, Identity] {
+      private lazy val initFlag = new AtomicBoolean(false)
+
+      override def init(initKvs: => Map[String, cache.Out]): Identity[Unit] =
+        if (initFlag.compareAndSet(false, true)) {
+          putTAll(initKvs)
+        } else putTAll(Map.empty)
+
+      override def putTAll(map: => Map[String, cache.Out]): Identity[Unit] =
+        map.foreach(kv => cache.put(kv._1, kv._2))
+
+      override def getT(key: String)(implicit keyBuilder: CacheKeyBuilder[String]): Identity[Option[cache.Out]] =
+        cache.get(key)
+
+      override def putT(key: String, value: cache.Out)(implicit keyBuilder: CacheKeyBuilder[String]): Identity[Unit] =
+        cache.put(key, value)
+
+      override def getTField(key: String, field: CaseClassField)(implicit
+        keyBuilder: CacheKeyBuilder[String]
+      ): Identity[Option[field.Field]] =
         getT(key).flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field))
     }
 
