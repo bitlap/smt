@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext
 
 object CacheImplicits {
 
-  //  NOTE:These are two completely different caches and the data is not shared
+  // NOTE:These are two completely different caches and the data is not shared
   // If you don't use global, you should also make sure this place the same as getAsyncCache's
   implicit lazy val testEntitySyncCache =
     GenericCache[String, TestEntity](CacheStrategy.Normal)

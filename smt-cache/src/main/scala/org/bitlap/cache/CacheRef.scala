@@ -38,5 +38,4 @@ trait CacheRef[In, T <: Product, F[_]] {
   def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): F[Unit]
 
   def getTField(key: In, field: CaseClassField)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[field.Field]]
-
 }
