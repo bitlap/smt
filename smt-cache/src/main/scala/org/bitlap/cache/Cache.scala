@@ -47,7 +47,7 @@ object Cache {
       override def init(initKvs: => Map[String, cache.Out]): Future[Unit] =
         if (initFlag.compareAndSet(false, true)) {
           putTAll(initKvs)
-        } else putTAll(Map.empty)
+        } else Future.unit
 
       override def putTAll(map: => Map[String, cache.Out]): Future[Unit] = {
         val futures: List[Future[Unit]] = map.toList.map(kv => cache.put(kv._1, kv._2))
@@ -77,7 +77,7 @@ object Cache {
       override def init(initKvs: => Map[String, cache.Out]): Identity[Unit] =
         if (initFlag.compareAndSet(false, true)) {
           putTAll(initKvs)
-        } else putTAll(Map.empty)
+        } else ()
 
       override def putTAll(map: => Map[String, cache.Out]): Identity[Unit] =
         map.foreach(kv => cache.put(kv._1, kv._2))
