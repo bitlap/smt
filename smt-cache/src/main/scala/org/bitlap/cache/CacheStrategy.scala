@@ -21,21 +21,14 @@
 
 package org.bitlap.cache
 
-import org.bitlap.common.CaseClassField
-
 /** @author
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-trait CacheRef[In, T <: Product, F[_]] {
+trait CacheStrategy
 
-  def init(initKvs: => Map[String, T]): F[Unit]
+object CacheStrategy {
 
-  def putTAll(map: => Map[String, T]): F[Unit]
-
-  def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[T]]
-
-  def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): F[Unit]
-
-  def getTField(key: In, field: CaseClassField)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[field.Field]]
+  case class Lru(maxSize: Int = 1000) extends CacheStrategy
+  case object Normal                  extends CacheStrategy
 }

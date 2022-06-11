@@ -27,6 +27,7 @@ import scala.reflect.macros.whitebox
 import scala.reflect.ClassTag
 import scala.reflect.runtime.{ universe => ru }
 import scala.reflect.runtime.universe._
+import scala.util.{ Failure, Success }
 
 /** @author
  *    梦境迷离
@@ -38,11 +39,17 @@ object CaseClassExtractor {
     classTag: ClassTag[T]
   ): Option[field.Field] = {
     val mirror = ru.runtimeMirror(getClass.getClassLoader)
-    getMethods[T]
-      .filter(_.name.toTermName.decodedName.toString == field.stringify)
-      .map(m => mirror.reflect(obj).reflectField(m).get)
-      .headOption
-      .map(_.asInstanceOf[field.Field])
+    val fieldOption = scala.util.Try(
+      getMethods[T]
+        .filter(_.name.toTermName.decodedName.toString == field.stringify)
+        .map(m => mirror.reflect(obj).reflectField(m).get)
+        .headOption
+        .map(_.asInstanceOf[field.Field])
+    )
+    fieldOption match {
+      case Success(value)     => value
+      case Failure(exception) => exception.printStackTrace(); None
+    }
   }
 
   def getMethods[T: ru.TypeTag]: List[ru.MethodSymbol] = typeOf[T].members.collect {

@@ -19,16 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.cache
+package org.bitlap
 
 /** @author
  *    梦境迷离
- *  @version 1.0,6/8/22
+ *  @version 1.0,6/10/22
  */
-trait CacheType
-
-object CacheType {
-
-  case class Lru(maxSize: Int = 1000) extends CacheType
-  case object Normal                  extends CacheType
+package object cache {
+  type Identity[O] = O
 }
