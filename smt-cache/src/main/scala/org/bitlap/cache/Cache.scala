@@ -61,7 +61,7 @@ object Cache {
       override def getTField(key: String, field: CaseClassField)(implicit
         keyBuilder: CacheKeyBuilder[String]
       ): Future[Option[field.Field]] =
-        getT(key).map(opt => opt.flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field)))
+        getT(key).map(opt => opt.flatMap(t => CaseClassExtractor.ofValue[cache.Out](t, field)))
 
       override def clear(): Future[Unit] = cache.clear()
     }
@@ -91,7 +91,9 @@ object Cache {
       override def getTField(key: String, field: CaseClassField)(implicit
         keyBuilder: CacheKeyBuilder[String]
       ): Identity[Option[field.Field]] =
-        getT(key).flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field))
+        getT(key).flatMap(t =>
+          CaseClassExtractor.ofValue[cache.Out](t, field.stringify).asInstanceOf[Option[field.Field]]
+        )
 
       override def clear(): Identity[Unit] = cache.clear()
     }

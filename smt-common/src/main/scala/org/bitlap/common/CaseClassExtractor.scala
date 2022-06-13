@@ -35,9 +35,9 @@ import scala.util.{ Failure, Success }
  */
 object CaseClassExtractor {
 
-  def getFieldValueUnSafely[T: ru.TypeTag](obj: T, field: CaseClassField)(implicit
-    classTag: ClassTag[T]
-  ): Option[field.Field] = {
+  /** Using scala reflect to get the field value (safely).
+   */
+  def ofValue[T: ru.TypeTag](obj: T, field: CaseClassField)(implicit classTag: ClassTag[T]): Option[field.Field] = {
     val mirror = ru.runtimeMirror(getClass.getClassLoader)
     val fieldOption = scala.util.Try(
       getMethods[T]
@@ -56,21 +56,21 @@ object CaseClassExtractor {
     case m: MethodSymbol if m.isCaseAccessor => m
   }.toList
 
-  def getFieldValueSafely[T <: Product, Field](t: T, name: String): Option[Field] = macro macroImpl[T, Field]
+  /** Using the characteristics of the product type to get the field value should force the conversion externally
+   *  (safely).
+   */
+  def ofValue[T <: Product](t: T, name: String): Option[Any] = macro macroImpl[T]
 
-  def macroImpl[T: c.WeakTypeTag, Field: c.WeakTypeTag](
-    c: whitebox.Context
-  )(t: c.Expr[T], name: c.Expr[String]): c.Expr[Option[Field]] = {
+  def macroImpl[T: c.WeakTypeTag](c: whitebox.Context)(t: c.Expr[T], name: c.Expr[String]): c.Expr[Option[Any]] = {
     import c.universe._
-    val typ = TypeName(c.weakTypeOf[Field].typeSymbol.name.decodedName.toString)
     val tree =
       q"""
        if ($t == null) None else {
           val idx = $t.productElementNames.indexOf($name)
-          Option($t.productElement(idx).asInstanceOf[$typ])       
+          if (idx == -1) None else Option($t.productElement(idx))       
        }
      """
-    exprPrintTree[Option[Field]](c)(tree)
+    exprPrintTree[Option[Any]](c)(tree)
 
   }
 

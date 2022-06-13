@@ -84,7 +84,7 @@ object CaseClassField {
     exprPrintTree[CaseClassField](c)(res)
   }
 
-  private def getCaseClassParams[T: c.WeakTypeTag](c: whitebox.Context): List[c.Symbol] = {
+  def getCaseClassParams[T: c.WeakTypeTag](c: whitebox.Context): List[c.Symbol] = {
     import c.universe._
     val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
     if (parameters.size > 1) {
