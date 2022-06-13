@@ -31,11 +31,3 @@ case class TestEntity(
   key: String,
   value: Option[Int] = None
 )
-
-object TestEntity {
-  case object key extends CaseClassField {
-    override def stringify: String = "key"
-
-    override type Field = String
-  }
-}

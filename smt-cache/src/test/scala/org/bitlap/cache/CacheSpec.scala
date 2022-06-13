@@ -51,10 +51,10 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   "cache2" should "get entity's field from cache successfully" in {
     val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
-    val result: Option[String] = cache.getTField("etc", TestEntity.key)
+    val result = cache.getTField("etc", CaseClassField[TestEntity]("key"))
     result shouldBe Some("world2")
 
-    val result2: Option[String] = cache.getTField("etc", TestEntity.key)
+    val result2 = cache.getTField("etc", CaseClassField[TestEntity]("key"))
     result2 shouldBe Some("world2")
   }
 
@@ -87,9 +87,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.init(newData)
-      btcKey <- cache.getTField("btc", TestEntity.key)
+      btcKey <- cache.getTField("btc", CaseClassField[TestEntity]("key"))
       _      <- cache.putTAll(newData2)
-      ethKey <- cache.getTField("eth", TestEntity.key)
+      ethKey <- cache.getTField("eth", CaseClassField[TestEntity]("key"))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> Option("eth_key456")
@@ -105,9 +105,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.init(newData)
-      btcKey <- cache.getTField("btc", TestEntity.key)
+      btcKey <- cache.getTField("btc", CaseClassField[TestEntity]("key"))
       _      <- cache.clear()
-      ethKey <- cache.getTField("eth", TestEntity.key)
+      ethKey <- cache.getTField("eth", CaseClassField[TestEntity]("key"))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> None
