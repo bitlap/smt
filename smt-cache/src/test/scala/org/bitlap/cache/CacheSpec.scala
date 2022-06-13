@@ -45,7 +45,6 @@ class CacheSpec extends AnyFlatSpec with Matchers {
     val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("etc")
-    result.map(_.productArity)
     result shouldBe data.get("etc")
   }
 
