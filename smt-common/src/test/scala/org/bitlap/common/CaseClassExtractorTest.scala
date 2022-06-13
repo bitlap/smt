@@ -62,7 +62,6 @@ class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
 
   "CaseClassExtractorTest5" should "error in case class with curry" in {
     """
-      |    import org.bitlap.common.CaseClassField.fieldOf
       |    case class TestEntity2(
       |      name: String,
       |      id: String,
