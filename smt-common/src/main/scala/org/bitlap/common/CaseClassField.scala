@@ -38,7 +38,7 @@ object CaseClassField {
   final val stringifyTermName = "stringify"
   final val fieldTermName     = "Field"
 
-  def fieldOf[T <: Product](field: String): CaseClassField = macro selectFieldMacroImpl[T]
+  def apply[T <: Product](field: String): CaseClassField = macro selectFieldMacroImpl[T]
 
   def selectFieldMacroImpl[T: c.WeakTypeTag](
     c: whitebox.Context

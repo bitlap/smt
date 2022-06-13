@@ -115,17 +115,16 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   }
 
   "cache6" should "get entity with selectField successfully" in {
-    import org.bitlap.common.CaseClassField.fieldOf
     val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
 
     val id: Identity[Option[CaseClassField#Field]] =
-      cache.getTField("etc", fieldOf[TestEntity]("id"))
+      cache.getTField("etc", CaseClassField[TestEntity]("id"))
     println(id)
     id shouldBe data.get("etc").map(_.id)
 
     val value =
-      cache.getTField("etc", fieldOf[TestEntity]("value"))
+      cache.getTField("etc", CaseClassField[TestEntity]("value"))
     println(value)
     value shouldBe data.get("etc").map(_.value)
   }

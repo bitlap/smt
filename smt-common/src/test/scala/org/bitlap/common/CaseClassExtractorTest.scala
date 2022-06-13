@@ -52,10 +52,9 @@ class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
   }
 
   "CaseClassExtractorTest4" should "selectField" in {
-    import org.bitlap.common.CaseClassField.fieldOf
-    val key: CaseClassField = fieldOf[TestEntity]("key")
+    val key: CaseClassField = CaseClassField[TestEntity]("key")
     assert(key.stringify == "key")
-    val value: CaseClassField = fieldOf[TestEntity]("value")
+    val value: CaseClassField = CaseClassField[TestEntity]("value")
     assert(value.stringify == "value")
   }
 
