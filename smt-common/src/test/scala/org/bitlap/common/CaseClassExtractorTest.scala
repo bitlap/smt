@@ -69,7 +69,7 @@ class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
       |      key: String,
       |      value: Option[Int] = None
       |    )(i: Int)
-      |    val key: CaseClassField = fieldOf[TestEntity2](_.key)
+      |    val key: CaseClassField = CaseClassField[TestEntity2](_.key)
       |""".stripMargin shouldNot compile
   }
 }
