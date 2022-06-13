@@ -31,9 +31,10 @@ import org.scalatest.matchers.should.Matchers
 class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
 
   "CaseClassExtractorTest1" should "safe" in {
-    val obj = TestEntity("name", "id", "key", Some(1))
-    val key: Option[String] =
-      CaseClassExtractor.getFieldValueSafely[TestEntity, TestEntity.key.Field](obj, TestEntity.key.stringify)
+    val obj      = TestEntity("name", "id", "key", Some(1))
+    val keyField = CaseClassField[TestEntity](_.key)
+    val key =
+      CaseClassExtractor.getFieldValueSafely[TestEntity, keyField.Field](obj, keyField.stringify)
     assert(key == Option("key"))
   }
 
@@ -46,8 +47,28 @@ class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
   }
 
   "CaseClassExtractorTest3" should "unsafe" in {
-    val obj                 = TestEntity("name", "id", "key", Some(1))
-    val key: Option[String] = CaseClassExtractor.getFieldValueUnSafely(obj, TestEntity.key)
+    val obj = TestEntity("name", "id", "key", Some(1))
+    val key: Option[CaseClassField#Field] =
+      CaseClassExtractor.getFieldValueUnSafely(obj, CaseClassField[TestEntity](_.key))
     assert(key == Option("key"))
+  }
+
+  "CaseClassExtractorTest4" should "selectField" in {
+    val key: CaseClassField = CaseClassField[TestEntity](_.key)
+    assert(key.stringify == "key")
+    val value: CaseClassField = CaseClassField[TestEntity](_.value)
+    assert(value.stringify == "value")
+  }
+
+  "CaseClassExtractorTest5" should "error in case class with curry" in {
+    """
+      |    case class TestEntity2(
+      |      name: String,
+      |      id: String,
+      |      key: String,
+      |      value: Option[Int] = None
+      |    )(i: Int)
+      |    val key: CaseClassField = CaseClassField[TestEntity2](_.key)
+      |""".stripMargin shouldNot compile
   }
 }

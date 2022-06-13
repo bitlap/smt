@@ -38,7 +38,7 @@ class ScalaReflectionUtils[T: WeakTypeTag] {
     currentMirror
       .reflectClass(tt.tpe.typeSymbol.asClass)
       .reflectConstructor(
-        tt.tpe.members.filter(m => m.isMethod && m.asMethod.isConstructor).iterator.toSeq(ctor).asMethod
+        tt.tpe.members.sorted.filter(m => m.isMethod && m.asMethod.isConstructor).iterator.toSeq(ctor).asMethod
       )(args: _*)
       .asInstanceOf[T]
   }

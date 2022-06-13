@@ -20,6 +20,7 @@
  */
 
 package org.bitlap.cache
+import org.bitlap.common.CaseClassField
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -27,6 +28,7 @@ import org.bitlap.cache.CacheImplicits._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
+import org.bitlap.common.TestEntity
 
 /** @author
  *    梦境迷离
@@ -49,10 +51,10 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   "cache2" should "get entity's field from cache successfully" in {
     val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
-    val result: Option[String] = cache.getTField("etc", TestEntity.key)
+    val result = cache.getTField("etc", CaseClassField[TestEntity](_.key))
     result shouldBe Some("world2")
 
-    val result2: Option[String] = cache.getTField("etc", TestEntity.key)
+    val result2 = cache.getTField("etc", CaseClassField[TestEntity](_.key))
     result2 shouldBe Some("world2")
   }
 
@@ -64,6 +66,7 @@ class CacheSpec extends AnyFlatSpec with Matchers {
       "btc-zh-cn" -> TestEntity("btc", "你好啊", "你好哦"),
       "etc"       -> TestEntity("eth", "hello2", "world2")
     )
+    cache.clear()
     cache.putTAll(newData)
 
     val result: Option[TestEntity] = cache.getT("btc-zh-cn")
@@ -84,12 +87,45 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.init(newData)
-      btcKey <- cache.getTField("btc", TestEntity.key)
+      btcKey <- cache.getTField("btc", CaseClassField[TestEntity](_.key))
       _      <- cache.putTAll(newData2)
-      ethKey <- cache.getTField("eth", TestEntity.key)
+      ethKey <- cache.getTField("eth", CaseClassField[TestEntity](_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> Option("eth_key456")
 
+  }
+
+  "cache5" should "ok when async cache clear" in {
+    val newData = Map(
+      "btc"       -> TestEntity("btc", "id123", "btc_key123"),
+      "btc-zh-cn" -> TestEntity("btc", "id123", "btc_zh_key123")
+    )
+    val cache = Cache.getAsyncCache[TestEntity]
+
+    val ret = for {
+      _      <- cache.init(newData)
+      btcKey <- cache.getTField("btc", CaseClassField[TestEntity](_.key))
+      _      <- cache.clear()
+      ethKey <- cache.getTField("eth", CaseClassField[TestEntity](_.key))
+    } yield btcKey -> ethKey
+
+    Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> None
+
+  }
+
+  "cache6" should "get entity with selectField successfully" in {
+    val cache = Cache.getSyncCache[TestEntity]
+    cache.init(data)
+
+    val id: Identity[Option[CaseClassField#Field]] =
+      cache.getTField("etc", CaseClassField[TestEntity](_.id))
+    println(id)
+    id shouldBe data.get("etc").map(_.id)
+
+    val value =
+      cache.getTField("etc", CaseClassField[TestEntity](_.value))
+    println(value)
+    value shouldBe data.get("etc").map(_.value)
   }
 }

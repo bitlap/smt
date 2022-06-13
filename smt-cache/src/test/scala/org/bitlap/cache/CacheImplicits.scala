@@ -21,6 +21,7 @@
 
 package org.bitlap.cache
 import scala.concurrent.ExecutionContext
+import org.bitlap.common.TestEntity
 
 object CacheImplicits {
 
