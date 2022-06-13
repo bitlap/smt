@@ -44,13 +44,12 @@ object CaseClassExtractor {
     c: whitebox.Context
   )(t: c.Expr[T], field: c.Expr[CaseClassField]): c.Expr[Option[Any]] = {
     import c.universe._
+    // scalafmt: { maxColumn = 400 }
     val tree =
       q"""
        if ($t == null) None else {
           val _field = $field
-          _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(
-          CaseClassField.stringifyTermName
-        )})
+          _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(CaseClassField.stringifyTermName)})
           .map(kv => $t.productElement(kv._1))       
        }
      """
