@@ -58,4 +58,17 @@ class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
     val value: CaseClassField = fieldOf[TestEntity]("value")
     assert(value.stringify == "value")
   }
+
+  "CaseClassExtractorTest5" should "error in case class with curry" in {
+    """
+      |    import org.bitlap.common.CaseClassField.fieldOf
+      |    case class TestEntity2(
+      |      name: String,
+      |      id: String,
+      |      key: String,
+      |      value: Option[Int] = None
+      |    )(i: Int)
+      |    val key: CaseClassField = fieldOf[TestEntity2]("key")
+      |""".stripMargin shouldNot compile
+  }
 }

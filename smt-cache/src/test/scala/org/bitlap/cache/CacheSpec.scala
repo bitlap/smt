@@ -28,6 +28,7 @@ import org.bitlap.cache.CacheImplicits._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
+import org.bitlap.common.TestEntity
 
 /** @author
  *    梦境迷离
