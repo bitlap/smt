@@ -32,7 +32,7 @@ trait CaseClassField {
 
   type Field
 
-  /** product index -> name, scala2.11 2.12 not `productElementNames``
+  /** product index -> name, scala2.11 2.12 not `productElementNames`
    */
   val fieldNames: Map[Int, String]
 }

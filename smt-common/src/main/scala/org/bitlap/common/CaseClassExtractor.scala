@@ -47,7 +47,7 @@ object CaseClassExtractor {
     val tree =
       q"""
        if ($t == null) None else {
-          lazy val _field = $field 
+          val _field = $field
           _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(
           CaseClassField.stringifyTermName
         )})
