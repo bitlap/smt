@@ -20,6 +20,7 @@
  */
 
 package org.bitlap.cache
+import org.bitlap.common.CaseClassField
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -110,5 +111,21 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> None
 
+  }
+
+  "cache6" should "get entity with selectField successfully" in {
+    import org.bitlap.common.CaseClassField.fieldOf
+    val cache = Cache.getSyncCache[TestEntity]
+    cache.init(data)
+
+    val id: Identity[Option[CaseClassField#Field]] =
+      cache.getTField("etc", fieldOf[TestEntity]("id"))
+    println(id)
+    id shouldBe data.get("etc").map(_.id)
+
+    val value =
+      cache.getTField("etc", fieldOf[TestEntity]("value"))
+    println(value)
+    value shouldBe data.get("etc").map(_.value)
   }
 }

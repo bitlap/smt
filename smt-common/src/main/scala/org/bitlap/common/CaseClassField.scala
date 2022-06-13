@@ -21,9 +21,74 @@
 
 package org.bitlap.common
 
+import org.bitlap.common.CaseClassExtractor.exprPrintTree
+
+import scala.reflect.macros.whitebox
+
 trait CaseClassField {
 
   def stringify: String
 
   type Field
+}
+
+object CaseClassField {
+
+  final val classNameTermName = "CaseClassField"
+  final val stringifyTermName = "stringify"
+  final val fieldTermName     = "Field"
+
+  def fieldOf[T <: Product](field: String): CaseClassField = macro selectFieldMacroImpl[T]
+
+  def selectFieldMacroImpl[T: c.WeakTypeTag](
+    c: whitebox.Context
+  )(field: c.Expr[String]): c.Expr[CaseClassField] = {
+    import c.universe._
+    val packageName     = q"_root_.org.bitlap.common"
+    val caseClassParams = getCaseClassParams[T](c)
+    val fieldName       = q"$field".toString().replace("\"", "")
+    val searchField =
+      caseClassParams.find(_.name.toTermName.decodedName.toString == fieldName)
+    val fieldType = searchField.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
+    if (searchField.isEmpty || fieldType.isEmpty) {
+      c.abort(
+        c.enclosingPosition,
+        s"""Field name is invalid, "${c.weakTypeOf[T].resultType}" does not have a field named ${q"$field"}! 
+           |Please consider using "def selectField[T](${q"$field"})" instead of "def selectField(${q"$field"})" """.stripMargin
+      )
+    }
+
+    val genericType = fieldType.get match {
+      case t if t <:< typeOf[Option[_]] =>
+        val genericType = t.typeArgs.head
+        tq"Option[$genericType]"
+      case t if t <:< typeOf[Seq[_]] =>
+        val genericType = t.typeArgs.head
+        tq"Seq[$genericType]"
+      case t if t <:< typeOf[List[_]] =>
+        val genericType = t.typeArgs.head
+        tq"List[$genericType]"
+      case t => tq"$t"
+    }
+
+    val fieldNameTypeName = TermName(s"${CaseClassField.classNameTermName}$$$fieldName")
+    val res = q"""
+       case object $fieldNameTypeName extends $packageName.${TypeName(CaseClassField.classNameTermName)} {
+          override def ${TermName(CaseClassField.stringifyTermName)}: String = ${q"$field"}
+          override type ${TypeName(CaseClassField.fieldTermName)} = $genericType
+       }
+     $fieldNameTypeName
+     """
+    exprPrintTree[CaseClassField](c)(res)
+  }
+
+  private def getCaseClassParams[T: c.WeakTypeTag](c: whitebox.Context): List[c.Symbol] = {
+    import c.universe._
+    val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
+    if (parameters.size > 1) {
+      c.abort(c.enclosingPosition, "The constructor of case class has currying!")
+    }
+    parameters.flatten
+  }
+
 }

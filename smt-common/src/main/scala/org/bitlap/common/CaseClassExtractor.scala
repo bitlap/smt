@@ -74,7 +74,7 @@ object CaseClassExtractor {
 
   }
 
-  private def exprPrintTree[Field: c.WeakTypeTag](c: whitebox.Context)(resTree: c.Tree): c.Expr[Field] = {
+  def exprPrintTree[Field: c.WeakTypeTag](c: whitebox.Context)(resTree: c.Tree): c.Expr[Field] = {
     c.info(
       c.enclosingPosition,
       s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree

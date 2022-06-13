@@ -26,7 +26,8 @@ import org.bitlap.common.CaseClassField
 case class TestEntity(
   name: String,
   id: String,
-  key: String
+  key: String,
+  value: Option[String] = None
 )
 
 object TestEntity {
