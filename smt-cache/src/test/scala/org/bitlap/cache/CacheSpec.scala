@@ -51,10 +51,10 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   "cache2" should "get entity's field from cache successfully" in {
     val cache = Cache.getSyncCache[TestEntity]
     cache.init(data)
-    val result = cache.getTField("etc", CaseClassField[TestEntity]("key"))
+    val result = cache.getTField("etc", CaseClassField[TestEntity](_.key))
     result shouldBe Some("world2")
 
-    val result2 = cache.getTField("etc", CaseClassField[TestEntity]("key"))
+    val result2 = cache.getTField("etc", CaseClassField[TestEntity](_.key))
     result2 shouldBe Some("world2")
   }
 
@@ -87,9 +87,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.init(newData)
-      btcKey <- cache.getTField("btc", CaseClassField[TestEntity]("key"))
+      btcKey <- cache.getTField("btc", CaseClassField[TestEntity](_.key))
       _      <- cache.putTAll(newData2)
-      ethKey <- cache.getTField("eth", CaseClassField[TestEntity]("key"))
+      ethKey <- cache.getTField("eth", CaseClassField[TestEntity](_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> Option("eth_key456")
@@ -105,9 +105,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.init(newData)
-      btcKey <- cache.getTField("btc", CaseClassField[TestEntity]("key"))
+      btcKey <- cache.getTField("btc", CaseClassField[TestEntity](_.key))
       _      <- cache.clear()
-      ethKey <- cache.getTField("eth", CaseClassField[TestEntity]("key"))
+      ethKey <- cache.getTField("eth", CaseClassField[TestEntity](_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> None
@@ -119,12 +119,12 @@ class CacheSpec extends AnyFlatSpec with Matchers {
     cache.init(data)
 
     val id: Identity[Option[CaseClassField#Field]] =
-      cache.getTField("etc", CaseClassField[TestEntity]("id"))
+      cache.getTField("etc", CaseClassField[TestEntity](_.id))
     println(id)
     id shouldBe data.get("etc").map(_.id)
 
     val value =
-      cache.getTField("etc", CaseClassField[TestEntity]("value"))
+      cache.getTField("etc", CaseClassField[TestEntity](_.value))
     println(value)
     value shouldBe data.get("etc").map(_.value)
   }

@@ -24,6 +24,7 @@ package org.bitlap.common
 import org.bitlap.common.CaseClassExtractor.exprPrintTree
 
 import scala.reflect.macros.whitebox
+import scala.collection.Seq
 
 trait CaseClassField {
 
@@ -38,23 +39,24 @@ object CaseClassField {
   final val stringifyTermName = "stringify"
   final val fieldTermName     = "Field"
 
-  def apply[T <: Product](field: String): CaseClassField = macro selectFieldMacroImpl[T]
+  def apply[T <: Product](field: T => Any): CaseClassField = macro selectFieldMacroImpl[T]
 
   def selectFieldMacroImpl[T: c.WeakTypeTag](
     c: whitebox.Context
-  )(field: c.Expr[String]): c.Expr[CaseClassField] = {
+  )(field: c.Expr[T => Any]): c.Expr[CaseClassField] = {
     import c.universe._
-    val packageName     = q"_root_.org.bitlap.common"
-    val caseClassParams = getCaseClassParams[T](c)
-    val fieldName       = q"$field".toString().replace("\"", "")
+    val packageName                      = q"_root_.org.bitlap.common"
+    val Function(_, Select(_, termName)) = field.tree
+    val caseClassParams                  = getCaseClassParams[T](c)
+    val fieldName                        = termName.decodedName.toString
     val searchField =
       caseClassParams.find(_.name.toTermName.decodedName.toString == fieldName)
     val fieldType = searchField.map(f => c.typecheck(tq"$f", c.TYPEmode).tpe)
     if (searchField.isEmpty || fieldType.isEmpty) {
       c.abort(
         c.enclosingPosition,
-        s"""Field name is invalid, "${c.weakTypeOf[T].resultType}" does not have a field named ${q"$field"}! 
-           |Please consider using "CaseClassField[T](${q"$field"})" instead of "CaseClassField(${q"$field"})" """.stripMargin
+        s"""Field name is invalid, "${c.weakTypeOf[T].resultType}" does not have a field named $fieldName! 
+           |Please consider using "CaseClassField[T]($fieldName)" instead of "CaseClassField($fieldName)" """.stripMargin
       )
     }
 
@@ -74,7 +76,7 @@ object CaseClassField {
     val fieldNameTypeName = TermName(s"${CaseClassField.classNameTermName}$$$fieldName")
     val res = q"""
        case object $fieldNameTypeName extends $packageName.${TypeName(CaseClassField.classNameTermName)} {
-          override def ${TermName(CaseClassField.stringifyTermName)}: String = ${q"$field"}
+          override def ${TermName(CaseClassField.stringifyTermName)}: String = $fieldName
           override type ${TypeName(CaseClassField.fieldTermName)} = $genericType
        }
      $fieldNameTypeName
