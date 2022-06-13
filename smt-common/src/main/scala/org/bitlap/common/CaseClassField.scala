@@ -54,7 +54,7 @@ object CaseClassField {
       c.abort(
         c.enclosingPosition,
         s"""Field name is invalid, "${c.weakTypeOf[T].resultType}" does not have a field named ${q"$field"}! 
-           |Please consider using "def selectField[T](${q"$field"})" instead of "def selectField(${q"$field"})" """.stripMargin
+           |Please consider using "CaseClassField[T](${q"$field"})" instead of "CaseClassField(${q"$field"})" """.stripMargin
       )
     }
 
