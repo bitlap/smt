@@ -34,7 +34,7 @@ trait CaseClassField {
 
   /** product index -> name, scala2.11 2.12 not `productElementNames`
    */
-  val fieldNames: Map[Int, String]
+  val fieldIndexNames: Map[Int, String]
 }
 
 object CaseClassField {
@@ -42,7 +42,7 @@ object CaseClassField {
   final val classNameTermName  = "CaseClassField"
   final val stringifyTermName  = "stringify"
   final val fieldTermName      = "Field"
-  final val fieldNamesTermName = "fieldNames"
+  final val fieldNamesTermName = "fieldIndexNames"
 
   def apply[T <: Product](field: T => Any): CaseClassField = macro selectFieldMacroImpl[T]
 
