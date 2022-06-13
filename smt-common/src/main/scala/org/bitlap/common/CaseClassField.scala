@@ -31,13 +31,18 @@ trait CaseClassField {
   def stringify: String
 
   type Field
+
+  /** product index -> name, scala2.11 2.12 not `productElementNames``
+   */
+  val fieldNames: Map[Int, String]
 }
 
 object CaseClassField {
 
-  final val classNameTermName = "CaseClassField"
-  final val stringifyTermName = "stringify"
-  final val fieldTermName     = "Field"
+  final val classNameTermName  = "CaseClassField"
+  final val stringifyTermName  = "stringify"
+  final val fieldTermName      = "Field"
+  final val fieldNamesTermName = "fieldNames"
 
   def apply[T <: Product](field: T => Any): CaseClassField = macro selectFieldMacroImpl[T]
 
@@ -74,10 +79,13 @@ object CaseClassField {
     }
 
     val fieldNameTypeName = TermName(s"${CaseClassField.classNameTermName}$$$fieldName")
-    val res = q"""
+    val res =
+      q"""
        case object $fieldNameTypeName extends $packageName.${TypeName(CaseClassField.classNameTermName)} {
           override def ${TermName(CaseClassField.stringifyTermName)}: String = $fieldName
           override type ${TypeName(CaseClassField.fieldTermName)} = $genericType
+          override val ${TermName(CaseClassField.fieldNamesTermName)} = 
+          (${caseClassParams.indices.toList} zip ${caseClassParams.map(_.name.decodedName.toString)}).toMap
        }
      $fieldNameTypeName
      """
