@@ -39,6 +39,8 @@ sealed trait GenericCache[K, F[_]] {
 
   def putAll(map: Map[K, Out])(implicit keyBuilder: CacheKeyBuilder[K]): F[Unit]
 
+  def clear(): F[Unit]
+
 }
 object GenericCache {
 
@@ -64,6 +66,8 @@ object GenericCache {
 
     override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Unit] =
       typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2).asJava)
+
+    override def clear(): Identity[Unit] = typedCache.clear()
   }
 
   def apply[K, Out0 <: Product](
@@ -92,6 +96,8 @@ object GenericCache {
           println(s"all map => ${map.mkString(" | ")}")
           typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2).asJava)
         }
+
+      override def clear(): Future[Unit] = Future.successful(typedCache.clear())
     }
 
   private def getCacheByStrategy[Out0](cacheType: CacheStrategy): util.Map[String, Out0] =

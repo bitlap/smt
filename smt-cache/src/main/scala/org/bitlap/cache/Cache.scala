@@ -62,6 +62,8 @@ object Cache {
         keyBuilder: CacheKeyBuilder[String]
       ): Future[Option[field.Field]] =
         getT(key).map(opt => opt.flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field)))
+
+      override def clear(): Future[Unit] = cache.clear()
     }
 
   def getSyncCache[T <: Product](implicit
@@ -90,6 +92,8 @@ object Cache {
         keyBuilder: CacheKeyBuilder[String]
       ): Identity[Option[field.Field]] =
         getT(key).flatMap(t => CaseClassExtractor.getFieldValueUnSafely[cache.Out](t, field))
+
+      override def clear(): Identity[Unit] = cache.clear()
     }
 
 }
