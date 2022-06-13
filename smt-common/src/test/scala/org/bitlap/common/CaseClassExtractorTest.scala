@@ -31,10 +31,9 @@ import org.scalatest.matchers.should.Matchers
 class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
 
   "CaseClassExtractorTest1" should "safe" in {
-    val obj      = TestEntity("name", "id", "key", Some(1))
-    val keyField = CaseClassField[TestEntity](_.key)
-    val key =
-      CaseClassExtractor.getFieldValueSafely[TestEntity, keyField.Field](obj, keyField.stringify)
+    val obj = TestEntity("name", "id", "key", Some(1))
+    val key = CaseClassExtractor.ofValue(obj, CaseClassField[TestEntity](_.key))
+    println(key)
     assert(key == Option("key"))
   }
 
@@ -47,9 +46,8 @@ class CaseClassExtractorTest extends AnyFlatSpec with Matchers {
   }
 
   "CaseClassExtractorTest3" should "unsafe" in {
-    val obj = TestEntity("name", "id", "key", Some(1))
-    val key: Option[CaseClassField#Field] =
-      CaseClassExtractor.getFieldValueUnSafely(obj, CaseClassField[TestEntity](_.key))
+    val obj                               = TestEntity("name", "id", "key", Some(1))
+    val key: Option[CaseClassField#Field] = CaseClassExtractor.reflectValue(obj, CaseClassField[TestEntity](_.key))
     assert(key == Option("key"))
   }
 

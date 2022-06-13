@@ -31,13 +31,18 @@ trait CaseClassField {
   def stringify: String
 
   type Field
+
+  /** product index -> name, scala2.11 2.12 not `productElementNames`
+   */
+  val fieldIndexNames: Map[Int, String]
 }
 
 object CaseClassField {
 
-  final val classNameTermName = "CaseClassField"
-  final val stringifyTermName = "stringify"
-  final val fieldTermName     = "Field"
+  final val classNameTermName  = "CaseClassField"
+  final val stringifyTermName  = "stringify"
+  final val fieldTermName      = "Field"
+  final val fieldNamesTermName = "fieldIndexNames"
 
   def apply[T <: Product](field: T => Any): CaseClassField = macro selectFieldMacroImpl[T]
 
@@ -74,17 +79,20 @@ object CaseClassField {
     }
 
     val fieldNameTypeName = TermName(s"${CaseClassField.classNameTermName}$$$fieldName")
-    val res = q"""
+    val res =
+      q"""
        case object $fieldNameTypeName extends $packageName.${TypeName(CaseClassField.classNameTermName)} {
           override def ${TermName(CaseClassField.stringifyTermName)}: String = $fieldName
           override type ${TypeName(CaseClassField.fieldTermName)} = $genericType
+          override val ${TermName(CaseClassField.fieldNamesTermName)} = 
+          (${caseClassParams.indices.toList} zip ${caseClassParams.map(_.name.decodedName.toString)}).toMap
        }
      $fieldNameTypeName
      """
     exprPrintTree[CaseClassField](c)(res)
   }
 
-  private def getCaseClassParams[T: c.WeakTypeTag](c: whitebox.Context): List[c.Symbol] = {
+  def getCaseClassParams[T: c.WeakTypeTag](c: whitebox.Context): List[c.Symbol] = {
     import c.universe._
     val parameters = c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
     if (parameters.size > 1) {

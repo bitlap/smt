@@ -35,7 +35,42 @@ import scala.util.{ Failure, Success }
  */
 object CaseClassExtractor {
 
-  def getFieldValueUnSafely[T: ru.TypeTag](obj: T, field: CaseClassField)(implicit
+  /** Using the characteristics of the product type to get the field value should force the conversion externally
+   *  (safely).
+   */
+  def ofValue[T <: Product](t: T, field: CaseClassField): Option[Any] = macro macroImpl[T]
+
+  def macroImpl[T: c.WeakTypeTag](
+    c: whitebox.Context
+  )(t: c.Expr[T], field: c.Expr[CaseClassField]): c.Expr[Option[Any]] = {
+    import c.universe._
+    // scalafmt: { maxColumn = 400 }
+    val tree =
+      q"""
+       if ($t == null) None else {
+          val _field = $field
+          _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(CaseClassField.stringifyTermName)})
+          .map(kv => $t.productElement(kv._1))       
+       }
+     """
+    exprPrintTree[Option[Any]](c)(tree)
+
+  }
+
+  def exprPrintTree[Field: c.WeakTypeTag](c: whitebox.Context)(resTree: c.Tree): c.Expr[Field] = {
+    c.info(
+      c.enclosingPosition,
+      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
+        .toString() + "\n###### Expanded macro end ######\n",
+      force = false
+    )
+    c.Expr[Field](resTree)
+  }
+
+  /** Using scala reflect to get the field value (safely).
+   */
+  @deprecated
+  def reflectValue[T: ru.TypeTag](obj: T, field: CaseClassField)(implicit
     classTag: ClassTag[T]
   ): Option[field.Field] = {
     val mirror = ru.runtimeMirror(getClass.getClassLoader)
@@ -55,32 +90,4 @@ object CaseClassExtractor {
   def getMethods[T: ru.TypeTag]: List[ru.MethodSymbol] = typeOf[T].members.collect {
     case m: MethodSymbol if m.isCaseAccessor => m
   }.toList
-
-  def getFieldValueSafely[T <: Product, Field](t: T, name: String): Option[Field] = macro macroImpl[T, Field]
-
-  def macroImpl[T: c.WeakTypeTag, Field: c.WeakTypeTag](
-    c: whitebox.Context
-  )(t: c.Expr[T], name: c.Expr[String]): c.Expr[Option[Field]] = {
-    import c.universe._
-    val typ = TypeName(c.weakTypeOf[Field].typeSymbol.name.decodedName.toString)
-    val tree =
-      q"""
-       if ($t == null) None else {
-          val idx = $t.productElementNames.indexOf($name)
-          Option($t.productElement(idx).asInstanceOf[$typ])       
-       }
-     """
-    exprPrintTree[Option[Field]](c)(tree)
-
-  }
-
-  def exprPrintTree[Field: c.WeakTypeTag](c: whitebox.Context)(resTree: c.Tree): c.Expr[Field] = {
-    c.info(
-      c.enclosingPosition,
-      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
-        .toString() + "\n###### Expanded macro end ######\n",
-      force = false
-    )
-    c.Expr[Field](resTree)
-  }
 }
