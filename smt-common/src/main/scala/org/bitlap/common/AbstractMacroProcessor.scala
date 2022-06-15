@@ -36,7 +36,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   import c.universe._
 
-  final case class FieldZipInformation(fieldNames: List[String], fieldIndexTypeMapping: Map[Int, Type])
+  final case class FieldZipInformation(fieldNames: List[String], fieldIndexTypeMapping: List[(Int, Type)])
 
   final case class FieldTreeInformation(index: Int, fieldTerm: Tree, fieldType: Type)
 
@@ -162,7 +162,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     val names      = params.map(_.fieldName)
     FieldZipInformation(
       names,
-      params.zip(0 until paramsSize).map(f => f._2 -> f._1.fieldType).toMap
+      params.zip(0 until paramsSize).map(f => f._2 -> f._1.fieldType)
     )
   }
 

@@ -66,7 +66,9 @@ object DeriveToString {
               q"$packageName.Converter[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           }
         }
-      }.toList
+      }
+      
+      c.info(c.enclosingPosition,s"$fieldsToString", true)
       val tree =
         q"""
         val $innerVarTermName = $t    
