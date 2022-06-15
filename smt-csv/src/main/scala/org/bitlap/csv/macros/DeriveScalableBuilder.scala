@@ -48,7 +48,8 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   private val scalableImplClassNamePrefix = "_ScalaAnno$"
 
   // scalafmt: { maxColumn = 400 }
-  def setFieldImpl[T: WeakTypeTag, SF: WeakTypeTag](scalaField: Expr[T => SF], value: Expr[String => SF]): Expr[ScalableBuilder[T]] = {
+  @unchecked
+  def setFieldImpl[T, SF](scalaField: Expr[T => SF], value: Expr[String => SF]): Expr[ScalableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)

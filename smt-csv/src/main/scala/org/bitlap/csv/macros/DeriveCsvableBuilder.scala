@@ -48,7 +48,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
   private val funcArgsTempTermName       = TermName("temp")
 
   // scalafmt: { maxColumn = 400 }
-  def setFieldImpl[T: WeakTypeTag, SF: WeakTypeTag](scalaField: Expr[T => SF], value: Expr[SF => String]): Expr[CsvableBuilder[T]] = {
+  def setFieldImpl[T, SF](scalaField: Expr[T => SF], value: Expr[SF => String]): Expr[CsvableBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
