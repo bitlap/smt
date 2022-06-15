@@ -50,7 +50,7 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
     val tree = q"""
        new $packageName.CTransformer[$inClassName, $outClassName] {
           override def transform($inTermName: $inClassName): $outClassName = {
-            ${getCCTransformBody[In, Out]}
+            ${getCTransformBody[In, Out]}
           }
       }
      """
@@ -73,7 +73,7 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
     exprPrintTree[CTransformerBuilder[In, Out]](force = false, tree)
   }
 
-  private def getCCTransformBody[In: WeakTypeTag, Out: WeakTypeTag]: Tree = {
+  private def getCTransformBody[In: WeakTypeTag, Out: WeakTypeTag]: Tree = {
     val outClassName = resolveClassTypeName[Out]
     val outClassInfo = getCaseClassFieldInfo[Out]()
     val customFieldMapping =
