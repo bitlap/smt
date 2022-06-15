@@ -52,10 +52,10 @@ object DeriveToCaseClass {
               tryOption(q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)")
             case t if t <:< typeOf[List[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              tryOptionGetOrElse(q"$packageName.Converter[List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
             case t if t <:< typeOf[Seq[_]] =>
               val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              tryOptionGetOrElse(q"$packageName.Converter[Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
             case t =>
               val caseClassFieldTypeName = TypeName(idxType._2.typeSymbol.name.decodedName.toString)
               t match {
@@ -85,7 +85,7 @@ object DeriveToCaseClass {
       val tree =
         q"""
            lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
-           Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
+           _root_.scala.Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)
 

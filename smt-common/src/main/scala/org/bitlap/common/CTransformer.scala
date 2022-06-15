@@ -4,10 +4,10 @@ package org.bitlap.common
  *    梦境迷离
  *  @version 1.0,6/14/22
  */
-trait CTransformer[-In, +Out] {
-  def transform(in: In): Out
+trait CTransformer[-From, +To] {
+  def transform(from: From): To
 }
 
 object CTransformer {
-  def apply[In <: Product, Out <: Product](implicit st: CTransformer[In, Out]): CTransformer[In, Out] = st
+  def apply[From <: Product, To <: Product](implicit st: CTransformer[From, To]): CTransformer[From, To] = st
 }

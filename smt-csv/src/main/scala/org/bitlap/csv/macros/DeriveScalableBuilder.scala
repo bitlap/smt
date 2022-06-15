@@ -169,7 +169,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[List[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            tryGetOrElse(q"${customFunction()}.asInstanceOf[List[$genericType]]", q"Nil")
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$genericType]]", q"Nil")
           } else {
             c.abort(
               c.enclosingPosition,
@@ -180,7 +180,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[Seq[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            tryGetOrElse(q"${customFunction()}.asInstanceOf[Seq[$genericType]]", q"Nil")
+            tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Seq[$genericType]]", q"Nil")
           } else {
             c.abort(
               c.enclosingPosition,
@@ -191,7 +191,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case tp if tp <:< typeOf[Option[_]] =>
           val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
           if (customTrees.contains(fieldNames(idx))) {
-            tryOption(q"${customFunction()}.asInstanceOf[Option[$genericType]]")
+            tryOption(q"${customFunction()}.asInstanceOf[_root_.scala.Option[$genericType]]")
           } else {
             tryOption(q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)")
           }
@@ -226,7 +226,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     }
 
     // input args not need used
-    q"""override def _toScala(column: String): Option[$clazzName] = 
-       ${tryOption(q"Option(${TermName(clazzName.decodedName.toString)}(..$fields))")}"""
+    q"""override def _toScala(column: String): _root_.scala.Option[$clazzName] = 
+       ${tryOption(q"_root_.scala.Option(${TermName(clazzName.decodedName.toString)}(..$fields))")}"""
   }
 }

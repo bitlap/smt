@@ -43,7 +43,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     q"_root_.scala.util.Try($optionTree.getOrElse($default)).getOrElse($default)"
 
   def tryOption(optionTree: Tree): Tree =
-    q"_root_.scala.util.Try($optionTree).getOrElse(None)"
+    q"_root_.scala.util.Try($optionTree).getOrElse(_root_.scala.None)"
 
   def getDefaultValue(typ: Type): Tree =
     typ match {

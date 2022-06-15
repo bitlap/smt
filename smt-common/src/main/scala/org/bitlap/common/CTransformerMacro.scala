@@ -14,70 +14,69 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
   protected val packageName         = q"_root_.org.bitlap.common"
   private val builderFunctionPrefix = "_CTransformerBuilderFunction$"
   private val annoBuilderPrefix     = "_AnonObjectCTransformerBuilder$"
-  private val inTermName            = TermName("in")
+  private val fromTermName          = TermName("from")
 
-  def mapNameWithValueImpl[In: WeakTypeTag, Out: WeakTypeTag, InF: WeakTypeTag, OutF: WeakTypeTag](
-    inField: Expr[In => InF],
-    outField: Expr[Out => OutF],
-    value: Expr[InF => OutF]
-  ): Expr[CTransformerBuilder[In, Out]] = {
-    val Function(_, Select(_, inName))  = inField.tree
-    val Function(_, Select(_, outName)) = outField.tree
-    val builderId                       = getBuilderId(annoBuilderPrefix)
+  def mapValueImpl[From: WeakTypeTag, To: WeakTypeTag, FromField: WeakTypeTag, ToField: WeakTypeTag](
+    selectFromField: Expr[From => FromField],
+    selectToField: Expr[To => ToField],
+    map: Expr[FromField => ToField]
+  ): Expr[CTransformerBuilder[From, To]] = {
+    val Function(_, Select(_, fromName)) = selectFromField.tree
+    val Function(_, Select(_, toName))   = selectToField.tree
+    val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.classFieldNameMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
-      .update(outName.decodedName.toString, inName.decodedName.toString)
-
+      .update(toName.decodedName.toString, fromName.decodedName.toString)
     MacroCache.classFieldValueMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
-      .update(outName.decodedName.toString, value)
+      .update(toName.decodedName.toString, map)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[CTransformerBuilder[In, Out]](force = false, tree)
+    exprPrintTree[CTransformerBuilder[From, To]](force = false, tree)
   }
 
-  def mapNameOnlyImpl[In: WeakTypeTag, Out: WeakTypeTag, InF: WeakTypeTag, OutF: WeakTypeTag](
-    inField: Expr[In => InF],
-    outField: Expr[Out => OutF]
-  ): Expr[CTransformerBuilder[In, Out]] = {
-    val Function(_, Select(_, inName))  = inField.tree
-    val Function(_, Select(_, outName)) = outField.tree
-    val builderId                       = getBuilderId(annoBuilderPrefix)
+  def mapNameImpl[From: WeakTypeTag, To: WeakTypeTag, FromField: WeakTypeTag, ToField: WeakTypeTag](
+    selectFromField: Expr[From => FromField],
+    selectToField: Expr[To => ToField]
+  ): Expr[CTransformerBuilder[From, To]] = {
+    val Function(_, Select(_, fromName)) = selectFromField.tree
+    val Function(_, Select(_, toName))   = selectToField.tree
+    val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.classFieldNameMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
-      .update(outName.decodedName.toString, inName.decodedName.toString)
+      .update(toName.decodedName.toString, fromName.decodedName.toString)
 
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[CTransformerBuilder[In, Out]](force = false, tree)
+    exprPrintTree[CTransformerBuilder[From, To]](force = false, tree)
   }
 
-  def buildImpl[In: WeakTypeTag, Out: WeakTypeTag]: Expr[CTransformer[In, Out]] = {
-    val inClassName  = resolveClassTypeName[In]
-    val outClassName = resolveClassTypeName[Out]
+  def buildImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[CTransformer[From, To]] = {
+    val fromClassName = resolveClassTypeName[From]
+    val toClassName   = resolveClassTypeName[To]
     val tree = q"""
        ..$getPreTree  
-       new $packageName.CTransformer[$inClassName, $outClassName] {
-          override def transform($inTermName: $inClassName): $outClassName = {
-            ${getCTransformBody[In, Out]}
+       new $packageName.CTransformer[$fromClassName, $toClassName] {
+          override def transform($fromTermName: $fromClassName): $toClassName = {
+            ${getCTransformBody[From, To]}
           }
       }
      """
-    exprPrintTree[CTransformer[In, Out]](force = false, tree)
+    exprPrintTree[CTransformer[From, To]](force = false, tree)
   }
 
-  def applyImpl[In: WeakTypeTag, Out: WeakTypeTag]: Expr[CTransformerBuilder[In, Out]] =
-    deriveBuilderApplyImpl[In, Out]
+  def applyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[CTransformerBuilder[From, To]] =
+    deriveBuilderApplyImpl[From, To]
 
-  private def deriveBuilderApplyImpl[In: WeakTypeTag, Out: WeakTypeTag]: Expr[CTransformerBuilder[In, Out]] = {
+  private def deriveBuilderApplyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[CTransformerBuilder[From, To]] = {
     val builderClassName = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
-    val inClassName      = resolveClassTypeName[In]
-    val outClassName     = resolveClassTypeName[Out]
+    val fromClassName    = resolveClassTypeName[From]
+    val toClassName      = resolveClassTypeName[To]
 
     val tree =
       q"""
-        class $builderClassName extends $packageName.CTransformerBuilder[$inClassName, $outClassName]
+        class $builderClassName extends $packageName.CTransformerBuilder[$fromClassName, $toClassName]
         new $builderClassName
        """
-    exprPrintTree[CTransformerBuilder[In, Out]](force = false, tree)
+    exprPrintTree[CTransformerBuilder[From, To]](force = false, tree)
   }
 
   private def getPreTree: Iterable[Tree] = {
@@ -92,29 +91,48 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
     preTrees
   }
 
-  private def getCTransformBody[In: WeakTypeTag, Out: WeakTypeTag]: Tree = {
-    val outClassName = resolveClassTypeName[Out]
-    val outClassInfo = getCaseClassFieldInfo[Out]()
+  private def getCTransformBody[From: WeakTypeTag, To: WeakTypeTag]: Tree = {
+    val toClassName   = resolveClassTypeName[To]
+    val toClassInfo   = getCaseClassFieldInfo[To]()
+    val fromClassInfo = getCaseClassFieldInfo[From]()
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldValueMapping =
       MacroCache.classFieldValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     c.info(c.enclosingPosition, s"Field Name Mapping:$customFieldNameMapping", force = true)
     c.info(c.enclosingPosition, s"Field Value Mapping:$customFieldValueMapping", force = true)
-    val fields = outClassInfo.map { field =>
-      val inFieldName   = customFieldNameMapping.get(field.fieldName)
-      val realFieldName = inFieldName.fold(field.fieldName)(x => x)
+    val fields = toClassInfo.map { field =>
+      val fromFieldName     = customFieldNameMapping.get(field.fieldName)
+      val realFromFieldName = fromFieldName.fold(field.fieldName)(x => x)
       if (customFieldValueMapping.contains(field.fieldName)) {
-        val customFunction = () =>
-          q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$inTermName.${TermName(realFieldName)}"})"""
-        q"${customFunction()}"
-      } else
-        q"$inTermName.${TermName(realFieldName)}"
+        q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realFromFieldName)}"})"""
+      } else {
+        checkField[From, To](fromClassInfo.find(_.fieldName == realFromFieldName), field)
+        q"$fromTermName.${TermName(realFromFieldName)}"
+      }
+
     }
     q"""
-       ${outClassName.toTermName}.apply(
+       ${toClassName.toTermName}.apply(
           ..$fields
        )
      """
   }
+
+  private def checkField[From: WeakTypeTag, To: WeakTypeTag](
+    fromFieldOpt: Option[FieldInformation],
+    toField: FieldInformation
+  ): Unit =
+    if (fromFieldOpt.nonEmpty) {
+      val fromField = fromFieldOpt.get
+      if (!(fromField.fieldType <:< toField.fieldType)) {
+        val fromClassName = resolveClassTypeName[From]
+        val toClassName   = resolveClassTypeName[To]
+        c.abort(
+          c.enclosingPosition,
+          s"The field `${fromField.fieldName}` type of class `$fromClassName` should the same as field `${toField.fieldName}` type of class `$toClassName`," +
+            s" or Assign `${fromField.fieldName}` field to `${toField.fieldName}` field should be compatible, Please consider using three parameters of the `mapField` method"
+        )
+      }
+    }
 }

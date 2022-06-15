@@ -48,7 +48,7 @@ object DeriveCsvConverter {
       val tree =
         q"""
         new Converter[$typeName] {
-            override def toScala($lineTermName: String): Option[$typeName] = $packageName.macros.DeriveToCaseClass[$typeName]($lineTermName)($csvFormat)
+            override def toScala($lineTermName: String): _root_.scala.Option[$typeName] = $packageName.macros.DeriveToCaseClass[$typeName]($lineTermName)($csvFormat)
             override def toCsvString($tTermName: $typeName): String = $packageName.macros.DeriveToString[$typeName]($tTermName)($csvFormat)
         }
        """

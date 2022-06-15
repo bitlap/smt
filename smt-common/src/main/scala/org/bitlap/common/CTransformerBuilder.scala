@@ -4,18 +4,25 @@ package org.bitlap.common
  *    梦境迷离
  *  @version 1.0,6/15/22
  */
-class CTransformerBuilder[In, Out] {
+class CTransformerBuilder[From, To] {
 
-  def mapField[InF, OutF](inField: In => InF, outField: Out => OutF, value: InF => OutF): CTransformerBuilder[In, Out] =
-    macro CTransformerMacro.mapNameWithValueImpl[In, Out, InF, OutF]
+  def mapField[FromField, ToField](
+    selectFromField: From => FromField,
+    selectToField: To => ToField,
+    map: FromField => ToField
+  ): CTransformerBuilder[From, To] =
+    macro CTransformerMacro.mapValueImpl[From, To, FromField, ToField]
 
-  def mapField[InF, OutF](inField: In => InF, outField: Out => OutF): CTransformerBuilder[In, Out] =
-    macro CTransformerMacro.mapNameOnlyImpl[In, Out, InF, OutF]
+  def mapField[FromField, ToField](
+    selectFromField: From => FromField,
+    selectToField: To => ToField
+  ): CTransformerBuilder[From, To] =
+    macro CTransformerMacro.mapNameImpl[From, To, FromField, ToField]
 
-  def build: CTransformer[In, Out] = macro CTransformerMacro.buildImpl[In, Out]
+  def build: CTransformer[From, To] = macro CTransformerMacro.buildImpl[From, To]
 
 }
 object CTransformerBuilder {
-  def apply[In <: Product, Out <: Product]: CTransformerBuilder[In, Out] =
-    macro CTransformerMacro.applyImpl[In, Out]
+  def apply[From <: Product, To <: Product]: CTransformerBuilder[From, To] =
+    macro CTransformerMacro.applyImpl[From, To]
 }
