@@ -19,42 +19,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv
 
-trait CsvFormat extends Serializable {
-  def delimiter: Char
-  def escapeChar: Char
-  def lineTerminator: String
+/** a Custom Csv decoder.
+ *
+ *  @author
+ *    梦境迷离
+ *  @since 2022/04/30
+ *  @version 1.0
+ */
+trait Scalable[T] {
 
-  /** Mode for writing string into files.
+  /** API for processing a specific column value of CSV line data.
+   *
+   *  @param column
+   *    The column value of CSV line data.
+   *  @return
    */
-  def append: Boolean = false
-
-  /** Character encoding of the file.
-   */
-  def encoding: String = "utf-8"
-
-  /** Write the column name in the first row.
-   */
-  def prependHeader: List[String] = Nil
-
-  /** Ignore the first row when reading from file.
-   */
-  def ignoreHeader: Boolean = false
-
-  /** Ignore empty lines when reading and ignore empty strings when writing.
-   */
-  def ignoreEmptyLines: Boolean = false
+  def _toScala(column: String): Option[T]
 }
 
-trait DefaultCsvFormat extends CsvFormat {
-  val delimiter: Char        = ','
-  val escapeChar: Char       = '"'
-  val lineTerminator: String = "\n"
-}
+object Scalable extends ScalableImplicits {
 
-trait TsvFormat extends CsvFormat {
-  val delimiter: Char        = '\t'
-  val escapeChar: Char       = '\\'
-  val lineTerminator: String = "\n"
+  def apply[T](implicit st: Scalable[T]): Scalable[T] = st
+
 }

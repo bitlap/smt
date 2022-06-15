@@ -19,72 +19,68 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv
 
-import org.bitlap.csv.core.macros.DeriveCsvableBuilder
-import java.io.File
+import org.bitlap.csv.macros.DeriveScalableBuilder
+import java.io.InputStream
 
-/** Builder to create a custom Csv Encoder.
+/** Builder to create a custom Csv Decoder.
  *
  *  @author
  *    梦境迷离
  *  @version 1.0,2022/4/30
  */
-class CsvableBuilder[T] {
+class ScalableBuilder[T] {
 
-  /** Convert this CSV column string to any Scala types.
+  /** Convert any Scala types to this CSV column string.
    *
    *  @param scalaField
    *    The field in scala case class.
    *  @param value
-   *    This function specifies how you want to convert this field to a CSV string.
+   *    This function specifies how you want to convert this CSV column to a scala type.
    *  @tparam SF
    *    The field type, generally, it is not necessary to specify, but it is safer if specify.
    *  @return
    */
-  def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
-    macro DeriveCsvableBuilder.setFieldImpl[T, SF]
+  def setField[SF](scalaField: T => SF, value: String => SF): ScalableBuilder[T] =
+    macro DeriveScalableBuilder.setFieldImpl[T, SF]
 
-  /** Create a custom builder for converting this scala value to CSV line string.
+  /** Create a custom builder for converting this CSV line to scala values.
    *
-   *  @param t
-   *    The value of Scala case class.
+   *  @param line
+   *    One CSV line.
    *  @param format
    *    For processing CSV in the specified format.
    *  @return
-   *    The string of one CSV line.
    */
-  def convert(t: T)(implicit format: CsvFormat): String = macro DeriveCsvableBuilder.convertOneImpl[T]
+  def convert(line: String)(implicit format: CsvFormat): Option[T] = macro DeriveScalableBuilder.convertOneImpl[T]
 
-  /** Convert the sequence of Scala case class to CSV string.
+  /** Convert all CSV lines to the sequence of Scala case class.
    *
-   *  @param ts
-   *    The sequence of Scala case class.
+   *  @param lines
+   *    All CSV lines.
    *  @param format
    *    For processing CSV in the specified format.
    *  @return
-   *    The string of all CSV lines.
    */
-  def convert(ts: List[T])(implicit format: CsvFormat): String = macro DeriveCsvableBuilder.convertAllImpl[T]
+  def convert(lines: List[String])(implicit format: CsvFormat): List[Option[T]] =
+    macro DeriveScalableBuilder.convertAllImpl[T]
 
-  /** Convert the sequence of Scala case class to CSV string and write to file.
+  /** Read all CSV lines of the file and convert them to the sequence of Scala case class.
    *
-   *  @param ts
-   *    The sequence of Scala case class.
    *  @param file
-   *    File to save CSV string.
+   *    InputStream of the CSV file.
    *  @param format
    *    For processing CSV in the specified format. Passing anonymous objects is not supported.
    *  @return
-   *    The string of all CSV lines.
    */
-  def convertTo(ts: List[T], file: File)(implicit format: CsvFormat): Boolean =
-    macro DeriveCsvableBuilder.convertToFileImpl[T]
+  def convertFrom(file: InputStream)(implicit format: CsvFormat): List[Option[T]] =
+    macro DeriveScalableBuilder.convertFromFileImpl[T]
 
 }
 
-object CsvableBuilder {
+object ScalableBuilder {
 
-  def apply[T <: Product]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
+  def apply[T <: Product]: ScalableBuilder[T] = macro DeriveScalableBuilder.applyImpl[T]
 
 }

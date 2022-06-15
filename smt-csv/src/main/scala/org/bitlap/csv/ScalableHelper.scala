@@ -19,29 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv
 
-/** a Custom Csv encoder.
+import java.io.{ BufferedReader, File, FileReader, InputStreamReader }
+
+/** Tool class for parsing CSV files.
  *
  *  @author
  *    梦境迷离
- *  @since 2022/04/27
- *  @version 1.0
+ *  @version 1.0,2022/5/13
  */
-trait Csvable[T] {
+object ScalableHelper {
 
-  /** API for processing a specific field of case class object.
-   *
-   *  @param t
-   *    case class object
-   *  @return
-   */
-  def _toCsvString(t: T): String
+  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
+    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
+    FileUtils.readFileFunc[T](new BufferedReader(reader), func)
+  }
 
-}
-
-object Csvable extends CsvableImplicits {
-
-  def apply[T](implicit st: Csvable[T]): Csvable[T] = st
-
+  def readCsvFromFile[T <: Product](file: File)(func: String => Option[T]): List[Option[T]] = {
+    val reader = new BufferedReader(new FileReader(file))
+    FileUtils.readFileFunc[T](reader, func)
+  }
 }

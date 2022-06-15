@@ -19,14 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.macros
+package org.bitlap.csv.macros
 
-import org.bitlap.csv.core.ScalableBuilder
+import org.bitlap.common.{ AbstractMacroProcessor, MacroCache }
+import org.bitlap.csv.{ CsvFormat, ScalableBuilder }
 
 import java.io.InputStream
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
-import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -35,6 +35,7 @@ import org.bitlap.csv.core.CsvFormat
 class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
+  protected val packageName = q"_root_.org.bitlap.csv"
 
   private val annoBuilderPrefix = "_AnonScalableBuilder$"
 
@@ -59,17 +60,17 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     deriveBuilderApplyImpl[T]
 
   def convertOneImpl[T: WeakTypeTag](line: Expr[String])(format: c.Expr[CsvFormat]): Expr[Option[T]] = {
-    val clazzName = resolveClazzTypeName[T]
+    val clazzName = resolveClassTypeName[T]
     deriveScalableImpl[T](clazzName, line, format)
   }
 
   def convertAllImpl[T: WeakTypeTag](lines: Expr[List[String]])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
-    val clazzName = resolveClazzTypeName[T]
+    val clazzName = resolveClassTypeName[T]
     deriveFullScalableImpl[T](clazzName, lines, format)
   }
 
   def convertFromFileImpl[T: WeakTypeTag](file: Expr[InputStream])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
-    val clazzName = resolveClazzTypeName[T]
+    val clazzName = resolveClassTypeName[T]
     deriveFullFromFileScalableImpl[T](clazzName, file, format)
   }
 
@@ -157,8 +158,8 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   // scalafmt: { maxColumn = 400 }
   private def scalableBody[T: WeakTypeTag](clazzName: TypeName, innerFuncTermName: TermName): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val params      = getCaseClassParams[T]()
-    val fieldNames  = params.map(_.name.decodedName.toString)
+    val params      = getCaseClassFieldInfo[T]()
+    val fieldNames  = params.map(_.fieldName)
     val fields = checkCaseClassZipAll[T](innerFuncTermName).map { idxType =>
       val idx            = idxType._1._1
       val columnValues   = idxType._1._2

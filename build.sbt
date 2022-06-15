@@ -116,6 +116,7 @@ lazy val `smt-csv` = (project in file("smt-csv"))
     name               := "smt-csv",
     crossScalaVersions := List(scala213, scala212, scala211)
   )
+  .dependsOn(`smt-common` % "compile->compile;test->test")
   .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)

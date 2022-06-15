@@ -19,10 +19,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.macros
+package org.bitlap.csv.macros
+
+import org.bitlap.common.AbstractMacroProcessor
+import org.bitlap.csv.CsvFormat
 
 import scala.reflect.macros.blackbox
-import org.bitlap.csv.core.CsvFormat
+import org.bitlap.csv.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -35,9 +38,10 @@ object DeriveToString {
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
+    protected val packageName = q"_root_.org.bitlap.csv"
 
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T])(csvFormat: c.Expr[CsvFormat]): c.Expr[String] = {
-      val (names, indexTypes) = super.checkCaseClassZip[T]
+      val (names, indexTypes) = super.checkCaseClassZipParams[T]
       val clazzName           = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName    = TermName("_t")
       val indexByName         = (i: Int) => TermName(names(i))

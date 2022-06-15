@@ -19,10 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.macros
+package org.bitlap.csv.macros
+
+import org.bitlap.common.AbstractMacroProcessor
+import org.bitlap.csv.CsvFormat
 
 import scala.reflect.macros.blackbox
-import org.bitlap.csv.core.CsvFormat
 
 /** @author
  *    梦境迷离
@@ -35,6 +37,7 @@ object DeriveToCaseClass {
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
+    protected val packageName = q"_root_.org.bitlap.csv"
 
     // scalafmt: { maxColumn = 400 }
     def macroImpl[T <: Product: c.WeakTypeTag](line: c.Expr[String])(format: c.Expr[CsvFormat]): c.Expr[Option[T]] = {

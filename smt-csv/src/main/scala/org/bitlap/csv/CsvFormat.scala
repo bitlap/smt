@@ -19,25 +19,42 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.macros
-import scala.collection.mutable
+package org.bitlap.csv
 
-/** @author
- *    梦境迷离
- *  @version 1.0,2022/5/1
- */
-object MacroCache {
+trait CsvFormat extends Serializable {
+  def delimiter: Char
+  def escapeChar: Char
+  def lineTerminator: String
 
-  private var builderCount  = 0
-  private var identityCount = 0
+  /** Mode for writing string into files.
+   */
+  def append: Boolean = false
 
-  def getBuilderId: Int = builderCount.synchronized {
-    builderCount += 1; builderCount
-  }
+  /** Character encoding of the file.
+   */
+  def encoding: String = "utf-8"
 
-  def getIdentityId: Int = identityCount.synchronized {
-    identityCount += 1; identityCount
-  }
+  /** Write the column name in the first row.
+   */
+  def prependHeader: List[String] = Nil
 
-  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
+  /** Ignore the first row when reading from file.
+   */
+  def ignoreHeader: Boolean = false
+
+  /** Ignore empty lines when reading and ignore empty strings when writing.
+   */
+  def ignoreEmptyLines: Boolean = false
+}
+
+trait DefaultCsvFormat extends CsvFormat {
+  val delimiter: Char        = ','
+  val escapeChar: Char       = '"'
+  val lineTerminator: String = "\n"
+}
+
+trait TsvFormat extends CsvFormat {
+  val delimiter: Char        = '\t'
+  val escapeChar: Char       = '\\'
+  val lineTerminator: String = "\n"
 }

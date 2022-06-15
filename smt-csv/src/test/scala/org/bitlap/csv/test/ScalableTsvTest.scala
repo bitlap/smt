@@ -19,9 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
+package org.bitlap.csv.test
 
-import org.bitlap.csv.core.{ CsvableBuilder, ScalableBuilder, TsvFormat }
+import org.bitlap.csv.{ CsvableBuilder, ScalableBuilder, TsvFormat }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
