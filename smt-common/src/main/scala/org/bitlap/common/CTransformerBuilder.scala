@@ -6,13 +6,15 @@ package org.bitlap.common
  */
 class CTransformerBuilder[From, To] {
 
+  @unchecked
   def mapField[FromField, ToField](
     selectFromField: From => FromField,
     selectToField: To => ToField,
     map: FromField => ToField
   ): CTransformerBuilder[From, To] =
-    macro CTransformerMacro.mapValueImpl[From, To, FromField, ToField]
+    macro CTransformerMacro.mapFieldWithValueImpl[From, To, FromField, ToField]
 
+  @unchecked
   def mapField[FromField, ToField](
     selectFromField: From => FromField,
     selectToField: To => ToField

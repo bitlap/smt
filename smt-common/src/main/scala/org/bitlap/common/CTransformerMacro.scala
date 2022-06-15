@@ -16,7 +16,7 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
   private val annoBuilderPrefix     = "_AnonObjectCTransformerBuilder$"
   private val fromTermName          = TermName("from")
 
-  def mapValueImpl[From: WeakTypeTag, To: WeakTypeTag, FromField: WeakTypeTag, ToField: WeakTypeTag](
+  def mapFieldWithValueImpl[From: WeakTypeTag, To: WeakTypeTag, FromField: WeakTypeTag, ToField: WeakTypeTag](
     selectFromField: Expr[From => FromField],
     selectToField: Expr[To => ToField],
     map: Expr[FromField => ToField]
@@ -107,10 +107,12 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
       if (customFieldValueMapping.contains(field.fieldName)) {
         q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realFromFieldName)}"})"""
       } else {
-        checkField[From, To](fromClassInfo.find(_.fieldName == realFromFieldName), field)
-        q"$fromTermName.${TermName(realFromFieldName)}"
+        checkFieldGetFieldTerm[From, To](
+          realFromFieldName,
+          fromClassInfo.find(_.fieldName == realFromFieldName),
+          field
+        )
       }
-
     }
     q"""
        ${toClassName.toTermName}.apply(
@@ -119,20 +121,29 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
      """
   }
 
-  private def checkField[From: WeakTypeTag, To: WeakTypeTag](
+  private def checkFieldGetFieldTerm[From: WeakTypeTag, To: WeakTypeTag](
+    realFromFieldName: String,
     fromFieldOpt: Option[FieldInformation],
     toField: FieldInformation
-  ): Unit =
-    if (fromFieldOpt.nonEmpty) {
-      val fromField = fromFieldOpt.get
-      if (!(fromField.fieldType <:< toField.fieldType)) {
-        val fromClassName = resolveClassTypeName[From]
-        val toClassName   = resolveClassTypeName[To]
-        c.abort(
-          c.enclosingPosition,
-          s"The field `${fromField.fieldName}` type of class `$fromClassName` should the same as field `${toField.fieldName}` type of class `$toClassName`," +
-            s" or Assign `${fromField.fieldName}` field to `${toField.fieldName}` field should be compatible, Please consider using three parameters of the `mapField` method"
-        )
-      }
+  ): Tree = {
+    val fromFieldTerm = q"$fromTermName.${TermName(realFromFieldName)}"
+    val fromClassName = resolveClassTypeName[From]
+
+    if (fromFieldOpt.isEmpty) {
+      c.abort(
+        c.enclosingPosition,
+        s"value `$realFromFieldName` is not a member of `$fromClassName`, Please consider using `mapField` method!"
+      )
+      return fromFieldTerm
     }
+
+    val fromField = fromFieldOpt.get
+    if (!(fromField.fieldType <:< toField.fieldType)) {
+      val fromFieldType = fromField.fieldType.typeSymbol.name.toTypeName
+      val toFieldType   = toField.fieldType.typeSymbol.name.toTypeName
+      q"""$packageName.CTransformer[$fromFieldType, $toFieldType].transform($fromFieldTerm)"""
+    } else {
+      fromFieldTerm
+    }
+  }
 }

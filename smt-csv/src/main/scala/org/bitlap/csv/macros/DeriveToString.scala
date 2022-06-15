@@ -40,36 +40,38 @@ object DeriveToString {
     protected val packageName = q"_root_.org.bitlap.csv"
 
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T])(csvFormat: c.Expr[CsvFormat]): c.Expr[String] = {
-      val (names, indexTypes) = super.checkCaseClassZipParams[T]
+      val fieldZipInformation = super.checkGetFieldZipInformation[T]
+      val names               = fieldZipInformation.fieldNames
+      val indexTypes          = fieldZipInformation.fieldIndexTypeMapping
       val clazzName           = c.weakTypeOf[T].typeSymbol.name
       val innerVarTermName    = TermName("_t")
       val indexByName         = (i: Int) => TermName(names(i))
-      val fieldsToString = indexTypes.map { idxType =>
-        if (idxType._2 <:< typeOf[Option[_]]) {
-          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
+      val fieldsToString = indexTypes.map { indexType =>
+        if (indexType._2 <:< typeOf[Option[_]]) {
+          val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
           // scalafmt: { maxColumn = 400 }
           q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
-                  if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(idxType._1)}.get
+                  if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(indexType._1)}.get
               }
           """
         } else {
-          idxType._2 match {
+          indexType._2 match {
             case t if t <:< typeOf[List[_]] =>
-              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[_root_.scala.List[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+              val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[_root_.scala.List[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
             case t if t <:< typeOf[Seq[_]] =>
-              val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[_root_.scala.Seq[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+              val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+              q"$packageName.Converter[_root_.scala.Seq[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
             case _ =>
-              q"$packageName.Converter[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+              q"$packageName.Converter[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           }
         }
-      }
+      }.toList
       val tree =
         q"""
         val $innerVarTermName = $t    
         val fields = ${TermName(clazzName.decodedName.toString)}.unapply($innerVarTermName).orNull
-        val values = if (null == fields) List.empty else $fieldsToString
+        val values = if (null == fields) _root_.scala.List.empty else $fieldsToString
         $packageName.StringUtils.combineColumns(values, $csvFormat)
        """
       exprPrintTree[String](force = false, tree)

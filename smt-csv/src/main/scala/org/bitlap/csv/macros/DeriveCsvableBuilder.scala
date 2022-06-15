@@ -132,12 +132,12 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
        object $annoClassName extends $packageName.Csvable[$clazzName] {
            var $innerTmpTermName: $clazzName = _
            
-           lazy private val toCsv = ($funcArgsTempTermName: $clazzName) => {
+           lazy private val _toCsv = ($funcArgsTempTermName: $clazzName) => {
                 val fields = ${clazzName.toTermName}.unapply($funcArgsTempTermName).orNull
-                val values = if (null == fields) List.empty else ${fieldsToString[T](funcArgsTempTermName, customTrees)}
+                val values = if (null == fields) _root_.scala.List.empty else ${fieldsToString[T](funcArgsTempTermName, customTrees)}
                 $packageName.StringUtils.combineColumns(values, $format)
            }
-           override def _toCsvString(t: $clazzName): String = toCsv($annoClassName.$innerTmpTermName)
+           override def _toCsvString(t: $clazzName): String = _toCsv($annoClassName.$innerTmpTermName)
        }
        
        final lazy private val $csvableInstanceTermName = $annoClassName
@@ -156,7 +156,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
            
             override def _toCsvString(t: $clazzName): String = {
                 val fields = ${clazzName.toTermName}.unapply($innerTmpTermName).orNull
-                val values = if (null == fields) List.empty else ${fieldsToString[T](innerTmpTermName, customTrees)}
+                val values = if (null == fields) _root_.scala.List.empty else ${fieldsToString[T](innerTmpTermName, customTrees)}
                 $packageName.StringUtils.combineColumns(values, $format)
             }
          }
@@ -167,51 +167,53 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
 
   // scalafmt: { maxColumn = 400 }
   private def fieldsToString[T: WeakTypeTag](innerVarTermName: TermName, customTrees: mutable.Map[String, Any]): List[Tree] = {
-    val clazzName                = resolveClassTypeName[T]
-    val (fieldNames, indexTypes) = checkCaseClassZipParams
-    val indexByName              = (i: Int) => TermName(fieldNames(i))
-    indexTypes.map { idxType =>
-      val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idxType._1))}.apply($innerVarTermName.${indexByName(idxType._1)})"
-      idxType._2 match {
+    val clazzName           = resolveClassTypeName[T]
+    val fieldZipInformation = checkGetFieldZipInformation
+    val fieldNames          = fieldZipInformation.fieldNames
+    val indexTypes          = fieldZipInformation.fieldIndexTypeMapping
+    val indexByName         = (i: Int) => TermName(fieldNames(i))
+    indexTypes.map { indexType =>
+      val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(indexType._1))}.apply($innerVarTermName.${indexByName(indexType._1)})"
+      indexType._2 match {
         case t if t <:< typeOf[List[_]] =>
-          if (customTrees.contains(fieldNames(idxType._1))) {
+          if (customTrees.contains(fieldNames(indexType._1))) {
             q"${customFunction()}"
           } else {
             c.abort(
               c.enclosingPosition,
-              s"Missing usage `setField` for converting `$clazzName.${fieldNames(idxType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+              s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
             )
           }
         case t if t <:< typeOf[Seq[_]] =>
-          if (customTrees.contains(fieldNames(idxType._1))) {
+          if (customTrees.contains(fieldNames(indexType._1))) {
             q"${customFunction()}"
           } else {
             c.abort(
               c.enclosingPosition,
-              s"Missing usage `setField` for converting `$clazzName.${fieldNames(idxType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+              s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
             )
           }
         case t if t <:< typeOf[Option[_]] =>
-          val genericType = c.typecheck(q"${idxType._2}", c.TYPEmode).tpe.typeArgs.head
-          if (customTrees.contains(fieldNames(idxType._1))) {
+          val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+          if (customTrees.contains(fieldNames(indexType._1))) {
             customFunction()
           } else {
             // scalafmt: { maxColumn = 400 }
             q"""
               $packageName.Csvable[${genericType.typeSymbol.name.toTypeName}]._toCsvString {
-                if ($innerVarTermName.${indexByName(idxType._1)}.isEmpty) "" 
-                else $innerVarTermName.${indexByName(idxType._1)}.get
+                if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" 
+                else $innerVarTermName.${indexByName(indexType._1)}.get
               }
             """
           }
         case _ =>
-          if (customTrees.contains(fieldNames(idxType._1))) {
+          if (customTrees.contains(fieldNames(indexType._1))) {
             customFunction()
           } else {
-            q"$packageName.Csvable[${TypeName(idxType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(idxType._1)})"
+            q"$packageName.Csvable[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           }
       }
-    }
+    }.toList
   }
 
 }
