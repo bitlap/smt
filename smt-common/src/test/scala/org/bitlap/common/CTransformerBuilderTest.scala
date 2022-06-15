@@ -19,5 +19,9 @@ class CTransformerBuilderTest extends AnyFlatSpec with Matchers {
       .build
       .transform(a)
     b.toString shouldEqual "B(1,1,1,None)"
+
+    // use implicit
+    implicit val transformer = CTransformerBuilder[A, B].mapName(_.b, _.c).build
+    CTransformer[A, B].transform(a).toString shouldEqual "B(1,1,1,None)"
   }
 }
