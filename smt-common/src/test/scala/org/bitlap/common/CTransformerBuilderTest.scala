@@ -13,15 +13,16 @@ class CTransformerBuilderTest extends AnyFlatSpec with Matchers {
 
     case class A(a: String, b: Int, c: Long, d: Option[String])
     case class B(a: String, b: Int, c: Long, d: Option[String])
-    val a = A("1", 1, 2, None)
+    val a = A("hello", 1, 2, None)
     val b: B = CTransformerBuilder[A, B]
-      .mapName(_.b, _.c)
+      .mapField(_.b, _.c)
+      .mapField(_.c, _.b, (in: Long) => in.toInt)
       .build
       .transform(a)
-    b.toString shouldEqual "B(1,1,1,None)"
 
-    // use implicit
-    implicit val transformer = CTransformerBuilder[A, B].mapName(_.b, _.c).build
-    CTransformer[A, B].transform(a).toString shouldEqual "B(1,1,1,None)"
+    b.toString shouldEqual "B(hello,2,1,None)"
+//     use implicit
+//    implicit val transformer = CTransformerBuilder[A, B].mapField(_.b, _.c).build
+//    CTransformer[A, B].transform(a).toString shouldEqual "B(1,1,1,None)"
   }
 }
