@@ -6,7 +6,7 @@ package org.bitlap.common
  */
 class CTransformerBuilder[In, Out] {
 
-  def mapType[InF, OutF](outField: Out => OutF, value: InF => OutF): CTransformerBuilder[In, Out] =
+  def mapValue[InF, OutF](outField: Out => OutF, value: InF => OutF): CTransformerBuilder[In, Out] =
     macro CTransformerMacro.mapFieldTypeImpl[In, Out, InF, OutF]
 
   def mapName[InF, OutF](inField: In => InF, outField: Out => OutF): CTransformerBuilder[In, Out] =

@@ -1,12 +1,11 @@
 package org.bitlap.common
+import scala.collection.mutable
 
 /** @author
  *    梦境迷离
  *  @version 1.0,2022/5/1
  */
 object MacroCache {
-
-  import scala.collection.mutable
 
   private var builderCount  = 0
   private var identityCount = 0
