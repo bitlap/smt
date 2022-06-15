@@ -67,8 +67,8 @@ object DeriveToString {
           }
         }
       }
-      
-      c.info(c.enclosingPosition,s"$fieldsToString", true)
+
+      c.info(c.enclosingPosition, s"$fieldsToString", true)
       val tree =
         q"""
         val $innerVarTermName = $t    
