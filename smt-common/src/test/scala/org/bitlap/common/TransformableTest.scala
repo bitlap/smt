@@ -94,7 +94,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     println(d2)
   }
 
-  "TransformableTest5" should "ok when list field" in {
+  "TransformableTest5" should "ok when list list field" in {
     case class C1(j: Int)
     case class D1(c1: List[List[C1]])
 
