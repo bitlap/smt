@@ -97,7 +97,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         kv._1._1,
         kv._1._2,
         kv._2,
-        getDefaultValue(kv._2, genericType),
+        getDefaultValue(kv._2),
         isSeq,
         isList,
         isOption,
@@ -196,34 +196,32 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def getBuilderId(annoBuilderPrefix: String): Int =
     c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt
 
-  private def getDefaultValue(typ: Type, genericType: Option[Type]): Tree =
-    genericType match {
-      case Some(t) if t <:< typeOf[List[_]]   => q"Nil"
-      case Some(t) if t <:< typeOf[Seq[_]]    => q"Nil"
-      case Some(t) if t <:< typeOf[Option[_]] => q"None"
+  private def getDefaultValue(typ: Type): Tree =
+    typ match {
+      case t if t =:= typeOf[Int] =>
+        q"0"
+      case t if t =:= typeOf[String] =>
+        val empty = ""
+        q"$empty"
+      case t if t =:= typeOf[Float] =>
+        q"0.asInstanceOf[Float]"
+      case t if t =:= typeOf[Double] =>
+        q"0D"
+      case t if t =:= typeOf[Char] =>
+        q"'?'"
+      case t if t =:= typeOf[Byte] =>
+        q"0"
+      case t if t =:= typeOf[Short] =>
+        q"0"
+      case t if t =:= typeOf[Boolean] =>
+        q"false"
+      case t if t =:= typeOf[Long] =>
+        q"0L"
+      case t if t <:< typeOf[List[_]]   => q"_root_.scala.Nil"
+      case t if t <:< typeOf[Seq[_]]    => q"_root_.scala.Nil"
+      case t if t <:< typeOf[Option[_]] => q"_root_.scala.None"
       case _ =>
-        typ match {
-          case t if t =:= typeOf[Int] =>
-            q"0"
-          case t if t =:= typeOf[String] =>
-            val empty = ""
-            q"$empty"
-          case t if t =:= typeOf[Float] =>
-            q"0.asInstanceOf[Float]"
-          case t if t =:= typeOf[Double] =>
-            q"0D"
-          case t if t =:= typeOf[Char] =>
-            q"'?'"
-          case t if t =:= typeOf[Byte] =>
-            q"0"
-          case t if t =:= typeOf[Short] =>
-            q"0"
-          case t if t =:= typeOf[Boolean] =>
-            q"false"
-          case t if t =:= typeOf[Long] =>
-            q"0L"
-          case _ => q"null"
-        }
+        q"null"
     }
 
   private type OptionSeqList = (Boolean, Boolean, Boolean)
@@ -237,7 +235,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         isList = true
       case t if t <:< typeOf[Option[_]] =>
         isOption = true
-      case t if t <:< typeOf[Seq[_]] =>
+      case t if t <:< typeOf[Seq[_]] && !isList =>
         isSeq = true
       case _ =>
     }

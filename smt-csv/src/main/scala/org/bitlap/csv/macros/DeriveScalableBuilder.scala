@@ -200,6 +200,8 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$generic]]", fieldTreeInformation.zeroValue)
         case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isOption =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Option[$generic]]", fieldTreeInformation.zeroValue)
+        case Some(generic) if fieldTreeInformation.isOption =>
+          tryOption(q"$packageName.Scalable[$generic]._toScala($columnValues)")
         case generic =>
           c.abort(
             c.enclosingPosition,

@@ -50,46 +50,46 @@ object DeriveToCaseClass {
           val fieldType    = fieldTreeInformation.fieldType
           fieldTreeInformation.genericType match {
             case Some(generic) if fieldTreeInformation.isList =>
-              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[${generic.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[$generic]].toScala($columnValues)", q"Nil")
             case Some(generic) if fieldTreeInformation.isSeq =>
-              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[${generic.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[$generic]].toScala($columnValues)", q"Nil")
             case Some(generic) if fieldTreeInformation.isOption =>
-              tryOption(q"$packageName.Converter[${generic.typeSymbol.name.toTypeName}].toScala($columnValues)")
+              tryOption(q"$packageName.Converter[$generic].toScala($columnValues)")
             case Some(generic) =>
               c.abort(
                 c.enclosingPosition,
                 s"Not support `$fieldType` with genericType: `$generic`!!!"
               )
             case _ =>
-              val caseClassFieldTypeName = TypeName(fieldType.typeSymbol.name.decodedName.toString)
+              val caseClassFieldTypeName = fieldType.typeSymbol.name.toTypeName
               fieldType match {
                 case tt if tt =:= typeOf[Int] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[String] =>
-                  q"""$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse("")"""
+                  q"""$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"""
                 case tt if tt =:= typeOf[Float] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0F)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[Double] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0D)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[Char] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse('?')"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[Byte] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[Short] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[Boolean] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(false)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case tt if tt =:= typeOf[Long] =>
-                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0L)"
+                  q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
                 case _ =>
-                  tryOptionGetOrElse(q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues)", q"null")
+                  tryOptionGetOrElse(q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues)", fieldTreeInformation.zeroValue)
               }
           }
         }
       val tree =
         q"""
            lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
-           _root_.scala.Option(${TermName(clazzName.decodedName.toString)}(..${fields(innerFuncTermName)}))
+           _root_.scala.Option(${clazzName.toTermName}(..${fields(innerFuncTermName)}))
            """
       exprPrintTree[T](force = false, tree)
 

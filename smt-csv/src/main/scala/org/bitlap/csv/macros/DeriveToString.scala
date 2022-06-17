@@ -49,28 +49,28 @@ object DeriveToString {
       val indexByName         = (i: Int) => TermName(names(i))
       val fieldsToString = indexTypes.map { indexType =>
         indexType._2 match {
-          case t if t <:< typeOf[Seq[_]] =>
-            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
-            q"$packageName.Converter[_root_.scala.Seq[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           case t if t <:< typeOf[List[_]] =>
             val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
-            q"$packageName.Converter[_root_.scala.List[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+            q"$packageName.Converter[_root_.scala.List[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+          case t if t <:< typeOf[Seq[_]] =>
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            q"$packageName.Converter[_root_.scala.Seq[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           case t if t <:< typeOf[Option[_]] =>
             val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
             // scalafmt: { maxColumn = 400 }
-            q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
+            q"""$packageName.Converter[$genericType].toCsvString { 
                   if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(indexType._1)}.get
               }
           """
           case _ =>
-            q"$packageName.Converter[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+            q"$packageName.Converter[${indexType._2.typeSymbol.name.toTypeName}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
         }
       }
 
       val tree =
         q"""
         val $innerVarTermName = $t    
-        val fields = ${TermName(clazzName.decodedName.toString)}.unapply($innerVarTermName).orNull
+        val fields = ${clazzName.toTermName}.unapply($innerVarTermName).orNull
         val values = if (null == fields) _root_.scala.List.empty else $fieldsToString
         $packageName.StringUtils.combineColumns(values, $csvFormat)
        """
