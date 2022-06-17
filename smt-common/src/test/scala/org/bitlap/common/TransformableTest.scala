@@ -118,6 +118,35 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
     val d1     = D1(List(List(C1(1), C1(2))))
     val d2: D2 = Transformer[D1, D2].transform(d1)
-    println(d2)
+    d2.toString shouldBe "D2(List(List(C2(1), C2(2))))"
+  }
+
+  "TransformableTest6" should "compile ok if can use weak conformance" in {
+    case class A1(a: String, b: Int, cc: Int, d: Option[String]) // weak conformance
+    case class A2(a: String, b: Int, c: Long, d: Option[String])
+    object A1 {
+
+      implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].mapField(_.cc, _.c).instance
+    }
+    val a1 = A1("hello", 1, 2, None)
+    val a2 = Transformer[A1, A2].transform(a1)
+    a2.toString shouldBe "A2(hello,1,2,None)"
+
+  }
+
+  "TransformableTest7" should "compile failed if can't use weak conformance" in {
+    """
+      | case class A1(a: String, b: Int, cc: Long, d: Option[String]) // Can't to use weak conformance, must use `mapField(?,?,?)` method for it.
+      |    case class A2(a: String, b: Int, c: Int, d: Option[String])
+      |    object A1 {
+      |      
+      |      implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].mapField(_.cc,_.c).instance
+      |    }
+      |    val a1 = A1("hello", 1, 2, None)
+      |    val a2 = Transformer[A1, A2].transform(a1)
+      |    a2.toString shouldBe "A2(hello,1,2,None)"
+      |    
+      |    
+      |""".stripMargin shouldNot compile
   }
 }
