@@ -42,6 +42,7 @@ Learn Scala macro and abstract syntax tree.
 ## common
 
 - Some very general tool classes.
+- `Transformer` Transform the case class `From`' object to the case class `To`' object.
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>" // since 0.6.0 
 ```

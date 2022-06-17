@@ -46,6 +46,7 @@
 ## common
 
 - 一些很通用的工具类。
+- `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
 ```
