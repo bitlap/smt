@@ -37,6 +37,7 @@ object DeriveToCaseClass {
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
+
     protected val packageName = q"_root_.org.bitlap.csv"
 
     // scalafmt: { maxColumn = 400 }
@@ -47,19 +48,21 @@ object DeriveToCaseClass {
         checkGetFieldTreeInformationList[T](columnsFunc).map { fieldTreeInformation =>
           val columnValues = fieldTreeInformation.fieldTerm
           val fieldType    = fieldTreeInformation.fieldType
-          fieldType match {
-            case t if t <:< typeOf[Option[_]] =>
-              val genericType = c.typecheck(q"$fieldType", c.TYPEmode).tpe.typeArgs.head
-              tryOption(q"$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toScala($columnValues)")
-            case t if t <:< typeOf[List[_]] =>
-              val genericType = c.typecheck(q"$fieldType", c.TYPEmode).tpe.typeArgs.head
-              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
-            case t if t <:< typeOf[Seq[_]] =>
-              val genericType = c.typecheck(q"$fieldType", c.TYPEmode).tpe.typeArgs.head
-              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[${genericType.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
-            case t =>
+          fieldTreeInformation.genericType match {
+            case Some(generic) if fieldTreeInformation.isList =>
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[${generic.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
+            case Some(generic) if fieldTreeInformation.isSeq =>
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[${generic.typeSymbol.name.toTypeName}]].toScala($columnValues)", q"Nil")
+            case Some(generic) if fieldTreeInformation.isOption =>
+              tryOption(q"$packageName.Converter[${generic.typeSymbol.name.toTypeName}].toScala($columnValues)")
+            case Some(generic) =>
+              c.abort(
+                c.enclosingPosition,
+                s"Not support `$fieldType` with genericType: `$generic`!!!"
+              )
+            case _ =>
               val caseClassFieldTypeName = TypeName(fieldType.typeSymbol.name.decodedName.toString)
-              t match {
+              fieldType match {
                 case tt if tt =:= typeOf[Int] =>
                   q"$packageName.Converter[$caseClassFieldTypeName].toScala($columnValues).getOrElse(0)"
                 case tt if tt =:= typeOf[String] =>

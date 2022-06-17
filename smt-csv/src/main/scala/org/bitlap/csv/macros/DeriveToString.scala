@@ -37,6 +37,7 @@ object DeriveToString {
   class Macro(override val c: blackbox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._
+
     protected val packageName = q"_root_.org.bitlap.csv"
 
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T])(csvFormat: c.Expr[CsvFormat]): c.Expr[String] = {
@@ -47,24 +48,22 @@ object DeriveToString {
       val innerVarTermName    = TermName("_t")
       val indexByName         = (i: Int) => TermName(names(i))
       val fieldsToString = indexTypes.map { indexType =>
-        if (indexType._2 <:< typeOf[Option[_]]) {
-          val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
-          // scalafmt: { maxColumn = 400 }
-          q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
+        indexType._2 match {
+          case t if t <:< typeOf[Seq[_]] =>
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            q"$packageName.Converter[_root_.scala.Seq[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+          case t if t <:< typeOf[List[_]] =>
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            q"$packageName.Converter[_root_.scala.List[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+          case t if t <:< typeOf[Option[_]] =>
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            // scalafmt: { maxColumn = 400 }
+            q"""$packageName.Converter[${genericType.typeSymbol.name.toTypeName}].toCsvString { 
                   if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(indexType._1)}.get
               }
           """
-        } else {
-          indexType._2 match {
-            case t if t <:< typeOf[List[_]] =>
-              val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[_root_.scala.List[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
-            case t if t <:< typeOf[Seq[_]] =>
-              val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
-              q"$packageName.Converter[_root_.scala.Seq[${TypeName(genericType.typeSymbol.name.decodedName.toString)}]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
-            case _ =>
-              q"$packageName.Converter[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
-          }
+          case _ =>
+            q"$packageName.Converter[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
         }
       }
 

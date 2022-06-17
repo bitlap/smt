@@ -35,6 +35,7 @@ import scala.reflect.macros.whitebox
 class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
+
   protected val packageName = q"_root_.org.bitlap.csv"
 
   private val annoBuilderPrefix = "_AnonCsvableBuilder$"
@@ -175,45 +176,36 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
     indexTypes.map { indexType =>
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(indexType._1))}.apply($innerVarTermName.${indexByName(indexType._1)})"
       indexType._2 match {
-        case t if t <:< typeOf[List[_]] =>
-          if (customTrees.contains(fieldNames(indexType._1))) {
-            q"${customFunction()}"
-          } else {
-            c.abort(
-              c.enclosingPosition,
-              s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
-            )
-          }
-        case t if t <:< typeOf[Seq[_]] =>
-          if (customTrees.contains(fieldNames(indexType._1))) {
-            q"${customFunction()}"
-          } else {
-            c.abort(
-              c.enclosingPosition,
-              s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
-            )
-          }
-        case t if t <:< typeOf[Option[_]] =>
+        case t if t <:< typeOf[List[_]] && customTrees.contains(fieldNames(indexType._1)) =>
+          q"${customFunction()}"
+        case t if t <:< typeOf[List[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
+          c.abort(
+            c.enclosingPosition,
+            s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+          )
+        case t if t <:< typeOf[Seq[_]] && customTrees.contains(fieldNames(indexType._1)) =>
+          q"${customFunction()}"
+        case t if t <:< typeOf[Seq[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
+          c.abort(
+            c.enclosingPosition,
+            s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+          )
+        case t if t <:< typeOf[Option[_]] && customTrees.contains(fieldNames(indexType._1)) =>
+          customFunction()
+        case t if t <:< typeOf[Option[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
           val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
-          if (customTrees.contains(fieldNames(indexType._1))) {
-            customFunction()
-          } else {
-            // scalafmt: { maxColumn = 400 }
-            q"""
+          q"""
               $packageName.Csvable[${genericType.typeSymbol.name.toTypeName}]._toCsvString {
                 if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" 
                 else $innerVarTermName.${indexByName(indexType._1)}.get
               }
             """
-          }
+        case _ if customTrees.contains(fieldNames(indexType._1)) =>
+          customFunction()
         case _ =>
-          if (customTrees.contains(fieldNames(indexType._1))) {
-            customFunction()
-          } else {
-            q"$packageName.Csvable[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(indexType._1)})"
-          }
+          q"$packageName.Csvable[${TypeName(indexType._2.typeSymbol.name.decodedName.toString)}]._toCsvString($innerVarTermName.${indexByName(indexType._1)})"
       }
-    }.toList
+    }
   }
 
 }

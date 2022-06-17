@@ -38,7 +38,16 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   final case class FieldZipInformation(fieldNames: List[String], fieldIndexTypeMapping: List[(Int, Type)])
 
-  final case class FieldTreeInformation(index: Int, fieldTerm: Tree, fieldType: Type)
+  final case class FieldTreeInformation(
+    index: Int,
+    fieldTerm: Tree,
+    fieldType: Type,
+    zeroValue: Tree,
+    isSeq: Boolean = false,
+    isList: Boolean = false,
+    isOption: Boolean = false,
+    genericType: Option[Type] = None
+  )
 
   final case class FieldInformation(
     fieldName: String,
@@ -58,30 +67,6 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def tryOption(optionTree: Tree): Tree =
     q"_root_.scala.util.Try($optionTree).getOrElse(_root_.scala.None)"
 
-  def getDefaultValue(typ: Type): Tree =
-    typ match {
-      case t if t =:= typeOf[Int] =>
-        q"0"
-      case t if t =:= typeOf[String] =>
-        val empty = ""
-        q"$empty"
-      case t if t =:= typeOf[Float] =>
-        q"0.asInstanceOf[Float]"
-      case t if t =:= typeOf[Double] =>
-        q"0D"
-      case t if t =:= typeOf[Char] =>
-        q"'?'"
-      case t if t =:= typeOf[Byte] =>
-        q"0"
-      case t if t =:= typeOf[Short] =>
-        q"0"
-      case t if t =:= typeOf[Boolean] =>
-        q"false"
-      case t if t =:= typeOf[Long] =>
-        q"0L"
-      case _ => q"null"
-    }
-
   /** Get the list of case class constructor parameters and return the column index, column name, and parameter type
    *  that zip as a `List[FieldTreeInformation]`.
    *
@@ -91,9 +76,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *    Type of the case class.
    *  @return
    */
-  def checkGetFieldTreeInformationList[T: WeakTypeTag](
-    columnsFunc: TermName
-  ): List[FieldTreeInformation] = {
+  def checkGetFieldTreeInformationList[T: WeakTypeTag](columnsFunc: TermName): List[FieldTreeInformation] = {
     val idxColumn    = (i: Int) => q"$columnsFunc()($i)"
     val params       = getCaseClassFieldInfo[T]()
     val paramsSize   = params.size
@@ -103,7 +86,24 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       c.abort(c.enclosingPosition, "The column num of CSV file is different from that in case class constructor!")
     }
 
-    indexColumns zip types map (kv => FieldTreeInformation(kv._1._1, kv._1._2, kv._2))
+    indexColumns zip types map { kv =>
+      val (isOption, isSeq, isList) = isWrapType(kv._2)
+      val typed                     = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
+      var genericType: Option[Type] = None
+      if (isList || isSeq || isOption) {
+        genericType = Option(typed.typeArgs.head)
+      }
+      FieldTreeInformation(
+        kv._1._1,
+        kv._1._2,
+        kv._2,
+        getDefaultValue(kv._2, genericType),
+        isSeq,
+        isList,
+        isOption,
+        genericType
+      )
+    }
   }
 
   /** Get only the symbol of the case class constructor parameters.
@@ -119,21 +119,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     }
     parameters.flatten.map { p =>
       val typed                     = c.typecheck(tq"$p", c.TYPEmode).tpe
-      var isList: Boolean           = false
-      var isSeq: Boolean            = false
-      var isOption: Boolean         = false
       var genericType: Option[Type] = None
-
-      typed match {
-        case t if t <:< typeOf[List[_]] =>
-          isList = true
-        case t if t <:< typeOf[Option[_]] =>
-          isOption = true
-        case t if t <:< typeOf[Seq[_]] =>
-          isSeq = true
-        case _ =>
-      }
-
+      val (isOption, isSeq, isList) = isWrapType(typed)
       if (isList || isSeq || isOption) {
         genericType = Option(typed.typeArgs.head)
       }
@@ -208,4 +195,53 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    */
   def getBuilderId(annoBuilderPrefix: String): Int =
     c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt
+
+  private def getDefaultValue(typ: Type, genericType: Option[Type]): Tree =
+    genericType match {
+      case Some(t) if t <:< typeOf[List[_]]   => q"Nil"
+      case Some(t) if t <:< typeOf[Seq[_]]    => q"Nil"
+      case Some(t) if t <:< typeOf[Option[_]] => q"None"
+      case _ =>
+        typ match {
+          case t if t =:= typeOf[Int] =>
+            q"0"
+          case t if t =:= typeOf[String] =>
+            val empty = ""
+            q"$empty"
+          case t if t =:= typeOf[Float] =>
+            q"0.asInstanceOf[Float]"
+          case t if t =:= typeOf[Double] =>
+            q"0D"
+          case t if t =:= typeOf[Char] =>
+            q"'?'"
+          case t if t =:= typeOf[Byte] =>
+            q"0"
+          case t if t =:= typeOf[Short] =>
+            q"0"
+          case t if t =:= typeOf[Boolean] =>
+            q"false"
+          case t if t =:= typeOf[Long] =>
+            q"0L"
+          case _ => q"null"
+        }
+    }
+
+  private type OptionSeqList = (Boolean, Boolean, Boolean)
+
+  private def isWrapType(typed: Type): OptionSeqList = {
+    var isList: Boolean   = false
+    var isSeq: Boolean    = false
+    var isOption: Boolean = false
+    typed match {
+      case t if t <:< typeOf[List[_]] =>
+        isList = true
+      case t if t <:< typeOf[Option[_]] =>
+        isOption = true
+      case t if t <:< typeOf[Seq[_]] =>
+        isSeq = true
+      case _ =>
+    }
+    Tuple3(isOption, isSeq, isList)
+  }
+
 }

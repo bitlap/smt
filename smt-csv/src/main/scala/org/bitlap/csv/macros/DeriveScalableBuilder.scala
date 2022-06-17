@@ -35,6 +35,7 @@ import scala.reflect.macros.whitebox
 class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
+
   protected val packageName = q"_root_.org.bitlap.csv"
 
   private val annoBuilderPrefix = "_AnonScalableBuilder$"
@@ -167,63 +168,43 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
       val fieldType      = fieldTreeInformation.fieldType
       val fieldTypeName  = TypeName(fieldType.typeSymbol.name.decodedName.toString)
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idx))}.apply($columnValues)"
-      fieldType match {
-        case tp if tp <:< typeOf[List[_]] =>
-          val genericType = c.typecheck(q"${tp}", c.TYPEmode).tpe.typeArgs.head
-          if (customTrees.contains(fieldNames(idx))) {
-            tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$genericType]]", q"Nil")
-          } else {
-            c.abort(
-              c.enclosingPosition,
-              s"Missing usage `setField` for parsing `$clazzName.${fieldNames(idx)}` as a `List` , you have to define a custom way by using `setField` method!"
-            )
-            // q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
+      fieldTreeInformation.genericType match {
+        case None if customTrees.contains(fieldNames(idx)) =>
+          tryGetOrElse(q"${customFunction()}.asInstanceOf[$fieldTypeName]", fieldTreeInformation.zeroValue)
+        case None if !customTrees.contains(fieldNames(idx)) =>
+          fieldType match {
+            case t if t =:= typeOf[Int] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[String] =>
+              q"""$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"""
+            case t if t =:= typeOf[Float] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Float](${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[Double] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Double](${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[Char] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[Byte] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[Short] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[Boolean] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+            case t if t =:= typeOf[Long] =>
+              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+            case _ =>
+              tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues)", fieldTreeInformation.zeroValue)
           }
-        case tp if tp <:< typeOf[Seq[_]] =>
-          val genericType = c.typecheck(q"$tp", c.TYPEmode).tpe.typeArgs.head
-          if (customTrees.contains(fieldNames(idx))) {
-            tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Seq[$genericType]]", q"Nil")
-          } else {
-            c.abort(
-              c.enclosingPosition,
-              s"Missing usage `setField` for parsing `$clazzName.${fieldNames(idx)}` as a `Seq` , you have to define a custom way by using `setField` method!"
-            )
-            // q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)"
-          }
-        case tp if tp <:< typeOf[Option[_]] =>
-          val genericType = c.typecheck(q"$tp", c.TYPEmode).tpe.typeArgs.head
-          if (customTrees.contains(fieldNames(idx))) {
-            tryOption(q"${customFunction()}.asInstanceOf[_root_.scala.Option[$genericType]]")
-          } else {
-            tryOption(q"$packageName.Scalable[${genericType.typeSymbol.name.toTypeName}]._toScala($columnValues)")
-          }
-        case _ =>
-          if (customTrees.contains(fieldNames(idx))) {
-            tryGetOrElse(q"${customFunction()}.asInstanceOf[$fieldTypeName]", getDefaultValue(fieldType))
-          } else {
-            fieldType match {
-              case t if t =:= typeOf[Int] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
-              case t if t =:= typeOf[String] =>
-                q"""$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse("")"""
-              case t if t =:= typeOf[Float] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Float](0.asInstanceOf[Float])"
-              case t if t =:= typeOf[Double] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Double](0D)"
-              case t if t =:= typeOf[Char] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse('?')"
-              case t if t =:= typeOf[Byte] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
-              case t if t =:= typeOf[Short] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0)"
-              case t if t =:= typeOf[Boolean] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(false)"
-              case t if t =:= typeOf[Long] =>
-                q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(0L)"
-              case _ =>
-                tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues)", q"null")
-            }
-          }
+        case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isSeq =>
+          tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Seq[$generic]]", fieldTreeInformation.zeroValue)
+        case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isList =>
+          tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$generic]]", fieldTreeInformation.zeroValue)
+        case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isOption =>
+          tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Option[$generic]]", fieldTreeInformation.zeroValue)
+        case generic =>
+          c.abort(
+            c.enclosingPosition,
+            s"Missing usage `setField` for parsing `$clazzName.${fieldNames(idx)}` as a `$fieldType` with genericType: `$generic`, you have to define a custom way by using `setField` method!"
+          )
       }
     }
 
