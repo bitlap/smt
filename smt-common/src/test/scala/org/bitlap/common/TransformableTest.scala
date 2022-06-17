@@ -28,55 +28,96 @@ import org.scalatest.matchers.should.Matchers
  *    梦境迷离
  *  @version 1.0,6/15/22
  */
-class CTransformerBuilderTest extends AnyFlatSpec with Matchers {
+class TransformableTest extends AnyFlatSpec with Matchers {
 
-  "CTransformerBuilderTest1" should "ok in simple to use" in {
+  "TransformableTest1" should "ok in simple to use" in {
 
     case class A1(a: String, b: Int, cc: Long, d: Option[String])
     case class A2(a: String, b: Int, c: Int, d: Option[String])
 
     val a = A1("hello", 1, 2, None)
-    val b: A2 = CTransformerBuilder[A1, A2] // todo `fromField: Long` type Long cannot be ignored.
+    val b: A2 = Transformable[A1, A2] // todo `fromField: Long` type Long cannot be ignored.
       .mapField[Long, Int](_.cc, _.c, (fromField: Long) => if (fromField > 0) fromField.toInt else 0)
-      .build
+      .instance
       .transform(a)
 
     b.toString shouldEqual "A2(hello,1,2,None)"
 //     use implicit
 
-    implicit val transformer = CTransformerBuilder[A1, A2]
+    implicit val transformer = Transformable[A1, A2]
       .mapField(_.b, _.c)
       .mapField(_.a, _.a)
       .mapField[Option[String], Option[String]](_.d, _.d, (map: Option[String]) => map)
-      .build
+      .instance
 
-    CTransformer[A1, A2].transform(a).toString shouldEqual "A2(hello,1,1,None)"
+    Transformer[A1, A2].transform(a).toString shouldEqual "A2(hello,1,1,None)"
   }
 
-  "CTransformerBuilderTest2" should "error if field type is incompatible" in {
+  "TransformableTest2" should "error if field type is incompatible" in {
     """
       |
       |    case class A1(a: String, b: Int, cc: Long, d: Option[String])
       |    case class A2(a: String, b: Int, c: Int, d: Option[String])
       |    val a = A1("hello", 1, 2, None)
-      |    val b: A2 = CTransformerBuilder[A1, A2]
+      |    val b: A2 = Transformable[A1, A2]
       |      .mapField(_.cc, _.c)
-      |      .build
+      |      .instance
       |      .transform(a)
       |""".stripMargin shouldNot compile
   }
 
-  "CTransformerBuilderTest3" should "ok when nest field" in {
+  "TransformableTest3" should "ok when nest field" in {
     case class C1(j: Int)
     case class D1(c1: C1)
     case class C2(j: Int)
     case class D2(c2: C2)
 
-    implicit val cTransformer: CTransformer[C1, C2] = CTransformerBuilder[C1, C2].build
-    implicit val dTransformer: CTransformer[D1, D2] = CTransformerBuilder[D1, D2].mapField(_.c1, _.c2).build
+    implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2].mapField(_.c1, _.c2).instance
 
     val d1     = D1(C1(1))
-    val d2: D2 = CTransformer[D1, D2].transform(d1)
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+    println(d2)
+  }
+
+  "TransformableTest4" should "ok when list field" in {
+    case class C1(j: Int)
+    case class D1(c1: List[C1])
+    case class C2(j: Int)
+    case class D2(c2: List[C2])
+
+    implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2].mapField(_.c1, _.c2).instance
+
+    val d1     = D1(List(C1(1), C1(2)))
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+    println(d2)
+  }
+
+  "TransformableTest5" should "ok when list field" in {
+    case class C1(j: Int)
+    case class D1(c1: List[List[C1]])
+
+    case class C2(j: Int)
+    case class D2(c2: List[List[C2]]) // Nesting of the second layer
+
+    object C1 {
+      implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    }
+
+    object D1 {
+      implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
+        .mapField[List[List[C1]], List[List[C2]]](
+          _.c1,
+          _.c2,
+          // implicit values of nested dependencies cannot be at the same level, so move it to companion their object
+          (c1: List[List[C1]]) => c1.map(_.map(Transformer[C1, C2].transform(_)))
+        )
+        .instance
+    }
+
+    val d1     = D1(List(List(C1(1), C1(2))))
+    val d2: D2 = Transformer[D1, D2].transform(d1)
     println(d2)
   }
 }

@@ -21,7 +21,7 @@
 
 package org.bitlap.common
 
-import org.bitlap.common.{ CTransformer => _ }
+import org.bitlap.common.{ Transformer => BitlapTransformer }
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
 
@@ -29,19 +29,19 @@ import scala.reflect.macros.whitebox
  *    梦境迷离
  *  @version 1.0,6/15/22
  */
-class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
   import c.universe._
 
   protected val packageName         = q"_root_.org.bitlap.common"
-  private val builderFunctionPrefix = "_CTransformerBuilderFunction$"
-  private val annoBuilderPrefix     = "_AnonObjectCTransformerBuilder$"
+  private val builderFunctionPrefix = "_TransformableFunction$"
+  private val annoBuilderPrefix     = "_AnonObjectTransformable$"
   private val fromTermName          = TermName("from")
 
-  def mapFieldWithValueImpl[From: WeakTypeTag, To: WeakTypeTag, FromField: WeakTypeTag, ToField: WeakTypeTag](
+  def mapFieldWithValueImpl[From, To, FromField, ToField](
     selectFromField: Expr[From => FromField],
     selectToField: Expr[To => ToField],
     map: Expr[FromField => ToField]
-  ): Expr[CTransformerBuilder[From, To]] = {
+  ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, fromName)) = selectFromField.tree
     val Function(_, Select(_, toName))   = selectToField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
@@ -52,13 +52,13 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(toName.decodedName.toString, map)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[CTransformerBuilder[From, To]](force = false, tree)
+    exprPrintTree[Transformable[From, To]](force = false, tree)
   }
 
-  def mapNameImpl[From: WeakTypeTag, To: WeakTypeTag, FromField: WeakTypeTag, ToField: WeakTypeTag](
+  def mapFieldImpl[From, To, FromField, ToField](
     selectFromField: Expr[From => FromField],
     selectToField: Expr[To => ToField]
-  ): Expr[CTransformerBuilder[From, To]] = {
+  ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, fromName)) = selectFromField.tree
     val Function(_, Select(_, toName))   = selectToField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
@@ -67,37 +67,37 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
       .update(toName.decodedName.toString, fromName.decodedName.toString)
 
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[CTransformerBuilder[From, To]](force = false, tree)
+    exprPrintTree[Transformable[From, To]](force = false, tree)
   }
 
-  def buildImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[CTransformer[From, To]] = {
+  def instanceImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[BitlapTransformer[From, To]] = {
     val fromClassName = resolveClassTypeName[From]
     val toClassName   = resolveClassTypeName[To]
     val tree = q"""
        ..$getPreTree  
-       new $packageName.CTransformer[$fromClassName, $toClassName] {
+       new $packageName.Transformer[$fromClassName, $toClassName] {
           override def transform($fromTermName: $fromClassName): $toClassName = {
-            ${getCTransformBody[From, To]}
+            ${getTransformBody[From, To]}
           }
       }
      """
-    exprPrintTree[CTransformer[From, To]](force = false, tree)
+    exprPrintTree[BitlapTransformer[From, To]](force = false, tree)
   }
 
-  def applyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[CTransformerBuilder[From, To]] =
-    deriveBuilderApplyImpl[From, To]
+  def applyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[Transformable[From, To]] =
+    deriveTransformableApplyImpl[From, To]
 
-  private def deriveBuilderApplyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[CTransformerBuilder[From, To]] = {
+  private def deriveTransformableApplyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[Transformable[From, To]] = {
     val builderClassName = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
     val fromClassName    = resolveClassTypeName[From]
     val toClassName      = resolveClassTypeName[To]
 
     val tree =
       q"""
-        class $builderClassName extends $packageName.CTransformerBuilder[$fromClassName, $toClassName]
+        class $builderClassName extends $packageName.Transformable[$fromClassName, $toClassName]
         new $builderClassName
        """
-    exprPrintTree[CTransformerBuilder[From, To]](force = false, tree)
+    exprPrintTree[Transformable[From, To]](force = false, tree)
   }
 
   private def getPreTree: Iterable[Tree] = {
@@ -112,7 +112,7 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
     preTrees
   }
 
-  private def getCTransformBody[From: WeakTypeTag, To: WeakTypeTag]: Tree = {
+  private def getTransformBody[From: WeakTypeTag, To: WeakTypeTag]: Tree = {
     val toClassName   = resolveClassTypeName[To]
     val toClassInfo   = getCaseClassFieldInfo[To]()
     val fromClassInfo = getCaseClassFieldInfo[From]()
@@ -128,7 +128,7 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
       if (customFieldValueMapping.contains(field.fieldName)) {
         q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realFromFieldName)}"})"""
       } else {
-        checkFieldGetFieldTerm[From, To](
+        checkFieldGetFieldTerm[From](
           realFromFieldName,
           fromClassInfo.find(_.fieldName == realFromFieldName),
           field
@@ -142,7 +142,7 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
      """
   }
 
-  private def checkFieldGetFieldTerm[From: WeakTypeTag, To: WeakTypeTag](
+  private def checkFieldGetFieldTerm[From: WeakTypeTag](
     realFromFieldName: String,
     fromFieldOpt: Option[FieldInformation],
     toField: FieldInformation
@@ -160,15 +160,28 @@ class CTransformerMacro(override val c: whitebox.Context) extends AbstractMacroP
 
     val fromField = fromFieldOpt.get
     if (!(fromField.fieldType <:< toField.fieldType)) {
-      val fromFieldType = fromField.fieldType.typeSymbol.name.toTypeName
-      val toFieldType   = toField.fieldType.typeSymbol.name.toTypeName
-      c.warning(
-        c.enclosingPosition,
-        s"No implicit `CTransformer` is defined for $fromFieldType => $toFieldType, which may cause compilation errors!!!"
-      )
-      q"""$packageName.CTransformer[$fromFieldType, $toFieldType].transform($fromFieldTerm)"""
+      tryForWrapType(fromFieldTerm, fromField, toField)
     } else {
       fromFieldTerm
     }
   }
+
+  private def tryForWrapType(fromFieldTerm: Tree, fromField: FieldInformation, toField: FieldInformation): Tree =
+    (fromField, toField) match {
+      case (
+            FieldInformation(_, _, isSeq1, isList1, isOption1, genericType1),
+            FieldInformation(_, _, isSeq2, isList2, isOption2, genericType2)
+          )
+          if ((isSeq1 && isSeq2) || (isList1 && isList2) || (isOption1 && isOption2)) && genericType1.isDefined && genericType2.isDefined =>
+        q"""
+           $fromFieldTerm.map($packageName.Transformer[${genericType1.get}, ${genericType2.get}].transform(_))
+         """
+      case (information1, information2) =>
+        c.warning(
+          c.enclosingPosition,
+          s"No implicit `Transformer` is defined for ${information1.fieldType} => ${information2.fieldType}, which may cause compilation errors!!!"
+        )
+        q"""$packageName.Transformer[${information1.fieldType}, ${information2.fieldType}].transform($fromFieldTerm)"""
+    }
+
 }

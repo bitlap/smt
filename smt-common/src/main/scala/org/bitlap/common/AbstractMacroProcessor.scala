@@ -40,7 +40,14 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   final case class FieldTreeInformation(index: Int, fieldTerm: Tree, fieldType: Type)
 
-  final case class FieldInformation(fieldName: String, fieldType: Type)
+  final case class FieldInformation(
+    fieldName: String,
+    fieldType: Type,
+    isSeq: Boolean = false,
+    isList: Boolean = false,
+    isOption: Boolean = false,
+    genericType: Option[Type] = None
+  )
 
   def tryGetOrElse(tree: Tree, default: Tree): Tree =
     q"_root_.scala.util.Try($tree).getOrElse($default)"
@@ -110,7 +117,35 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     if (parameters.size > 1) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
     }
-    parameters.flatten.map(p => FieldInformation(p.name.decodedName.toString, c.typecheck(tq"$p", c.TYPEmode).tpe))
+    parameters.flatten.map { p =>
+      val typed                     = c.typecheck(tq"$p", c.TYPEmode).tpe
+      var isList: Boolean           = false
+      var isSeq: Boolean            = false
+      var isOption: Boolean         = false
+      var genericType: Option[Type] = None
+
+      typed match {
+        case t if t <:< typeOf[List[_]] =>
+          isList = true
+        case t if t <:< typeOf[Option[_]] =>
+          isOption = true
+        case t if t <:< typeOf[Seq[_]] =>
+          isSeq = true
+        case _ =>
+      }
+
+      if (isList || isSeq || isOption) {
+        genericType = Option(typed.typeArgs.head)
+      }
+      FieldInformation(
+        p.name.decodedName.toString,
+        typed,
+        isSeq,
+        isList,
+        isOption,
+        genericType
+      )
+    }
   }
 
   /** Print the expanded code of macro.
