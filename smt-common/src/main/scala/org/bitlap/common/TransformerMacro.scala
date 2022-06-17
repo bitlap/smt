@@ -159,7 +159,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     }
 
     val fromField = fromFieldOpt.get
-    if (!(fromField.fieldType <:< toField.fieldType)) {
+    if (!(fromField.fieldType weak_<:< toField.fieldType)) {
       tryForWrapType(fromFieldTerm, fromField, toField)
     } else {
       fromFieldTerm
