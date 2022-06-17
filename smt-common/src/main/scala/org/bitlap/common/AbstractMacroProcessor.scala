@@ -169,7 +169,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *  @return
    */
   def resolveClassTypeName[T: WeakTypeTag]: TypeName =
-    TypeName(c.weakTypeOf[T].typeSymbol.name.decodedName.toString)
+    c.weakTypeOf[T].typeSymbol.name.toTypeName
 
   /** Get the list of case class constructor parameters and return the column index and parameter type that zip as a
    *  `FieldZipInformation`.

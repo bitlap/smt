@@ -151,7 +151,11 @@ object elapsedMacro {
     //      }.toList
     //    }
 
-    private def getIdentNam(method: Name): String = s"${c.enclosingClass.tpe.typeSymbol.name.decodedName.toString}#${method.decodedName.toString}"
+    private def getIdentNam(method: Name): String =
+      s"${c.enclosingClass match {
+          case ClassDef(_, name, _, Template(_, _, _)) => name
+          case ModuleDef(_, name, Template(_, _, _))   => name
+        }}#${method.decodedName.toString}"
 
     private def getNewMethod(defDef: DefDef): DefDef =
       mapToNewMethod(

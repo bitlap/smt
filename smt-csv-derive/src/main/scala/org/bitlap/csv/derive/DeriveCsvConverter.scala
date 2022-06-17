@@ -44,7 +44,7 @@ object DeriveCsvConverter {
 
     def macroImpl[CC: c.WeakTypeTag](csvFormat: c.Expr[CsvFormat]): c.Expr[CC] = {
       val clazzName = c.weakTypeOf[CC].typeSymbol.name
-      val typeName  = TypeName(clazzName.decodedName.toString)
+      val typeName  = clazzName.toTypeName
       val tree =
         q"""
         new Converter[$typeName] {

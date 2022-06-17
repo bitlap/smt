@@ -78,7 +78,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
 
   private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] = {
     val className     = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
-    val caseClazzName = TypeName(weakTypeOf[T].typeSymbol.name.decodedName.toString)
+    val caseClazzName = weakTypeOf[T].typeSymbol.name.toTypeName
     val tree =
       q"""
         class $className extends $packageName.ScalableBuilder[$caseClazzName]
@@ -166,7 +166,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
       val idx            = fieldTreeInformation.index
       val columnValues   = fieldTreeInformation.fieldTerm
       val fieldType      = fieldTreeInformation.fieldType
-      val fieldTypeName  = TypeName(fieldType.typeSymbol.name.decodedName.toString)
+      val fieldTypeName  = fieldType.typeSymbol.name.toTypeName
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idx))}.apply($columnValues)"
       fieldTreeInformation.genericType match {
         case None if customTrees.contains(fieldNames(idx)) =>
@@ -212,6 +212,6 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
 
     // input args not need used
     q"""override def _toScala(column: String): _root_.scala.Option[$clazzName] = 
-       ${tryOption(q"_root_.scala.Option(${TermName(clazzName.decodedName.toString)}(..$fields))")}"""
+       ${tryOption(q"_root_.scala.Option(${clazzName.toTermName}(..$fields))")}"""
   }
 }

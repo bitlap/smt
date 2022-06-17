@@ -63,7 +63,7 @@ object DeriveToString {
               }
           """
           case _ =>
-            q"$packageName.Converter[${indexType._2.typeSymbol.name.toTypeName}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+            q"$packageName.Converter[${indexType._2}].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
         }
       }
 
