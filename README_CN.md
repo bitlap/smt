@@ -47,6 +47,12 @@
 
 - 一些很通用的工具类。
 - `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
+- 一些很通用的工具类。
+- `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
+- `Transformable` 自动生成`Transformer`的实例。
+- 有两种方式可以映射字段：
+    - 1.使用`Transformer`，并在样例类的伴生对象中定义`Transformer`隐式值。
+    - 2.直接使用`Transformable`的`mapField`方法。
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
 ```
