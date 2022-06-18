@@ -30,7 +30,7 @@ import org.scalatest.matchers.should.Matchers
  */
 class TransformableTest extends AnyFlatSpec with Matchers {
 
-  "TransformableTest1" should "ok in simple to use" in {
+  "TransformableTest simple case" should "ok for Transformable" in {
 
     case class A1(a: String, b: Int, cc: Long, d: Option[String])
     case class A2(a: String, b: Int, c: Int, d: Option[String])
@@ -42,8 +42,20 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       .transform(a)
 
     b.toString shouldEqual "A2(hello,1,2,None)"
-    //     use implicit
 
+    case class B1(d: List[String])
+    case class B2(d: Seq[String])
+
+    val b1 = B1(List("hello"))
+    // List => Seq  not need mapping field
+    val b2: B2 = Transformable[B1, B2].instance.transform(b1)
+    b2.toString shouldEqual "B2(List(hello))"
+  }
+
+  "TransformableTest simple case" should "ok for implicit Transformable" in {
+    case class A1(a: String, b: Int, cc: Long, d: Option[String])
+    case class A2(a: String, b: Int, c: Int, d: Option[String])
+    val a = A1("hello", 1, 2, None)
     implicit val transformer = Transformable[A1, A2]
       .mapField(_.b, _.c)
       .mapField(_.a, _.a)
@@ -53,7 +65,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     Transformer[A1, A2].transform(a).toString shouldEqual "A2(hello,1,1,None)"
   }
 
-  "TransformableTest2" should "error if field type is incompatible" in {
+  "TransformableTest type not match" should "error if field type is incompatible" in {
     """
       |
       |    case class A1(a: String, b: Int, cc: Long, d: Option[String])
@@ -66,7 +78,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
-  "TransformableTest3" should "ok when nest field" in {
+  "TransformableTest simple case for nest field" should "ok when field is case class" in {
     case class C1(j: Int)
     case class D1(c1: C1)
     case class C2(j: Int)
@@ -80,7 +92,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     println(d2)
   }
 
-  "TransformableTest4" should "ok when list field" in {
+  "TransformableTest more complex case for nest field" should "ok when field is list with case class" in {
     case class C1(j: Int)
     case class D1(c1: List[C1])
     case class C2(j: Int)
@@ -94,7 +106,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     println(d2)
   }
 
-  "TransformableTest5" should "ok when list list field" in {
+  "TransformableTest more complex case for two-layer nest field" should "ok for implicit and non-implicit(mapField)" in {
     case class C1(j: Int)
     case class D1(c1: List[List[C1]])
 
@@ -121,11 +133,10 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     d2.toString shouldBe "D2(List(List(C2(1), C2(2))))"
   }
 
-  "TransformableTest6" should "compile ok if can use weak conformance" in {
+  "TransformableTest different type" should "compile ok if can use weak conformance" in {
     case class A1(a: String, b: Int, cc: Int, d: Option[String]) // weak conformance
     case class A2(a: String, b: Int, c: Long, d: Option[String])
     object A1 {
-
       implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].mapField(_.cc, _.c).instance
     }
     val a1 = A1("hello", 1, 2, None)
@@ -134,7 +145,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
   }
 
-  "TransformableTest7" should "compile failed if can't use weak conformance" in {
+  "TransformableTest type cannot match" should "compile failed if can't use weak conformance" in {
     """
       | case class A1(a: String, b: Int, cc: Long, d: Option[String]) // Can't to use weak conformance, must use `mapField(?,?,?)` method for it.
       |    case class A2(a: String, b: Int, c: Int, d: Option[String])
@@ -150,7 +161,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
-  "TransformableTest8" should "compile ok in a complex case class" in {
+  "TransformableTest more complex case to use implicit Transformer" should "compile ok" in {
     import org.bitlap.common.models.from._
     import org.bitlap.common.models.to._
     val fromRow =

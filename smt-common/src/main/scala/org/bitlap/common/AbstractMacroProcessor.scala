@@ -217,9 +217,9 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         q"false"
       case t if t =:= typeOf[Long] =>
         q"0L"
-      case t if t <:< typeOf[List[_]]   => q"_root_.scala.Nil"
-      case t if t <:< typeOf[Seq[_]]    => q"_root_.scala.Nil"
-      case t if t <:< typeOf[Option[_]] => q"_root_.scala.None"
+      case t if t weak_<:< typeOf[List[_]]   => q"_root_.scala.Nil"
+      case t if t weak_<:< typeOf[Seq[_]]    => q"_root_.scala.Nil"
+      case t if t weak_<:< typeOf[Option[_]] => q"_root_.scala.None"
       case _ =>
         q"null"
     }
@@ -231,11 +231,11 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     var isSeq: Boolean    = false
     var isOption: Boolean = false
     typed match {
-      case t if t <:< typeOf[List[_]] =>
+      case t if t weak_<:< weakTypeOf[List[_]] =>
         isList = true
-      case t if t <:< typeOf[Option[_]] =>
+      case t if t weak_<:< weakTypeOf[Option[_]] =>
         isOption = true
-      case t if t <:< typeOf[Seq[_]] && !isList =>
+      case t if !isList && (t weak_<:< weakTypeOf[Seq[_]]) =>
         isSeq = true
       case _ =>
     }
