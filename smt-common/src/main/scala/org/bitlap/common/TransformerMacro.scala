@@ -114,8 +114,16 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
 
   private def getTransformBody[From: WeakTypeTag, To: WeakTypeTag]: Tree = {
     val toClassName   = resolveClassTypeName[To]
+    val fromClassName = resolveClassTypeName[From]
     val toClassInfo   = getCaseClassFieldInfo[To]()
     val fromClassInfo = getCaseClassFieldInfo[From]()
+    if (fromClassInfo.size < toClassInfo.size) {
+      c.abort(
+        c.enclosingPosition,
+        s"From type: `$fromClassName` has fewer fields than To type: `$toClassName` and cannot be transformed"
+      )
+    }
+
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldValueMapping =

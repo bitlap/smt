@@ -156,8 +156,6 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |    val a1 = A1("hello", 1, 2, None)
       |    val a2 = Transformer[A1, A2].transform(a1)
       |    a2.toString shouldBe "A2(hello,1,2,None)"
-      |    
-      |    
       |""".stripMargin shouldNot compile
   }
 
@@ -181,5 +179,21 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     val actualToQueryResult = Transformer[FQueryResult, TQueryResult].transform(fromQueryResult)
 
     actualToQueryResult shouldBe expectToQueryResult
+  }
+
+  "TransformableTest From have fewer fields than To" should "compile error" in {
+    """
+      |    case class B1(a: List[String])
+      |    case class B2(a: List[String], b: Int)
+      |    val b2 = Transformable[B1, B2].instance.transform(B1(List.empty))
+      |    println(b2)
+      |""".stripMargin shouldNot compile
+  }
+
+  "TransformableTest From have more fields than To" should "ok" in {
+    case class B1(a: List[String], b: Int)
+    case class B2(a: List[String])
+    val b2 = Transformable[B1, B2].instance.transform(B1(List.empty, 1))
+    println(b2)
   }
 }
