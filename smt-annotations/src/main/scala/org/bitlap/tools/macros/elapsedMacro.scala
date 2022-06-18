@@ -53,7 +53,7 @@ object elapsedMacro {
         LogLevel.getLogLevel(logLevel.toString())
       }
 
-    private val extractArgumentsDetail: (Duration, LogLevel) = c.prefix.tree match {
+    private val extractOptions: (Duration, LogLevel) = c.prefix.tree match {
       case q"new elapsed(limit=$limit, logLevel=$logLevel)" =>
         (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
@@ -69,7 +69,7 @@ object elapsedMacro {
       }
       q"""
         val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
-        if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s($classNameAndMethodName, $valDef.toMillis))
+        if ($valDef._1 >= ${extractOptions._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s($classNameAndMethodName, $valDef.toMillis))
       """
     }
 
@@ -78,7 +78,7 @@ object elapsedMacro {
       if (log.isEmpty) { // if there is no slf4j log, print it to the console
         getLog(classNameAndMethodName, q"_root_.scala.Predef.println")
       } else {
-        extractArgumentsDetail._2 match {
+        extractOptions._2 match {
           case LogLevel.INFO  => getLog(classNameAndMethodName, q"${log.get}.info")
           case LogLevel.DEBUG => getLog(classNameAndMethodName, q"${log.get}.debug")
           case LogLevel.WARN  => getLog(classNameAndMethodName, q"${log.get}.warn")

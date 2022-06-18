@@ -300,7 +300,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def existsSuperClassExcludeSdkClass(superClasses: Seq[Tree]): Boolean =
     superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
 
-  private[macros] case class ValDefAccessor(
+  private[macros] final case class ValDefAccessor(
     mods: Modifiers,
     name: TermName,
     tpt: Tree,
@@ -312,6 +312,19 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     def symbol: Symbol = paramType.typeSymbol
 
     def paramType: Type = c.typecheck(tq"$tpt", c.TYPEmode).tpe
+
+    def zeroValue: Tree =
+      paramType match {
+        case t if t <:< typeOf[Int]     => q"0"
+        case t if t <:< typeOf[Byte]    => q"0"
+        case t if t <:< typeOf[Double]  => q"0D"
+        case t if t <:< typeOf[Float]   => q"0F"
+        case t if t <:< typeOf[Short]   => q"0"
+        case t if t <:< typeOf[Long]    => q"0L"
+        case t if t <:< typeOf[Char]    => q"63.toChar" // default char is ?
+        case t if t <:< typeOf[Boolean] => q"false"
+        case _                          => q"null"
+      }
   }
 
   /** Retrieves the accessor fields on a class and returns a Seq of

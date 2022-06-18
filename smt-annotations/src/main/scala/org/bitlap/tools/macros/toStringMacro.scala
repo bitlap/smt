@@ -36,14 +36,20 @@ object toStringMacro {
 
     import c.universe._
 
-    private def extractTree(aa: Tree, bb: Tree, cc: Tree): (Boolean, Boolean, Boolean) =
-      (
+    private case class ToStringOptions(
+      includeInternalFields: Boolean,
+      includeFieldNames: Boolean,
+      callSuper: Boolean
+    )
+
+    private def extractTree(aa: Tree, bb: Tree, cc: Tree): ToStringOptions =
+      ToStringOptions(
         evalTree[Boolean](aa),
         evalTree[Boolean](bb),
         evalTree[Boolean](cc)
       )
 
-    private val extractArgumentsDetail: (Boolean, Boolean, Boolean) = c.prefix.tree match {
+    private val extractOptions: ToStringOptions = c.prefix.tree match {
       case q"new toString(includeInternalFields=$aa, includeFieldNames=$bb, callSuper=$cc)" =>
         extractTree(aa.asInstanceOf[Tree], bb.asInstanceOf[Tree], cc.asInstanceOf[Tree])
       case q"new toString(includeInternalFields=$aa, includeFieldNames=$bb)" =>
@@ -54,27 +60,23 @@ object toStringMacro {
         extractTree(q"true", aa.asInstanceOf[Tree], q"false")
       case q"new toString(callSuper=$aa)" =>
         extractTree(q"true", q"true", aa.asInstanceOf[Tree])
-      case q"new toString()" => (true, true, false)
-      case _                 => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      case q"new toString()" =>
+        ToStringOptions(includeInternalFields = true, includeFieldNames = true, callSuper = false)
+      case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
     override def createCustomExpr(classDecl: c.universe.ClassDef, compDeclOpt: Option[c.universe.ModuleDef]): Any = {
       // extract parameters of annotation, must in order
-      val argument = Argument(
-        extractArgumentsDetail._1,
-        extractArgumentsDetail._2,
-        extractArgumentsDetail._3
-      )
-      val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(argument, classDecl)))
+      val resTree = appendClassBody(classDecl, _ => List(getToStringTemplate(extractOptions, classDecl)))
       c.Expr(q"""
           ${compDeclOpt.fold(EmptyTree)(x => x)}
           $resTree
          """)
     }
 
-    private def printField(argument: Argument, lastParam: Option[String], field: Tree): Tree =
+    private def printField(options: ToStringOptions, lastParam: Option[String], field: Tree): Tree =
       // Print one field as <name of the field>+"="+fieldName
-      if (argument.includeFieldNames) {
+      if (options.includeFieldNames) {
         lastParam.fold(q"$field") { lp =>
           field match {
             case v: ValDef =>
@@ -94,7 +96,7 @@ object toStringMacro {
         }
       }
 
-    private def getToStringTemplate(argument: Argument, classDecl: ClassDef): Tree = {
+    private def getToStringTemplate(options: ToStringOptions, classDecl: ClassDef): Tree = {
       // For a given class definition, separate the components of the class
       val classDefinition = mapToClassDeclInfo(classDecl)
       // Check the type of the class, whether it already contains its own toString
@@ -109,19 +111,19 @@ object toStringMacro {
       })
 
       val ctorParams = classDefinition.classParamss.flatten
-      val member     = if (argument.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
+      val member     = if (options.includeInternalFields) ctorParams ++ annotteeClassFieldDefinitions else ctorParams
 
       val lastParam = member.lastOption.map {
         case v: ValDef => v.name.toTermName.decodedName.toString
         case c         => c.toString
       }
-      val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(argument, lastParam, acc)}")
+      val paramsWithName = member.foldLeft(q"${""}")((res, acc) => q"$res + ${printField(options, lastParam, acc)}")
       // scala/bug https://github.com/scala/bug/issues/3967 not be 'Foo(i=1,j=2)' in standard library
       val toString =
         q"""override def toString: String = ${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $paramsWithName + ${")"}"""
 
       // Have super class ?
-      if (argument.callSuper && classDefinition.superClasses.nonEmpty) {
+      if (options.callSuper && classDefinition.superClasses.nonEmpty) {
         val superClassDef = classDefinition.superClasses.head match {
           case tree: Tree => Some(tree) // TODO type check better
           case _          => None

@@ -1,7 +1,5 @@
 package org.bitlap.common
 
-import com.google.protobuf.ByteString
-
 /** @author
  *    梦境迷离
  *  @since 2021/11/20

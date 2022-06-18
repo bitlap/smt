@@ -151,7 +151,6 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   }
 
   "TransformableTest8" should "compile ok in a complex case class" in {
-    import com.google.protobuf.ByteString
     import org.bitlap.common.models.from._
     import org.bitlap.common.models.to._
     val fromRow =

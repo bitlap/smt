@@ -58,21 +58,7 @@ object javaCompatibleMacro {
           }
         )
       )
-      val defaultParameters = acsVals.map(params =>
-        params.map { param =>
-          param.paramType match {
-            case t if t <:< typeOf[Int]     => q"0"
-            case t if t <:< typeOf[Byte]    => q"0"
-            case t if t <:< typeOf[Double]  => q"0D"
-            case t if t <:< typeOf[Float]   => q"0F"
-            case t if t <:< typeOf[Short]   => q"0"
-            case t if t <:< typeOf[Long]    => q"0L"
-            case t if t <:< typeOf[Char]    => q"63.toChar" // default char is ?
-            case t if t <:< typeOf[Boolean] => q"false"
-            case _                          => q"null"
-          }
-        }
-      )
+      val defaultParameters = acsVals.map(params => params.map(_.zeroValue))
       if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
         q"""
           def this() = {

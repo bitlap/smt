@@ -29,7 +29,7 @@ object jacksonEnumMacro {
 
     import c.universe._
 
-    private val extractArgs: Seq[String] =
+    private val extractOptions: Seq[String] =
       c.prefix.tree match {
         case q"new jacksonEnum(nonTypeRefers=$nonTypeRefers)" => evalTree(nonTypeRefers.asInstanceOf[Tree])
         case q"new jacksonEnum($nonTypeRefers)"               => evalTree(nonTypeRefers.asInstanceOf[Tree])
@@ -43,7 +43,7 @@ object jacksonEnumMacro {
       safeValDefs
         .filter(_.symbol.name.toTermName.toString == "Value")
         .map(getTypeTermName)
-        .filter(v => !extractArgs.contains(v.decodedName.toString))
+        .filter(v => !extractOptions.contains(v.decodedName.toString))
         .distinct
         .map(c =>
           q"""class ${TypeName(
@@ -72,7 +72,7 @@ object jacksonEnumMacro {
         val mods = safeValDef.mods.mapAnnotations { f =>
           if (
             !f.toString().contains("JsonScalaEnumeration") &&
-            !extractArgs.contains(getTypeTermName(safeValDef).decodedName.toString)
+            !extractOptions.contains(getTypeTermName(safeValDef).decodedName.toString)
           ) f ++ List(getAnnotation(valDefTree))
           else f
         }
