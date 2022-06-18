@@ -19,14 +19,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv
+package org.bitlap.common
+import scala.collection.mutable
 
 /** @author
  *    梦境迷离
- *  @version 1.0,6/2/22
+ *  @version 1.0,2022/5/1
  */
-package object core {
+object MacroCache {
 
-  implicit val defaultCsvFormat: CsvFormat = new DefaultCsvFormat {}
+  private var builderCount  = 0
+  private var identityCount = 0
 
+  def getBuilderId: Int = builderCount.synchronized {
+    builderCount += 1; builderCount
+  }
+
+  def getIdentityId: Int = identityCount.synchronized {
+    identityCount += 1; identityCount
+  }
+
+  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
+
+  lazy val classFieldNameMapping: mutable.Map[Int, mutable.Map[String, String]] = mutable.Map.empty
+
+  lazy val classFieldValueMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
 }

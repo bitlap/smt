@@ -21,8 +21,8 @@
 
 package org.bitlap.csv.derive.test
 
-import org.bitlap.csv.core.{ Converter, StringUtils }
 import org.bitlap.csv.derive.DeriveCsvConverter
+import org.bitlap.csv.{ Converter, StringUtils }
 
 /** @author
  *    梦境迷离

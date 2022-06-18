@@ -34,7 +34,7 @@ object constructorMacro {
 
     import c.universe._
 
-    private val extractArgs: Seq[String] =
+    private val extractOptions: Seq[String] =
       c.prefix.tree match {
         case q"new constructor(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
         case q"new constructor($excludeFields)"               => evalTree(excludeFields.asInstanceOf[Tree])
@@ -45,7 +45,7 @@ object constructorMacro {
     private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] =
       getClassMemberValDefs(annotteeClassDefinitions).filter(v =>
         v.mods.hasFlag(Flag.MUTABLE) &&
-        !extractArgs.contains(v.name.decodedName.toString)
+        !extractOptions.contains(v.name.decodedName.toString)
       )
 
     /** Extract the internal fields of members belonging to the class， but not in primary constructor and only `var`.

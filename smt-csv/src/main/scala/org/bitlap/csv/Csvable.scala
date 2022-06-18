@@ -19,28 +19,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap.csv
 
-/** a Custom Csv decoder.
+/** a Custom Csv encoder.
  *
  *  @author
  *    梦境迷离
- *  @since 2022/04/30
+ *  @since 2022/04/27
  *  @version 1.0
  */
-trait Scalable[T] {
+trait Csvable[T] {
 
-  /** API for processing a specific column value of CSV line data.
+  /** API for processing a specific field of case class object.
    *
-   *  @param column
-   *    The column value of CSV line data.
+   *  @param t
+   *    case class object
    *  @return
    */
-  def _toScala(column: String): Option[T]
+  def _toCsvString(t: T): String
+
 }
 
-object Scalable extends ScalableImplicits {
+object Csvable extends CsvableImplicits {
 
-  def apply[T](implicit st: Scalable[T]): Scalable[T] = st
+  def apply[T](implicit st: Csvable[T]): Csvable[T] = st
 
 }

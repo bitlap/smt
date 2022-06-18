@@ -19,16 +19,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
-
-import org.bitlap.csv.core.StringUtils
-import org.bitlap.csv.core.DefaultCsvFormat
+package org.bitlap.csv.test
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.csv.core.ScalableBuilder
-import org.bitlap.csv.core.CsvableBuilder
-import org.bitlap.csv.core.ScalableHelper
+import org.bitlap.csv.{ CsvableBuilder, DefaultCsvFormat, ScalableBuilder, ScalableHelper, StringUtils }
 import java.io.File
 
 /** Complex use of common tests
@@ -145,6 +140,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
   }
 
   "CsvableAndScalable4" should "ok when reading from file" in {
+    import org.bitlap.csv.ScalableHelper
     val metrics = ScalableHelper.readCsvFromClassPath[Metric2]("simple_data.csv") { line =>
       ScalableBuilder[Metric2]
         .setField[Seq[Dimension3]](

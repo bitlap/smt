@@ -69,7 +69,7 @@ object CacheableMacro {
           val newBody =
             q"""
              val $resultValName = ${defDef.rhs}
-             val $keyValName = List($getEnclosingClassName, ${name.decodedName.toString})
+             val $keyValName = _root_.scala.List($getEnclosingClassName, ${name.decodedName.toString})
              $importExpr
              org.bitlap.cacheable.core.Cache($resultValName)($keyValName, ..${getParamsName(vparamss)})
            """

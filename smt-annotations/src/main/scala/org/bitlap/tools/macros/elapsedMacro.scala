@@ -53,7 +53,7 @@ object elapsedMacro {
         LogLevel.getLogLevel(logLevel.toString())
       }
 
-    private val extractArgumentsDetail: (Duration, LogLevel) = c.prefix.tree match {
+    private val extractOptions: (Duration, LogLevel) = c.prefix.tree match {
       case q"new elapsed(limit=$limit, logLevel=$logLevel)" =>
         (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
@@ -62,26 +62,26 @@ object elapsedMacro {
     private def getStartExpr: c.universe.Tree =
       q"""val $start = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime())"""
 
-    private def getLog(methodName: TermName, logBy: Tree): c.universe.Tree = {
+    private def getLog(classNameAndMethodName: String, logBy: Tree): c.universe.Tree = {
       // CI will fail when use lambda.
       implicit val durationApply: c.universe.Liftable[Duration] = new Liftable[Duration] {
         override def apply(value: Duration): c.universe.Tree = q"${value._1}"
       }
       q"""
         val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
-        if ($valDef._1 >= ${extractArgumentsDetail._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s(${methodName.toString}, $valDef.toMillis))
+        if ($valDef._1 >= ${extractOptions._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s($classNameAndMethodName, $valDef.toMillis))
       """
     }
 
-    private def getPrintlnLog(methodName: TermName): c.universe.Tree = {
+    private def getPrintlnLog(classNameAndMethodName: String): c.universe.Tree = {
       val log = findValDefInEnclosingClass(TypeName("org.slf4j.Logger"))
       if (log.isEmpty) { // if there is no slf4j log, print it to the console
-        getLog(methodName, q"_root_.scala.Predef.println")
+        getLog(classNameAndMethodName, q"_root_.scala.Predef.println")
       } else {
-        extractArgumentsDetail._2 match {
-          case LogLevel.INFO  => getLog(methodName, q"${log.get}.info")
-          case LogLevel.DEBUG => getLog(methodName, q"${log.get}.debug")
-          case LogLevel.WARN  => getLog(methodName, q"${log.get}.warn")
+        extractOptions._2 match {
+          case LogLevel.INFO  => getLog(classNameAndMethodName, q"${log.get}.info")
+          case LogLevel.DEBUG => getLog(classNameAndMethodName, q"${log.get}.debug")
+          case LogLevel.WARN  => getLog(classNameAndMethodName, q"${log.get}.warn")
         }
       }
     }
@@ -104,7 +104,7 @@ object elapsedMacro {
         defDef => q"""
           $getStartExpr
           val resFuture = ${defDef.rhs}
-          resFuture.onComplete { case _ => ..${getPrintlnLog(defDef.name)} }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
+          resFuture.onComplete { case _ => ..${getIdentNam(defDef.name)} }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
           resFuture
         """
       )
@@ -151,12 +151,18 @@ object elapsedMacro {
     //      }.toList
     //    }
 
+    private def getIdentNam(method: Name): String =
+      s"${c.enclosingClass match {
+          case ClassDef(_, name, _, Template(_, _, _)) => name
+          case ModuleDef(_, name, Template(_, _, _))   => name
+        }}#${method.decodedName.toString}"
+
     private def getNewMethod(defDef: DefDef): DefDef =
       mapToNewMethod(
         defDef,
         defDef => q"""
           $getStartExpr
-          ${Try(defDef.rhs, Nil, getPrintlnLog(defDef.name))}
+          ${Try(defDef.rhs, Nil, getPrintlnLog(getIdentNam(defDef.name)))}
         """
       )
 

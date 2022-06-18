@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.derive.test
 
-import org.bitlap.csv.core.Converter
+import org.bitlap.csv.Converter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

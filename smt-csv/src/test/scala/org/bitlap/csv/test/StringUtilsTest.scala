@@ -19,15 +19,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
+package org.bitlap.csv.test
 
-import org.bitlap.csv.core.FileUtils
-
-import org.bitlap.csv.core.StringUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import java.io.{ BufferedReader, InputStreamReader }
-import org.bitlap.csv.core.defaultCsvFormat
+import org.bitlap.csv.defaultCsvFormat
+import org.bitlap.csv.{ FileUtils, StringUtils }
 
 /** @author
  *    梦境迷离

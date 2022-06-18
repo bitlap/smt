@@ -19,25 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core
+package org.bitlap
 
-import java.io.{ BufferedReader, File, FileReader, InputStreamReader }
-
-/** Tool class for parsing CSV files.
- *
- *  @author
+/** @author
  *    梦境迷离
- *  @version 1.0,2022/5/13
+ *  @version 1.0,6/2/22
  */
-object ScalableHelper {
+package object csv {
 
-  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
-    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
-    FileUtils.readFileFunc[T](new BufferedReader(reader), func)
-  }
+  implicit val defaultCsvFormat: CsvFormat = new DefaultCsvFormat {}
 
-  def readCsvFromFile[T <: Product](file: File)(func: String => Option[T]): List[Option[T]] = {
-    val reader = new BufferedReader(new FileReader(file))
-    FileUtils.readFileFunc[T](reader, func)
-  }
 }

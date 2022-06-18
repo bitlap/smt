@@ -68,13 +68,13 @@ object CaseClassField {
     val genericType = fieldType.get match {
       case t if t <:< typeOf[Option[_]] =>
         val genericType = t.typeArgs.head
-        tq"Option[$genericType]"
+        tq"_root_.scala.Option[$genericType]"
       case t if t <:< typeOf[Seq[_]] =>
         val genericType = t.typeArgs.head
-        tq"Seq[$genericType]"
+        tq"_root_.scala.Seq[$genericType]"
       case t if t <:< typeOf[List[_]] =>
         val genericType = t.typeArgs.head
-        tq"List[$genericType]"
+        tq"_root_.scala.List[$genericType]"
       case t => tq"$t"
     }
 

@@ -19,34 +19,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.core.test
+package org.bitlap.csv
 
-import org.bitlap.csv.core.Converter
-import org.bitlap.csv.core.macros.{ DeriveToCaseClass, DeriveToString }
-
-/** @author
+/** a Custom Csv decoder.
+ *
+ *  @author
  *    梦境迷离
- *  @version 1.0,2022/4/29
+ *  @since 2022/04/30
+ *  @version 1.0
  */
-case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+trait Scalable[T] {
 
-// do not have a implicit val in companion Object
-case class Dimension2(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+  /** API for processing a specific column value of CSV line data.
+   *
+   *  @param column
+   *    The column value of CSV line data.
+   *  @return
+   */
+  def _toScala(column: String): Option[T]
+}
 
-case class Metric(time: Long, entity: Int, dimensions: List[Dimension3], metricName: String, metricValue: Int)
+object Scalable extends ScalableImplicits {
 
-case class Metric2(time: Long, entity: Int, dimensions: Seq[Dimension3], metricName: String, metricValue: Int)
+  def apply[T](implicit st: Scalable[T]): Scalable[T] = st
 
-case class Metric3(time: Long, entity: Int, dimensions: String, metricName: String, metricValue: Int)
-
-case class Dimension3(key: String, value: String)
-
-object Dimension {
-
-  implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
-
-    override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line)
-
-    override def toCsvString(t: Dimension): String = DeriveToString[Dimension](t)
-  }
 }

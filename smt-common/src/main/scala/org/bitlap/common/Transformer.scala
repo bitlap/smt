@@ -19,19 +19,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.derive.test
-
-import org.bitlap.csv.derive.DeriveCsvConverter
-import org.bitlap.csv.Converter
+package org.bitlap.common
 
 /** @author
  *    梦境迷离
- *  @version 1.0,2022/4/29
+ *  @version 1.0,6/14/22
  */
-case class CsvLine(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float, h: Double)
+trait Transformer[-From, +To] {
+  def transform(from: From): To
+}
 
-object CsvLine {
-
-  implicit val lineCsvConverter: Converter[CsvLine] = DeriveCsvConverter.gen[CsvLine]
-
+object Transformer {
+  def apply[From <: Product, To <: Product](implicit st: Transformer[From, To]): Transformer[From, To] = st
 }

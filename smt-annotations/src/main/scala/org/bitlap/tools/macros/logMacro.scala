@@ -38,7 +38,7 @@ object logMacro {
 
     import c.universe._
 
-    private val extractArgs: logs.LogType.Value = c.prefix.tree match {
+    private val extractOptions: logs.LogType.Value = c.prefix.tree match {
       case q"new log(logType=$logType)" =>
         val tpe = getLogType(logType.asInstanceOf[Tree])
         tpe
@@ -60,11 +60,11 @@ object logMacro {
       val buildArg = (name: Name) => LogArgument(name.toTermName.decodedName.toString, isClass = true)
       (annottees.map(_.tree) match {
         case (classDef: ClassDef) :: Nil =>
-          LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(classDef.name))
+          LogType.getLogImpl(extractOptions).getTemplate(c)(buildArg(classDef.name))
         case (moduleDef: ModuleDef) :: Nil =>
-          LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
+          LogType.getLogImpl(extractOptions).getTemplate(c)(buildArg(moduleDef.name).copy(isClass = false))
         case (classDef: ClassDef) :: (_: ModuleDef) :: Nil =>
-          LogType.getLogImpl(extractArgs).getTemplate(c)(buildArg(classDef.name))
+          LogType.getLogImpl(extractOptions).getTemplate(c)(buildArg(classDef.name))
         case _ => c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
       }).asInstanceOf[Tree]
     }
@@ -75,7 +75,7 @@ object logMacro {
           if (classDef.mods.hasFlag(Flag.CASE)) {
             c.abort(c.enclosingPosition, ErrorMessage.ONLY_OBJECT_CLASS)
           }
-          val newClass = extractArgs match {
+          val newClass = extractOptions match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
               appendImplDefSuper(checkGetClassDef(annottees), _ => List(logTree(annottees)))
             case _ =>
@@ -87,7 +87,7 @@ object logMacro {
              $newClass
            """
         case (_: ModuleDef) :: _ =>
-          extractArgs match {
+          extractOptions match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
               appendImplDefSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
             case _ => prependImplDefBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))

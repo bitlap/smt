@@ -34,7 +34,7 @@ object equalsAndHashCodeMacro {
 
     import c.universe._
 
-    private val extractArgs: Seq[String] = c.prefix.tree match {
+    private val extractOptions: Seq[String] = c.prefix.tree match {
       case q"new equalsAndHashCode(excludeFields=$excludeFields)" => evalTree(excludeFields.asInstanceOf[Tree])
       case q"new equalsAndHashCode($excludeFields)"               => evalTree(excludeFields.asInstanceOf[Tree])
       case q"new equalsAndHashCode()"                             => Nil
@@ -58,7 +58,7 @@ object equalsAndHashCodeMacro {
       getClassMemberValDefs(annotteeClassDefinitions)
         .filter(p =>
           isNotLocalClassMember(p) &&
-          !extractArgs.contains(p.name.decodedName.toString)
+          !extractOptions.contains(p.name.decodedName.toString)
         )
         .map(_.name.toTermName)
     }

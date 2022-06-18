@@ -42,6 +42,11 @@ Learn Scala macro and abstract syntax tree.
 ## common
 
 - Some very general tool classes.
+- `Transformer` Transform the case class`From`'s object to the case class`To`'s object.
+- `Transformable` Automatically generate instances of`Transformer`.
+- Two ways to map fields: 
+  - 1.use`Transformer`and define`Transformer`implicitly in the companion object of the case class.
+  - 2.use`Transformable`'s`mapField`method directly.
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>" // since 0.6.0 
 ```
