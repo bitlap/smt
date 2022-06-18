@@ -42,7 +42,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       .transform(a)
 
     b.toString shouldEqual "A2(hello,1,2,None)"
-//     use implicit
+    //     use implicit
 
     implicit val transformer = Transformable[A1, A2]
       .mapField(_.b, _.c)
@@ -148,5 +148,29 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |    
       |    
       |""".stripMargin shouldNot compile
+  }
+
+  "TransformableTest8" should "compile ok in a complex case class" in {
+    import com.google.protobuf.ByteString
+    import org.bitlap.common.models.from._
+    import org.bitlap.common.models.to._
+    val fromRow =
+      List(FRow(List(ByteString.copyFromUtf8("this is row data1"), ByteString.copyFromUtf8("this is row data2"))))
+    val fromRowSet      = FRowSet.apply(fromRow, 100000)
+    val fromColumnDesc  = List(FColumnDesc("this is column name1"), FColumnDesc("this is column name2"))
+    val fromTableSchema = FTableSchema(fromColumnDesc)
+    val fromQueryResult = FQueryResult(tableSchema = fromTableSchema, rows = fromRowSet)
+
+    val toRow =
+      List(TRow(List(ByteString.copyFromUtf8("this is row data1"), ByteString.copyFromUtf8("this is row data2"))))
+    val toRowSet            = TRowSet(100000, toRow)
+    val toColumnDesc        = List(TColumnDesc("this is column name1"), TColumnDesc("this is column name2"))
+    val toTableSchema       = TTableSchema(toColumnDesc)
+    val toQueryResultObject = TQueryResult(ttableSchema = toTableSchema, trows = toRowSet)
+
+    val toQueryResult = Transformer[FQueryResult, TQueryResult].transform(fromQueryResult)
+    println(toQueryResult)
+
+    toQueryResultObject shouldBe toQueryResult
   }
 }

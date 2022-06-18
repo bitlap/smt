@@ -26,6 +26,7 @@ lazy val log4jVersion                 = "2.17.2"
 lazy val jacksonScalaVersion          = "2.13.3"
 lazy val jraftVersion                 = "1.3.9"
 lazy val scalaCollectionCompatVersion = "2.7.0"
+lazy val scalapbVersion               = "0.11.11"
 
 lazy val commonSettings =
   Seq(
@@ -124,8 +125,9 @@ lazy val `smt-csv` = (project in file("smt-csv"))
 lazy val `smt-common` = (project in file("smt-common"))
   .settings(commonSettings)
   .settings(
-    name               := "smt-common",
-    crossScalaVersions := List(scala213, scala212, scala211)
+    name                                          := "smt-common",
+    libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % Test,
+    crossScalaVersions                            := List(scala213, scala212, scala211)
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())
