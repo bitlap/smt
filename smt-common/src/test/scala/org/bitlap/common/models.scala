@@ -33,7 +33,7 @@ object models {
       implicit val rowSetTransform: Transformer[FRowSet, TRowSet] = Transformable[FRowSet, TRowSet].instance
     }
 
-    final case class FRow(values: List[ByteString] = Nil) extends Model
+    final case class FRow(values: List[String] = Nil) extends Model
 
     object FRow {
       implicit val rowTransform: Transformer[FRow, TRow] = Transformable[FRow, TRow].instance // not need mapping
@@ -63,7 +63,7 @@ object models {
 
     final case class TRowSet(startOffset: Long = 0, rows: List[TRow]) extends TModel
 
-    final case class TRow(values: List[ByteString] = Nil) extends TModel
+    final case class TRow(values: List[String] = Nil) extends TModel
 
     final case class TTableSchema(columns: List[TColumnDesc] = Nil) extends TModel
 
