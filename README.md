@@ -143,12 +143,12 @@ you must still enable the compiler flag `-Ymacro-annotations`.
 
 [Stage]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
 [Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ScalaCI.yml/badge.svg
-[Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-csv-derive/latest.svg?platform=jvm
+[Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-annotations/latest.svg?platform=jvm
 [Badge-Jetbrains]: https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools
 [Badge-Codecov]: https://codecov.io/gh/bitlap/smt/branch/master/graph/badge.svg?token=IA596YRTOT
 [Badge-Snapshots]: https://img.shields.io/nexus/s/org.bitlap/smt-annotations_2.13?server=https%3A%2F%2Fs01.oss.sonatype.org
 
 [Link-Jetbrains]: https://plugins.jetbrains.com/plugin/17202-scala-macro-tools
 [Link-Codecov]: https://codecov.io/gh/bitlap/smt
-[Link-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-csv-derive
+[Link-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-annotations
 [Link-Snapshots]: https://s01.oss.sonatype.org/content/repositories/snapshots/org/bitlap/
