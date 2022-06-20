@@ -50,9 +50,13 @@ object DeriveToCaseClass {
           val fieldType    = fieldTreeInformation.fieldType
           fieldTreeInformation.genericType match {
             case generic :: Nil if fieldTreeInformation.collectionsFlags.isList =>
-              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[$generic]].toScala($columnValues)", q"Nil")
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[$generic]].toScala($columnValues)", fieldTreeInformation.zeroValue)
+            case generic :: Nil if fieldTreeInformation.collectionsFlags.isSet =>
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Predef.Set[$generic]].toScala($columnValues)", fieldTreeInformation.zeroValue)
+            case generic :: Nil if fieldTreeInformation.collectionsFlags.isVector =>
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Vector[$generic]].toScala($columnValues)", fieldTreeInformation.zeroValue)
             case generic :: Nil if fieldTreeInformation.collectionsFlags.isSeq =>
-              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[$generic]].toScala($columnValues)", q"Nil")
+              tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[$generic]].toScala($columnValues)", fieldTreeInformation.zeroValue)
             case generic :: Nil if fieldTreeInformation.collectionsFlags.isOption =>
               tryOption(q"$packageName.Converter[$generic].toScala($columnValues)")
             case generic :: Nil =>

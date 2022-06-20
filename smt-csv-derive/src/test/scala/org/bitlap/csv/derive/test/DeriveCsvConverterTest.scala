@@ -109,4 +109,13 @@ class DeriveCsvConverterTest extends AnyFlatSpec with Matchers {
     println(csv)
   }
 
+  "DeriveCsvConverter7 when field is vector or set" should "ok" in {
+    val line      = "abc,cdf,d"
+    val dimension = Converter[CsvLine5].toScala(line)
+    println(dimension)
+    assert(dimension.toString == "Some(CsvLine5(abc,Vector(cdf),Set(d)))")
+    val csv = Converter[CsvLine5].toCsvString(dimension.orNull)
+    println(csv)
+    assert(csv == line)
+  }
 }
