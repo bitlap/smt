@@ -49,7 +49,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     //    MacroCache.classFieldNameMapping
     //      .getOrElseUpdate(builderId, mutable.Map.empty)
     //      .update(toName.decodedName.toString, fromName.decodedName.toString)
-    MacroCache.classFieldValueFunction
+    MacroCache.classFieldTypeMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(fromName.decodedName.toString, map)
     val tree = q"new ${c.prefix.actualType}"
@@ -103,7 +103,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   private def getPreTree: Iterable[Tree] = {
-    val customTrees = MacroCache.classFieldValueFunction.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    val customTrees = MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
       expr.tree match {
         case buildFunction: Function =>
@@ -129,7 +129,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldTypeMapping =
-      MacroCache.classFieldValueFunction.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+      MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     c.info(c.enclosingPosition, s"Field Name Mapping:$customFieldNameMapping", force = true)
     c.info(c.enclosingPosition, s"Field Type Mapping:$customFieldTypeMapping", force = true)
     val fields = toClassInfo.map { field =>
