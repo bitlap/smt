@@ -193,7 +193,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
         case t if t <:< typeOf[Option[_]] && customTrees.contains(fieldNames(indexType._1)) =>
           customFunction()
         case t if t <:< typeOf[Option[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
-          val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+          val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
           q"""
               $packageName.Csvable[$genericType]._toCsvString {
                 if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" 

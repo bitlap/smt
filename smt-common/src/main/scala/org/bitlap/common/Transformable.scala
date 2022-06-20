@@ -35,50 +35,6 @@ class Transformable[From, To] {
    *    Specify the type mapping of the field, which must be provided when the type is incompatible, or else attempt to
    *    search for an implicit `Transformer[FromField, ToField]` (a failed search will result in a compile failure).
    *
-   *    1. If the field names are the same and the field types are compatible (`FromField` can be assigned to
-   *       `ToField`), then you don't need to use the `mapField` method, and you don't need an implicit
-   *       `Transformer[FromField, ToField]`. such as:
-   *       {{{
-   *    F => F
-   *    Option[F] => Option[F]
-   *    Seq[F] => Seq[F]
-   *    List[F] => List[F]
-   *    Int => Long
-   *    List[F] => Seq[F]
-   *    ...
-   *       }}}
-   *
-   *  2. If field type is of the following types you can use in a more convenient way as long as you define an implicit
-   *  `Transformer[F, T]`, If `F` or `T` is not a case class, then you still need to use the `mapField` method input
-   *  argument `map`.
-   *  {{{
-   *    F => T
-   *    Option[F] => Option[T]
-   *    Seq[F] => Seq[T]
-   *    List[F] => List[T]
-   *    List[F] => Seq[T]
-   *    ...
-   *  }}}
-   *
-   *  3. If field type is of the following types you must use the `mapField` method with input argument `map`:
-   *  {{{
-   *   Seq[_] => List[_]
-   *   List[List[F]] => List[List[T]]           and more nesting.
-   *   List[Seq[F]] => List[Seq[T]]             and more nesting.
-   *   Seq[Seq[F]] => Seq[Seq[T]]               and more nesting.
-   *   Seq[List[F]] => Seq[List[T]]             and more nesting.
-   *   Option[Option[F]] => Option[Option[T]]   and more nesting.
-   *   List[Option[F]] => List[Option[T]]       and more nesting.
-   *   More structures like this not supported at this time.
-   *  }}}
-   *
-   *  Note: They need use the `mapField` method to mapping type:
-   *  {{{
-   *   Seq[String] => List[String]
-   *   Seq[Long] => Seq[Int]
-   *   ...
-   *  }}}
-   *
    *  @tparam FromField
    *    field type
    *  @tparam ToField

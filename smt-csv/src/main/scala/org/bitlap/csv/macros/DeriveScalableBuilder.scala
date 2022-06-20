@@ -169,9 +169,9 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
       val fieldTypeName  = fieldType.typeSymbol.name.toTypeName
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(idx))}.apply($columnValues)"
       fieldTreeInformation.genericType match {
-        case None if customTrees.contains(fieldNames(idx)) =>
+        case Nil if customTrees.contains(fieldNames(idx)) =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[$fieldTypeName]", fieldTreeInformation.zeroValue)
-        case None if !customTrees.contains(fieldNames(idx)) =>
+        case Nil if !customTrees.contains(fieldNames(idx)) =>
           fieldType match {
             case t if t =:= typeOf[Int] =>
               q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
@@ -194,13 +194,17 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
             case _ =>
               tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues)", fieldTreeInformation.zeroValue)
           }
-        case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isSeq =>
+        case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isSeq =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Seq[$generic]]", fieldTreeInformation.zeroValue)
-        case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isList =>
+        case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isSet =>
+          tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Set[$generic]]", fieldTreeInformation.zeroValue)
+        case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isVector =>
+          tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Vector[$generic]]", fieldTreeInformation.zeroValue)
+        case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isList =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$generic]]", fieldTreeInformation.zeroValue)
-        case Some(generic) if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.isOption =>
+        case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isOption =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Option[$generic]]", fieldTreeInformation.zeroValue)
-        case Some(generic) if fieldTreeInformation.isOption =>
+        case generic :: Nil if fieldTreeInformation.collectionsFlags.isOption =>
           tryOption(q"$packageName.Scalable[$generic]._toScala($columnValues)")
         case generic =>
           c.abort(
