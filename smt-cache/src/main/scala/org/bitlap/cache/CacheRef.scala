@@ -29,15 +29,15 @@ import org.bitlap.common.CaseClassField
  */
 trait CacheRef[In, T <: Product, F[_]] {
 
-  def init(initKvs: => Map[String, T]): F[Unit]
+  def init(initKvs: => Map[In, T]): F[Unit]
 
-  def putTAll(map: => Map[String, T]): F[Unit]
+  def putTAll(map: => Map[In, T]): F[Unit]
 
-  def getT(key: In)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[T]]
+  def getT(key: In): F[Option[T]]
 
-  def putT(key: In, value: T)(implicit keyBuilder: CacheKeyBuilder[String]): F[Unit]
+  def putT(key: In, value: T): F[Unit]
 
-  def getTField(key: In, field: CaseClassField)(implicit keyBuilder: CacheKeyBuilder[In]): F[Option[field.Field]]
+  def getTField(key: In, field: CaseClassField): F[Option[field.Field]]
 
   def clear(): F[Unit]
 }

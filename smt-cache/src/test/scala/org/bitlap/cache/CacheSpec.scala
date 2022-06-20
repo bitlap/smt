@@ -42,14 +42,14 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   )
 
   "cache1" should "get entity from cache successfully" in {
-    val cache = Cache.getSyncCache[TestEntity]
+    val cache = Cache.getSyncCache[String, TestEntity]
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("etc")
     result shouldBe data.get("etc")
   }
 
   "cache2" should "get entity's field from cache successfully" in {
-    val cache = Cache.getSyncCache[TestEntity]
+    val cache = Cache.getSyncCache[String, TestEntity]
     cache.init(data)
     val result = cache.getTField("etc", CaseClassField[TestEntity](_.key))
     result shouldBe Some("world2")
@@ -59,7 +59,7 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   }
 
   "cache3" should "get entity's field after refresh" in {
-    val cache = Cache.getSyncCache[TestEntity]
+    val cache = Cache.getSyncCache[String, TestEntity]
     cache.init(data)
     val newData = Map(
       "btc"       -> TestEntity("btc", "hello1", "world1"),
@@ -83,7 +83,7 @@ class CacheSpec extends AnyFlatSpec with Matchers {
       "btc-zh-cn" -> TestEntity("btc", "id456", "btc_zh_key456"),
       "eth"       -> TestEntity("btc", "id456", "eth_key456")
     )
-    val cache = Cache.getAsyncCache[TestEntity]
+    val cache = Cache.getAsyncCache[String, TestEntity]
 
     val ret = for {
       _      <- cache.init(newData)
@@ -101,7 +101,7 @@ class CacheSpec extends AnyFlatSpec with Matchers {
       "btc"       -> TestEntity("btc", "id123", "btc_key123"),
       "btc-zh-cn" -> TestEntity("btc", "id123", "btc_zh_key123")
     )
-    val cache = Cache.getAsyncCache[TestEntity]
+    val cache = Cache.getAsyncCache[String, TestEntity]
 
     val ret = for {
       _      <- cache.init(newData)
@@ -115,7 +115,7 @@ class CacheSpec extends AnyFlatSpec with Matchers {
   }
 
   "cache6" should "get entity with selectField successfully" in {
-    val cache = Cache.getSyncCache[TestEntity]
+    val cache = Cache.getSyncCache[String, TestEntity]
     cache.init(data)
 
     val id: Identity[Option[CaseClassField#Field]] =
