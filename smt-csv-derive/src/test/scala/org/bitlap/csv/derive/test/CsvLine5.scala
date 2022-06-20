@@ -19,29 +19,30 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
-import scala.collection.mutable
+package org.bitlap.csv.derive.test
+
+import org.bitlap.csv.Converter
+import org.bitlap.csv.derive.DeriveCsvConverter
 
 /** @author
  *    梦境迷离
- *  @version 1.0,2022/5/1
+ *  @version 1.0,2022/4/29
  */
-object MacroCache {
+case class CsvLine5(key: String, values: Vector[String], elements: Set[String])
 
-  private var builderCount  = 0
-  private var identityCount = 0
+object CsvLine5 {
 
-  def getBuilderId: Int = builderCount.synchronized {
-    builderCount += 1; builderCount
+  implicit val setString: Converter[scala.Predef.Set[String]] = new Converter[Set[String]] {
+    override def toScala(line: String) = Option(Set(line))
+
+    override def toCsvString(t: Set[String]) = t.head
   }
 
-  def getIdentityId: Int = identityCount.synchronized {
-    identityCount += 1; identityCount
+  implicit val vectorString: Converter[scala.Vector[String]] = new Converter[Vector[String]] {
+    override def toScala(line: String) = Option(Vector(line))
+
+    override def toCsvString(t: Vector[String]) = t.head
   }
 
-  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
-
-  lazy val classFieldNameMapping: mutable.Map[Int, mutable.Map[String, String]] = mutable.Map.empty
-
-  lazy val classFieldTypeMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
+  implicit val lineCsvConverter: Converter[CsvLine5] = DeriveCsvConverter.gen[CsvLine5]
 }

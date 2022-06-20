@@ -29,8 +29,6 @@ class Transformable[From, To] {
 
   /** @param selectFromField
    *    Select the name of the field to be mapped in the `From` class.
-   *  @param selectToField
-   *    Selects which field of `To` the `From` will eventually be mapped to.
    *  @param map
    *    Specify the type mapping of the field, which must be provided when the type is incompatible, or else attempt to
    *    search for an implicit `Transformer[FromField, ToField]` (a failed search will result in a compile failure).
@@ -43,21 +41,20 @@ class Transformable[From, To] {
    *    Transformable
    */
   @unchecked
-  def mapField[FromField, ToField](
+  def setType[FromField, ToField](
     selectFromField: From => FromField,
-    selectToField: To => ToField,
     map: FromField => ToField
   ): Transformable[From, To] =
-    macro TransformerMacro.mapFieldWithValueImpl[From, To, FromField, ToField]
+    macro TransformerMacro.mapTypeImpl[From, To, FromField, ToField]
 
   /** Same method as above, but without the map parameter. That is, no type mapping needs to be configured.
    */
   @unchecked
-  def mapField[FromField, ToField](
+  def setName[FromField, ToField](
     selectFromField: From => FromField,
     selectToField: To => ToField
   ): Transformable[From, To] =
-    macro TransformerMacro.mapFieldImpl[From, To, FromField, ToField]
+    macro TransformerMacro.mapNameImpl[From, To, FromField, ToField]
 
   def instance: Transformer[From, To] = macro TransformerMacro.instanceImpl[From, To]
 
@@ -66,7 +63,7 @@ class Transformable[From, To] {
 object Transformable {
 
   /** Automatically derive `Transformable[From, To]` for case classes only, for non-case classes you should use the
-   *  `mapField` method to configure the mapping relationship.
+   *  `setType` method to configure the mapping relationship.
    *  @tparam From
    *  @tparam To
    *  @return

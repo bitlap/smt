@@ -30,6 +30,7 @@ import scala.reflect.macros.whitebox
  *  @version 1.0,6/15/22
  */
 class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+
   import c.universe._
 
   protected val packageName         = q"_root_.org.bitlap.common"
@@ -37,25 +38,20 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   private val annoBuilderPrefix     = "_AnonObjectTransformable$"
   private val fromTermName          = TermName("from")
 
-  def mapFieldWithValueImpl[From, To, FromField, ToField](
+  def mapTypeImpl[From, To, FromField, ToField](
     selectFromField: Expr[From => FromField],
-    selectToField: Expr[To => ToField],
     map: Expr[FromField => ToField]
   ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, fromName)) = selectFromField.tree
-    val Function(_, Select(_, toName))   = selectToField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
-    MacroCache.classFieldNameMapping
+    MacroCache.classFieldTypeMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
-      .update(toName.decodedName.toString, fromName.decodedName.toString)
-    MacroCache.classFieldValueMapping
-      .getOrElseUpdate(builderId, mutable.Map.empty)
-      .update(toName.decodedName.toString, map)
+      .update(fromName.decodedName.toString, map)
     val tree = q"new ${c.prefix.actualType}"
     exprPrintTree[Transformable[From, To]](force = false, tree)
   }
 
-  def mapFieldImpl[From, To, FromField, ToField](
+  def mapNameImpl[From, To, FromField, ToField](
     selectFromField: Expr[From => FromField],
     selectToField: Expr[To => ToField]
   ): Expr[Transformable[From, To]] = {
@@ -73,7 +69,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   def instanceImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[BitlapTransformer[From, To]] = {
     val fromClassName = resolveClassTypeName[From]
     val toClassName   = resolveClassTypeName[To]
-    val tree = q"""
+    val tree =
+      q"""
        ..$getPreTree  
        new $packageName.Transformer[$fromClassName, $toClassName] {
           override def transform($fromTermName: $fromClassName): $toClassName = {
@@ -101,7 +98,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   private def getPreTree: Iterable[Tree] = {
-    val customTrees = MacroCache.classFieldValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    val customTrees = MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
       expr.tree match {
         case buildFunction: Function =>
@@ -126,21 +123,24 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
 
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val customFieldValueMapping =
-      MacroCache.classFieldValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    val customFieldTypeMapping =
+      MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     c.info(c.enclosingPosition, s"Field Name Mapping:$customFieldNameMapping", force = true)
-    c.info(c.enclosingPosition, s"Field Value Mapping:$customFieldValueMapping", force = true)
+    c.info(c.enclosingPosition, s"Field Type Mapping:$customFieldTypeMapping", force = true)
     val fields = toClassInfo.map { field =>
-      val fromFieldName     = customFieldNameMapping.get(field.fieldName)
-      val realFromFieldName = fromFieldName.fold(field.fieldName)(x => x)
-      if (customFieldValueMapping.contains(field.fieldName)) {
-        q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realFromFieldName)}"})"""
-      } else {
-        checkFieldGetFieldTerm[From](
-          realFromFieldName,
-          fromClassInfo.find(_.fieldName == realFromFieldName),
-          field
-        )
+      val fromFieldName   = customFieldNameMapping.get(field.fieldName)
+      val realToFieldName = fromFieldName.fold(field.fieldName)(x => x)
+      fromFieldName match {
+        case Some(fromName) if customFieldTypeMapping.contains(fromName) =>
+          q"""${TermName(builderFunctionPrefix + fromName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
+        case None if customFieldTypeMapping.contains(field.fieldName) =>
+          q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
+        case _ =>
+          checkFieldGetFieldTerm[From](
+            realToFieldName,
+            fromClassInfo.find(_.fieldName == realToFieldName),
+            field
+          )
       }
     }
     q"""
@@ -161,7 +161,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     if (fromFieldOpt.isEmpty) {
       c.abort(
         c.enclosingPosition,
-        s"value `$realFromFieldName` is not a member of `$fromClassName`, Please consider using `mapField` method!"
+        s"value `$realFromFieldName` is not a member of `$fromClassName`, Please consider using `setName` method!"
       )
       return fromFieldTerm
     }
@@ -192,7 +192,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
       case (information1, information2) =>
         c.warning(
           c.enclosingPosition,
-          s"No implicit `Transformer` is defined for ${information1.fieldType} => ${information2.fieldType}, which may cause compilation errors!!!"
+          s"No implicit `Transformer` is defined for ${information1.fieldType} => ${information2.fieldType}, which may cause compilation errors!!!" +
+            s"Please consider using `setType` method, or define an `Transformer[${information1.fieldType}, ${information2.fieldType}]` implicit !"
         )
         q"""$packageName.Transformer[${information1.fieldType}, ${information2.fieldType}].transform($fromFieldTerm)"""
     }

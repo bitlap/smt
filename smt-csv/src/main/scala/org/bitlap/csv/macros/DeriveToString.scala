@@ -52,6 +52,12 @@ object DeriveToString {
           case t if t <:< typeOf[List[_]] =>
             val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
             q"$packageName.Converter[_root_.scala.List[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+          case t if t <:< typeOf[Set[_]] =>
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
+            q"$packageName.Converter[_root_.scala.Predef.Set[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+          case t if t <:< typeOf[Vector[_]] =>
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
+            q"$packageName.Converter[_root_.scala.Vector[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           case t if t <:< typeOf[Seq[_]] =>
             val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
             q"$packageName.Converter[_root_.scala.Seq[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"

@@ -190,6 +190,20 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
             c.enclosingPosition,
             s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
           )
+        case t if t <:< typeOf[Set[_]] && customTrees.contains(fieldNames(indexType._1)) =>
+          q"${customFunction()}"
+        case t if t <:< typeOf[Set[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
+          c.abort(
+            c.enclosingPosition,
+            s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+          )
+        case t if t <:< typeOf[Vector[_]] && customTrees.contains(fieldNames(indexType._1)) =>
+          q"${customFunction()}"
+        case t if t <:< typeOf[Vector[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
+          c.abort(
+            c.enclosingPosition,
+            s"Missing usage `setField` for converting `$clazzName.${fieldNames(indexType._1)}` as a `String` , you have to define a custom way by using `setField` method!"
+          )
         case t if t <:< typeOf[Option[_]] && customTrees.contains(fieldNames(indexType._1)) =>
           customFunction()
         case t if t <:< typeOf[Option[_]] && !customTrees.contains(fieldNames(indexType._1)) =>

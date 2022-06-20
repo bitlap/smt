@@ -40,8 +40,8 @@ object models {
       //  mapping name
       implicit val queryResultTransform: Transformer[FQueryResult, TQueryResult] =
         Transformable[FQueryResult, TQueryResult]
-          .mapField(_.rows, _.trows)
-          .mapField(_.tableSchema, _.ttableSchema)
+          .setName(_.rows, _.trows)
+          .setName(_.tableSchema, _.ttableSchema)
           .instance
     }
 
@@ -69,7 +69,7 @@ object models {
 
     object FColumnDesc {
       implicit val columnDescTransform: Transformer[FColumnDesc, TColumnDesc] = Transformable[FColumnDesc, TColumnDesc]
-        .mapField(_.columnName, _.tcolumnName) // mapping name
+        .setName(_.columnName, _.tcolumnName) // mapping name
         .instance
     }
   }

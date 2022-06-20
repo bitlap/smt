@@ -218,8 +218,10 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       case t if t =:= typeOf[Long] =>
         q"0L"
       case t if t weak_<:< typeOf[List[_]]   => q"_root_.scala.Nil"
-      case t if t weak_<:< typeOf[Seq[_]]    => q"_root_.scala.Nil"
       case t if t weak_<:< typeOf[Option[_]] => q"_root_.scala.None"
+      case t if t weak_<:< typeOf[Set[_]]    => q"_root_.scala.Predef.Set.empty"
+      case t if t weak_<:< typeOf[Vector[_]] => q"_root_.scala.Vector.empty"
+      case t if t weak_<:< typeOf[Seq[_]]    => q"_root_.scala.Nil"
       case _ =>
         q"null"
     }
@@ -237,12 +239,12 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         isList = true
       case t if t weak_<:< weakTypeOf[Option[_]] =>
         isOption = true
-      case t if !isList && (t weak_<:< weakTypeOf[Seq[_]]) =>
-        isSeq = true
       case t if t weak_<:< weakTypeOf[Vector[_]] =>
         isVector = true
       case t if t weak_<:< weakTypeOf[Set[_]] =>
         isSet = true
+      case t if !isList && (t weak_<:< weakTypeOf[Seq[_]]) =>
+        isSeq = true
       case _ =>
     }
     Tuple5(isOption, isSeq, isList, isVector, isSet)

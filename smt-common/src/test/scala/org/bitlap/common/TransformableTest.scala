@@ -31,13 +31,13 @@ import org.scalatest.matchers.should.Matchers
 class TransformableTest extends AnyFlatSpec with Matchers {
 
   "TransformableTest simple case" should "ok for Transformable" in {
-
     case class A1(a: String, b: Int, cc: Long, d: Option[String])
     case class A2(a: String, b: Int, c: Int, d: Option[String])
 
     val a = A1("hello", 1, 2, None)
     val b: A2 = Transformable[A1, A2] // todo `fromField: Long` type Long cannot be ignored.
-      .mapField[Long, Int](_.cc, _.c, (fromField: Long) => if (fromField > 0) fromField.toInt else 0)
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => if (fromField > 0) fromField.toInt else 0)
       .instance
       .transform(a)
 
@@ -52,14 +52,27 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     b2.toString shouldEqual "B2(List(hello))"
   }
 
+  "TransformableTest simple case, name is equals, but type not" should "ok for Transformable" in {
+    case class A1(a: String)
+    case class A2(a: Int)
+
+    val a = A1("1112")
+    val b: A2 = Transformable[A1, A2]
+      .setType[String, Int](_.a, _.toInt)
+      .instance
+      .transform(a)
+
+    b.toString shouldEqual "A2(1112)"
+  }
+
   "TransformableTest simple case" should "ok for implicit Transformable" in {
     case class A1(a: String, b: Int, cc: Long, d: Option[String])
     case class A2(a: String, b: Int, c: Int, d: Option[String])
     val a = A1("hello", 1, 2, None)
     implicit val transformer = Transformable[A1, A2]
-      .mapField(_.b, _.c)
-      .mapField(_.a, _.a)
-      .mapField[Option[String], Option[String]](_.d, _.d, (map: Option[String]) => map)
+      .setName(_.b, _.c)
+      .setName(_.a, _.a)
+      .setType[Option[String], Option[String]](_.d, (map: Option[String]) => map)
       .instance
 
     Transformer[A1, A2].transform(a).toString shouldEqual "A2(hello,1,1,None)"
@@ -72,7 +85,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |    case class A2(a: String, b: Int, c: Int, d: Option[String])
       |    val a = A1("hello", 1, 2, None)
       |    val b: A2 = Transformable[A1, A2]
-      |      .mapField(_.cc, _.c)
+      |      .setName(_.cc, _.c)
       |      .instance
       |      .transform(a)
       |""".stripMargin shouldNot compile
@@ -85,7 +98,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     case class D2(c2: C2)
 
     implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
-    implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2].mapField(_.c1, _.c2).instance
+    implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2].setName(_.c1, _.c2).instance
 
     val d1     = D1(C1(1))
     val d2: D2 = Transformer[D1, D2].transform(d1)
@@ -99,14 +112,14 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     case class D2(c2: List[C2])
 
     implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
-    implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2].mapField(_.c1, _.c2).instance
+    implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2].setName(_.c1, _.c2).instance
 
     val d1     = D1(List(C1(1), C1(2)))
     val d2: D2 = Transformer[D1, D2].transform(d1)
     println(d2)
   }
 
-  "TransformableTest more complex case for two-layer nest field" should "ok for implicit and non-implicit(mapField)" in {
+  "TransformableTest more complex case for two-layer nest field" should "ok for implicit and non-implicit(setName)" in {
     case class C1(j: Int)
     case class D1(c1: List[List[C1]])
 
@@ -119,11 +132,10 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
     object D1 {
       implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
-        .mapField[List[List[C1]], List[List[C2]]](
+        .setName(_.c1, _.c2)
+        .setType[List[List[C1]], List[List[C2]]](
           _.c1,
-          _.c2,
-          // implicit values of nested dependencies cannot be at the same level, so move it to companion their object
-          (c1: List[List[C1]]) => c1.map(_.map(Transformer[C1, C2].transform(_)))
+          _.map(_.map(Transformer[C1, C2].transform(_)))
         )
         .instance
     }
@@ -162,12 +174,12 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
     object D1 {
       implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
-        .mapField(_.a1, _.a2)
-        .mapField(_.b1, _.b2)
-        .mapField(_.c1, _.c2)
-        .mapField(_.d1, _.d2)
-        .mapField(_.map1, _.map2)
-        .mapField(_.intMap1, _.intMap2)
+        .setName(_.a1, _.a2)
+        .setName(_.b1, _.b2)
+        .setName(_.c1, _.c2)
+        .setName(_.d1, _.d2)
+        .setName(_.map1, _.map2)
+        .setName(_.intMap1, _.intMap2)
         .instance
     }
 
@@ -191,7 +203,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     case class A1(a: String, b: Int, cc: Int, d: Option[String]) // weak conformance
     case class A2(a: String, b: Int, c: Long, d: Option[String])
     object A1 {
-      implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].mapField(_.cc, _.c).instance
+      implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].setName(_.cc, _.c).instance
     }
     val a1 = A1("hello", 1, 2, None)
     val a2 = Transformer[A1, A2].transform(a1)
@@ -201,11 +213,11 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
   "TransformableTest type cannot match" should "compile failed if can't use weak conformance" in {
     """
-      | case class A1(a: String, b: Int, cc: Long, d: Option[String]) // Can't to use weak conformance, must use `mapField(?,?,?)` method for it.
+      | case class A1(a: String, b: Int, cc: Long, d: Option[String]) // Can't to use weak conformance, must use `setName(?,?,?)` method for it.
       |    case class A2(a: String, b: Int, c: Int, d: Option[String])
       |    object A1 {
       |      
-      |      implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].mapField(_.cc,_.c).instance
+      |      implicit val aTransformer: Transformer[A1, A2] = Transformable[A1, A2].setName(_.cc,_.c).instance
       |    }
       |    val a1 = A1("hello", 1, 2, None)
       |    val a2 = Transformer[A1, A2].transform(a1)
@@ -269,7 +281,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     object D1 {
 
       implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
-        .mapField(_.a1, _.a2)
+        .setName(_.a1, _.a2)
         .instance
     }
 
@@ -306,9 +318,9 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     object D1 {
 
       implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
-        .mapField(_.a1, _.a2)
-        .mapField(_.b1, _.b2)
-        .mapField(_.c1, _.c2)
+        .setName(_.a1, _.a2)
+        .setName(_.b1, _.b2)
+        .setName(_.c1, _.c2)
         .instance
     }
 
