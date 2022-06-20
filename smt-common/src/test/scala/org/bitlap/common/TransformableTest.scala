@@ -284,15 +284,19 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     d2.toString shouldBe "D2(List(C2(1)))"
   }
 
-  "TransformableTest assign seq to list" should "ok for implicit automatically" in {
+  "TransformableTest support set and vector" should "ok for implicit automatically" in {
     case class C1(j: Int)
     case class D1(
-      a1: Seq[C1]
+      a1: Seq[C1],
+      b1: Set[C1],
+      c1: Vector[C1]
     )
 
     case class C2(j: Int)
     case class D2(
-      a2: List[C2]
+      a2: List[C2],
+      b2: Set[C2],
+      c2: Vector[C2]
     )
 
     object C1 {
@@ -303,18 +307,22 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
       implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
         .mapField(_.a1, _.a2)
+        .mapField(_.b1, _.b2)
+        .mapField(_.c1, _.c2)
         .instance
     }
 
     val d1 = D1(
-      Seq(C1(1))
+      Seq(C1(1)),
+      Set.empty,
+      Vector.empty
     )
 
     val d2: D2 = Transformer[D1, D2].transform(d1)
 
     println(d2)
 
-    d2.toString shouldBe "D2(List(C2(1)))"
+    d2.toString shouldBe "D2(List(C2(1)),Set(),Vector())"
   }
 
 }
