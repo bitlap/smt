@@ -50,13 +50,13 @@ object DeriveToString {
       val fieldsToString = indexTypes.map { indexType =>
         indexType._2 match {
           case t if t <:< typeOf[List[_]] =>
-            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
             q"$packageName.Converter[_root_.scala.List[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           case t if t <:< typeOf[Seq[_]] =>
-            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
             q"$packageName.Converter[_root_.scala.Seq[$genericType]].toCsvString($innerVarTermName.${indexByName(indexType._1)})"
           case t if t <:< typeOf[Option[_]] =>
-            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.typeArgs.head
+            val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
             // scalafmt: { maxColumn = 400 }
             q"""$packageName.Converter[$genericType].toCsvString { 
                   if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" else $innerVarTermName.${indexByName(indexType._1)}.get

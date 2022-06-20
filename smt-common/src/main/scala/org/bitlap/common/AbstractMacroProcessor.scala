@@ -38,24 +38,28 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
 
   final case class FieldZipInformation(fieldNames: List[String], fieldIndexTypeMapping: List[(Int, Type)])
 
+  final case class CollectionFlags(
+    isSeq: Boolean = false,
+    isList: Boolean = false,
+    isOption: Boolean = false,
+    isVector: Boolean = false,
+    isSet: Boolean = false
+  )
+
   final case class FieldTreeInformation(
     index: Int,
     fieldTerm: Tree,
     fieldType: Type,
     zeroValue: Tree,
-    isSeq: Boolean = false,
-    isList: Boolean = false,
-    isOption: Boolean = false,
-    genericType: Option[Type] = None
+    collectionsFlags: CollectionFlags,
+    genericType: List[Type] = Nil
   )
 
   final case class FieldInformation(
     fieldName: String,
     fieldType: Type,
-    isSeq: Boolean = false,
-    isList: Boolean = false,
-    isOption: Boolean = false,
-    genericType: Option[Type] = None
+    collectionFlags: CollectionFlags,
+    genericType: List[Type] = Nil
   )
 
   def tryGetOrElse(tree: Tree, default: Tree): Tree =
@@ -87,20 +91,18 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     }
 
     indexColumns zip types map { kv =>
-      val (isOption, isSeq, isList) = isWrapType(kv._2)
-      val typed                     = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
-      var genericType: Option[Type] = None
-      if (isList || isSeq || isOption) {
-        genericType = Option(typed.typeArgs.head)
+      val (isOption, isSeq, isList, isVector, isSet) = isWrapType(kv._2)
+      val typed                                      = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
+      var genericType: List[Type]                    = Nil
+      if (isList || isSeq || isOption || isVector || isSet) {
+        genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldTreeInformation(
         kv._1._1,
         kv._1._2,
         kv._2,
         getDefaultValue(kv._2),
-        isSeq,
-        isList,
-        isOption,
+        CollectionFlags(isSeq, isList, isOption, isVector, isSet),
         genericType
       )
     }
@@ -118,18 +120,16 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
     }
     parameters.flatten.map { p =>
-      val typed                     = c.typecheck(tq"$p", c.TYPEmode).tpe
-      var genericType: Option[Type] = None
-      val (isOption, isSeq, isList) = isWrapType(typed)
-      if (isList || isSeq || isOption) {
-        genericType = Option(typed.typeArgs.head)
+      val typed                                      = c.typecheck(tq"$p", c.TYPEmode).tpe
+      var genericType: List[Type]                    = Nil
+      val (isOption, isSeq, isList, isVector, isSet) = isWrapType(typed)
+      if (isList || isSeq || isOption || isVector || isSet) {
+        genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldInformation(
         p.name.decodedName.toString,
         typed,
-        isSeq,
-        isList,
-        isOption,
+        CollectionFlags(isSeq, isList, isOption, isVector, isSet),
         genericType
       )
     }
@@ -224,12 +224,14 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         q"null"
     }
 
-  private type OptionSeqList = (Boolean, Boolean, Boolean)
+  private type OptionSeqListVectorSet = (Boolean, Boolean, Boolean, Boolean, Boolean)
 
-  private def isWrapType(typed: Type): OptionSeqList = {
+  private def isWrapType(typed: Type): OptionSeqListVectorSet = {
     var isList: Boolean   = false
     var isSeq: Boolean    = false
     var isOption: Boolean = false
+    var isVector: Boolean = false
+    var isSet: Boolean    = false
     typed match {
       case t if t weak_<:< weakTypeOf[List[_]] =>
         isList = true
@@ -237,9 +239,13 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         isOption = true
       case t if !isList && (t weak_<:< weakTypeOf[Seq[_]]) =>
         isSeq = true
+      case t if t weak_<:< weakTypeOf[Vector[_]] =>
+        isVector = true
+      case t if t weak_<:< weakTypeOf[Set[_]] =>
+        isSet = true
       case _ =>
     }
-    Tuple3(isOption, isSeq, isList)
+    Tuple5(isOption, isSeq, isList, isVector, isSet)
   }
 
 }

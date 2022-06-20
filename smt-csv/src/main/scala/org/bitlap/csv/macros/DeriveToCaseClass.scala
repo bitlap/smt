@@ -49,13 +49,13 @@ object DeriveToCaseClass {
           val columnValues = fieldTreeInformation.fieldTerm
           val fieldType    = fieldTreeInformation.fieldType
           fieldTreeInformation.genericType match {
-            case Some(generic) if fieldTreeInformation.isList =>
+            case generic :: Nil if fieldTreeInformation.collectionsFlags.isList =>
               tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.List[$generic]].toScala($columnValues)", q"Nil")
-            case Some(generic) if fieldTreeInformation.isSeq =>
+            case generic :: Nil if fieldTreeInformation.collectionsFlags.isSeq =>
               tryOptionGetOrElse(q"$packageName.Converter[_root_.scala.Seq[$generic]].toScala($columnValues)", q"Nil")
-            case Some(generic) if fieldTreeInformation.isOption =>
+            case generic :: Nil if fieldTreeInformation.collectionsFlags.isOption =>
               tryOption(q"$packageName.Converter[$generic].toScala($columnValues)")
-            case Some(generic) =>
+            case generic :: Nil =>
               c.abort(
                 c.enclosingPosition,
                 s"Not support `$fieldType` with genericType: `$generic`!!!"

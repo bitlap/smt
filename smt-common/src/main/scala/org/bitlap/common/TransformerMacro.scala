@@ -177,12 +177,17 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   private def tryForWrapType(fromFieldTerm: Tree, fromField: FieldInformation, toField: FieldInformation): Tree =
     (fromField, toField) match {
       case (
-            FieldInformation(_, _, isSeq1, isList1, isOption1, genericType1),
-            FieldInformation(_, _, isSeq2, isList2, isOption2, genericType2)
+            FieldInformation(_, fromFieldType, collectionsFlags1, genericType1),
+            FieldInformation(_, toFieldType, collectionsFlags2, genericType2)
           )
-          if ((isSeq1 && isSeq2) || (isList1 && isList2) || (isOption1 && isOption2)) && genericType1.isDefined && genericType2.isDefined =>
+          if ((collectionsFlags1.isSeq && collectionsFlags2.isSeq) ||
+            (collectionsFlags1.isList && collectionsFlags2.isList) ||
+            (collectionsFlags1.isSet && collectionsFlags2.isSet) ||
+            (collectionsFlags1.isVector && collectionsFlags2.isVector) ||
+            (collectionsFlags1.isOption && collectionsFlags2.isOption))
+            && genericType1.nonEmpty && genericType2.nonEmpty =>
         q"""
-           $fromFieldTerm.map($packageName.Transformer[${genericType1.get}, ${genericType2.get}].transform(_))
+            $packageName.Transformer[$fromFieldType, $toFieldType].transform($fromFieldTerm)
          """
       case (information1, information2) =>
         c.warning(

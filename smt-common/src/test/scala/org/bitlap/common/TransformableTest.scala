@@ -133,6 +133,60 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     d2.toString shouldBe "D2(List(List(C2(1), C2(2))))"
   }
 
+  "TransformableTest more complex case for two-layer nest field" should "ok for implicit automatically" in {
+    case class C1(j: Int)
+    case class D1(
+      a1: List[List[C1]],
+      b1: Option[C1],
+      c1: List[Option[C1]],
+      d1: Option[List[C1]],
+      map1: Map[String, String],
+      intMap1: Map[Int, C1]
+    )
+
+    case class C2(j: Int)
+    case class D2(
+      a2: List[List[C2]],
+      b2: Option[C1],
+      c2: List[Option[C1]],
+      d2: Option[List[C1]],
+      map2: Map[String, String],
+      intMap2: Map[Int, C2]
+    )
+
+    // NOTE: have collection not support? please implicit val transformer = new Transformer[F, T] { ... }
+
+    object C1 {
+      implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    }
+
+    object D1 {
+      implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
+        .mapField(_.a1, _.a2)
+        .mapField(_.b1, _.b2)
+        .mapField(_.c1, _.c2)
+        .mapField(_.d1, _.d2)
+        .mapField(_.map1, _.map2)
+        .mapField(_.intMap1, _.intMap2)
+        .instance
+    }
+
+    val d1 = D1(
+      List(List(C1(1))),
+      Option(C1(2)),
+      List(Option(C1(3))),
+      Option(List(C1(4))),
+      Map("hello" -> "world"),
+      Map(1       -> C1(1))
+    )
+
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+
+    println(d2)
+
+    d2.toString shouldBe "D2(List(List(C2(1))),Some(C1(2)),List(Some(C1(3))),Some(List(C1(4))),Map(hello -> world),Map(1 -> C2(1)))"
+  }
+
   "TransformableTest different type" should "compile ok if can use weak conformance" in {
     case class A1(a: String, b: Int, cc: Int, d: Option[String]) // weak conformance
     case class A2(a: String, b: Int, c: Long, d: Option[String])
@@ -196,4 +250,79 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     val b2 = Transformable[B1, B2].instance.transform(B1(List.empty, 1))
     println(b2)
   }
+
+  "TransformableTest assign list to seq" should "ok for implicit automatically" in {
+    case class C1(j: Int)
+    case class D1(
+      a1: List[C1]
+    )
+
+    case class C2(j: Int)
+    case class D2(
+      a2: Seq[C2]
+    )
+
+    object C1 {
+      implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    }
+
+    object D1 {
+
+      implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
+        .mapField(_.a1, _.a2)
+        .instance
+    }
+
+    val d1 = D1(
+      List(C1(1))
+    )
+
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+
+    println(d2)
+
+    d2.toString shouldBe "D2(List(C2(1)))"
+  }
+
+  "TransformableTest support set and vector" should "ok for implicit automatically" in {
+    case class C1(j: Int)
+    case class D1(
+      a1: Seq[C1],
+      b1: Set[C1],
+      c1: Vector[C1]
+    )
+
+    case class C2(j: Int)
+    case class D2(
+      a2: List[C2],
+      b2: Set[C2],
+      c2: Vector[C2]
+    )
+
+    object C1 {
+      implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    }
+
+    object D1 {
+
+      implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
+        .mapField(_.a1, _.a2)
+        .mapField(_.b1, _.b2)
+        .mapField(_.c1, _.c2)
+        .instance
+    }
+
+    val d1 = D1(
+      Seq(C1(1)),
+      Set.empty,
+      Vector.empty
+    )
+
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+
+    println(d2)
+
+    d2.toString shouldBe "D2(List(C2(1)),Set(),Vector())"
+  }
+
 }

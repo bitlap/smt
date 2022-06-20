@@ -30,5 +30,5 @@ trait Transformer[-From, +To] {
 }
 
 object Transformer {
-  def apply[From <: Product, To <: Product](implicit st: Transformer[From, To]): Transformer[From, To] = st
+  def apply[From, To](implicit st: Transformer[From, To]): Transformer[From, To] = st
 }
