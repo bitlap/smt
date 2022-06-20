@@ -94,7 +94,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       val (isOption, isSeq, isList, isVector, isSet) = isWrapType(kv._2)
       val typed                                      = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
       var genericType: List[Type]                    = Nil
-      if (isList || isSeq || isOption) {
+      if (isList || isSeq || isOption || isVector || isSet) {
         genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldTreeInformation(
@@ -123,7 +123,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       val typed                                      = c.typecheck(tq"$p", c.TYPEmode).tpe
       var genericType: List[Type]                    = Nil
       val (isOption, isSeq, isList, isVector, isSet) = isWrapType(typed)
-      if (isList || isSeq || isOption) {
+      if (isList || isSeq || isOption || isVector || isSet) {
         genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldInformation(
