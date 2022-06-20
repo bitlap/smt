@@ -38,4 +38,13 @@ package object common {
       override def transform(from: Map[K, F]): Map[K, T] = from.map(kv => kv._1 -> e.transform(kv._2))
     }
 
+  implicit final def transformerSeqList[F, T](implicit e: Transformer[F, T]): Transformer[Seq[F], List[T]] =
+    new Transformer[Seq[F], List[T]] {
+      override def transform(from: Seq[F]): List[T] = from.map(e.transform).toList
+    }
+
+  implicit final def transformerListSeq[F, T](implicit e: Transformer[F, T]): Transformer[List[F], Seq[T]] =
+    new Transformer[List[F], Seq[T]] {
+      override def transform(from: List[F]): Seq[T] = from.map(e.transform)
+    }
 }

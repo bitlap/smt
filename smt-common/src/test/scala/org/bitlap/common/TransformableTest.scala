@@ -250,4 +250,71 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     val b2 = Transformable[B1, B2].instance.transform(B1(List.empty, 1))
     println(b2)
   }
+
+  "TransformableTest assign list to seq" should "ok for implicit automatically" in {
+    case class C1(j: Int)
+    case class D1(
+      a1: List[C1]
+    )
+
+    case class C2(j: Int)
+    case class D2(
+      a2: Seq[C2]
+    )
+
+    object C1 {
+      implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    }
+
+    object D1 {
+
+      implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
+        .mapField(_.a1, _.a2)
+        .instance
+    }
+
+    val d1 = D1(
+      List(C1(1))
+    )
+
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+
+    println(d2)
+
+    d2.toString shouldBe "D2(List(C2(1)))"
+  }
+
+  "TransformableTest assign seq to list" should "ok for implicit automatically" in {
+    case class C1(j: Int)
+    case class D1(
+      a1: Seq[C1]
+    )
+
+    case class C2(j: Int)
+    case class D2(
+      a2: List[C2]
+    )
+
+    object C1 {
+      implicit val cTransformer: Transformer[C1, C2] = Transformable[C1, C2].instance
+    }
+
+    object D1 {
+
+      implicit val dTransformer: Transformer[D1, D2] = Transformable[D1, D2]
+        .mapField(_.a1, _.a2)
+        .instance
+    }
+
+    val d1 = D1(
+      Seq(C1(1))
+    )
+
+    val d2: D2 = Transformer[D1, D2].transform(d1)
+
+    println(d2)
+
+    d2.toString shouldBe "D2(List(C2(1)))"
+  }
+
 }
