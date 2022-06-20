@@ -24,13 +24,14 @@ package org.bitlap.tools.macros
 import org.bitlap.tools.LogLevel.LogLevel
 import org.bitlap.tools.{ LogLevel, PACKAGE }
 
-import scala.concurrent.duration._
 import scala.reflect.macros.whitebox
 
 /**
- *    1. This annotation only support use on non-abstract method. 2. For methods that are not future, `try finally` is
- *       used to implement the timing of the method. 3. For methods that are Futures, `Future map` is used to implement
- *       the timing of the method.
+ *    1. This annotation only support use on non-abstract method.
+ *
+ *  2. For methods that are not future, `try finally` is used to implement the timing of the method.
+ *
+ *  3. For methods that are Futures, `Future onComplete` is used to implement the timing of the method.
  *
  *  @author
  *    梦境迷离
@@ -53,25 +54,20 @@ object elapsedMacro {
         LogLevel.getLogLevel(logLevel.toString())
       }
 
-    private val extractOptions: (Duration, LogLevel) = c.prefix.tree match {
+    private val extractOptions: (Int, LogLevel) = c.prefix.tree match {
       case q"new elapsed(limit=$limit, logLevel=$logLevel)" =>
         (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
     private def getStartExpr: c.universe.Tree =
-      q"""val $start = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime())"""
+      q"""val $start = System.currentTimeMillis()"""
 
-    private def getLog(classNameAndMethodName: String, logBy: Tree): c.universe.Tree = {
-      // CI will fail when use lambda.
-      implicit val durationApply: c.universe.Liftable[Duration] = new Liftable[Duration] {
-        override def apply(value: Duration): c.universe.Tree = q"${value._1}"
-      }
+    private def getLog(classNameAndMethodName: String, logBy: Tree): c.universe.Tree =
       q"""
-        val $valDef = _root_.scala.concurrent.duration.Duration.fromNanos(System.nanoTime()) - $start
-        if ($valDef._1 >= ${extractOptions._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s($classNameAndMethodName, $valDef.toMillis))
+        val $valDef = System.currentTimeMillis() - $start
+        if ($valDef >= ${extractOptions._1}) $logBy(StringContext("slow invoked method: [", "] elapsed [", " ms]").s($classNameAndMethodName, $valDef))
       """
-    }
 
     private def getPrintlnLog(classNameAndMethodName: String): c.universe.Tree = {
       val log = findValDefInEnclosingClass(TypeName("org.slf4j.Logger"))
@@ -104,52 +100,10 @@ object elapsedMacro {
         defDef => q"""
           $getStartExpr
           val resFuture = ${defDef.rhs}
-          resFuture.onComplete { case _ => ..${getIdentNam(defDef.name)} }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
+          resFuture.onComplete { case _ => ..${getPrintlnLog(getIdentNam(defDef.name))} }(_root_.scala.concurrent.ExecutionContext.Implicits.global)
           resFuture
         """
       )
-
-    // There may be a half-way exit, rather than the one whose last expression is exit.
-    // Unreliable function!!!
-    //    private def returnEarly(defDef: DefDef, trees: Tree*): List[Tree] = {
-    //      val ifElseMatch = (f: If) => {
-    //        if (f.elsep.nonEmpty) {
-    //          if (f.elsep.children.nonEmpty && f.elsep.children.size > 1) {
-    //            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep.children: _*)}")
-    //          } else {
-    //            If(f.cond, f.thenp, q"..${returnEarly(defDef, f.elsep)}")
-    //          }
-    //        } else {
-    //          f //no test
-    //        }
-    //      }
-    //      if (trees.isEmpty) return Nil
-    //      trees.map {
-    //        case r: Return =>
-    //          q"""
-    //             ..${getPrintlnLog(defDef.name)}
-    //             $r
-    //            """
-    //        case f: If => //support if return
-    //          c.info(c.enclosingPosition, s"returnEarly: thenp: ${f.thenp}, children: ${f.thenp.children}, cond: ${f.cond}", force = true)
-    //          c.info(c.enclosingPosition, s"returnEarly: elsep: ${f.elsep}, children: ${f.elsep.children}, cond: ${f.cond}", force = true)
-    //          if (f.thenp.nonEmpty) {
-    //            if (f.thenp.children.nonEmpty && f.thenp.children.size > 1) {
-    //              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp.children: _*)}", f.elsep)
-    //              ifElseMatch(ifTree)
-    //            } else {
-    //              val ifTree = If(f.cond, q"..${returnEarly(defDef, f.thenp)}", f.elsep)
-    //              ifElseMatch(ifTree)
-    //            }
-    //          } else {
-    //            ifElseMatch(f) //no test
-    //          }
-    //        case t =>
-    //          // TODO support for/while/switch
-    //          c.info(c.enclosingPosition, s"returnEarly: not support expr: $t", force = true)
-    //          t
-    //      }.toList
-    //    }
 
     private def getIdentNam(method: Name): String =
       s"${c.enclosingClass match {

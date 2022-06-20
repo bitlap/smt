@@ -24,6 +24,9 @@ package org.bitlap.tools
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 import scala.concurrent.Future
 
 /** @author
@@ -37,22 +40,22 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     // Duration and TimeUnit must Full class name
     """
       |    class A {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def i = ???
       |    }
       |
       |    class B {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.WARN)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.WARN)
       |      def j = ???
       |    }
       |
       |    class C {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.DEBUG)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.DEBUG)
       |      def j = ???
       |    }
       |
       |    class D {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def i:String = ???
       |   }
       |    val a = new A()
@@ -66,13 +69,13 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     // Duration and TimeUnit must Full class name
     """
       |class A {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.NANOSECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloWorld: String = {
       |        println("hello world")
       |        "hello"
       |      }
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala: String = {
       |        Thread.sleep(2000)
       |        println("hello world")
@@ -89,18 +92,18 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     // Duration and TimeUnit must Full class name
     """
       |    class A {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.NANOSECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloWorld: String = {
       |        println("") ; println(""); ""
       |      }
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala1: String = { println("") ; println(""); ""}
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala2: String = { println("") ; println("");  "" }
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala3: String = {
       |        val s = "hello"
       |        val x = "world"
@@ -115,7 +118,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     // Duration and TimeUnit must Full class name
     """
       |    class A {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala1: String = {
       |        val s = "hello"
       |        if (s == "hello") {
@@ -130,7 +133,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |    a.helloScala1
       |
       |     class B {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala11: String = {
       |        val s = "hello"
       |        if (s == "hello") {
@@ -151,7 +154,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       private final val log3: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(classOf[A])
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.INFO
       )
       def helloScala1: Future[String] = {
@@ -160,7 +163,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       }
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.DEBUG
       )
       def helloScala2: Future[String] = {
@@ -171,7 +174,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       }
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.WARN
       )
       def helloScala3: Future[String] = Future {
@@ -182,25 +185,21 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
 
   "elapsed6" should "failed, not support when only has one expr" in {
     class B {
-
-      import scala.concurrent.Await
-      import scala.concurrent.duration.Duration
-
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.WARN
       )
       def helloScala(t: String): Future[String] =
         Future(t)(scala.concurrent.ExecutionContext.Implicits.global)
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.WARN
       )
       def helloScala11(t: String): Future[String] = Future(t)(scala.concurrent.ExecutionContext.Implicits.global)
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.INFO
       )
       def helloScala2: String = {
@@ -215,13 +214,13 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |    object A {
       |      private final val log1: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(A.getClass)
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.INFO)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.INFO)
       |      def helloScala1: Future[String] = {
       |        Thread.sleep(1000)
       |        Future.successful("hello world")
       |      }
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.DEBUG)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.DEBUG)
       |      def helloScala2: Future[String] = {
       |        Thread.sleep(2000)
       |        Future {
@@ -229,7 +228,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       |        }(scala.concurrent.ExecutionContext.Implicits.global)
       |      }
       |
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.WARN)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.WARN)
       |      def helloScala3: Future[String] = Future {
       |        "hello world"
       |      }(scala.concurrent.ExecutionContext.Implicits.global)
@@ -239,7 +238,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
 
   "elapsed8" should "ok at input args" in {
     @elapsed(
-      limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+      limit = 1,
       logLevel = LogLevel.WARN
     )
     def helloScala1: String = {
@@ -247,7 +246,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       println("")
       "hello"
     }
-    @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = WARN)
+    @elapsed(limit = 1, logLevel = LogLevel.INFO)
     def helloScala2: String = {
       println("")
       println("")
@@ -255,19 +254,22 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     }
 
     @elapsed(
-      limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+      limit = 1,
       logLevel = org.bitlap.tools.LogLevel.WARN
     )
     def helloScala3: String = {
       println("")
-      println("")
+      Thread.sleep(10)
       "hello"
     }
+
+    helloScala3
+
   }
 
   "elapsed9" should "failed at input args" in {
     """
-      |@elapsed(logLevel = org.bitlap.tools.LogLevel.WARN, limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS))
+      |@elapsed(logLevel = org.bitlap.tools.LogLevel.WARN, limit = 1)
       |    def helloScala1: String = {
       |      println("")
       |      println("")
@@ -279,7 +281,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
     class A {
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.INFO
       )
       def j: Int = {
@@ -302,7 +304,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       }
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.INFO
       )
       def k: Unit = {
@@ -337,7 +339,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       }
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.INFO
       )
       def l: Int = {
@@ -350,7 +352,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
       }
 
       @elapsed(
-        limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS),
+        limit = 1,
         logLevel = org.bitlap.tools.LogLevel.INFO
       )
       def m: Int = {
@@ -366,7 +368,6 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
           val u = 0
           return 0
         }
-
         1
       }
 
@@ -376,7 +377,7 @@ class ElapsedTest extends AnyFlatSpec with Matchers {
   "elapsed11" should "failed at abstract method" in {
     """
       |abstract class A {
-      |      @elapsed(limit = scala.concurrent.duration.Duration(1, java.util.concurrent.TimeUnit.SECONDS), logLevel = org.bitlap.tools.LogLevel.WARN)
+      |      @elapsed(limit = 1, logLevel = org.bitlap.tools.LogLevel.WARN)
       |      def hello:String
       |    }
       |""".stripMargin shouldNot compile
