@@ -251,6 +251,13 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       |
       |val metrics2 = ScalableBuilder[Metric2].convert(csvData.split("\n").toList)
       |val csv2 = CsvableBuilder[Metric2].convert(metrics2.filter(_.isDefined).map(_.get))
+      |
+      |
+      |val metrics3 = ScalableBuilder[Metric4].convert(csvData.split("\n").toList)
+      |val csv3 = CsvableBuilder[Metric4].convert(metrics3.filter(_.isDefined).map(_.get))
+      |
+      |val metrics4 = ScalableBuilder[Metric5].convert(csvData.split("\n").toList)
+      |val csv4 = CsvableBuilder[Metric5].convert(metrics4.filter(_.isDefined).map(_.get))
       |""".stripMargin shouldNot compile
   }
 

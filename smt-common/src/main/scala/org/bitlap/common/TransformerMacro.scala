@@ -40,15 +40,10 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
 
   def mapTypeImpl[From, To, FromField, ToField](
     selectFromField: Expr[From => FromField],
-    //    selectToField: Expr[To => ToField],
     map: Expr[FromField => ToField]
   ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, fromName)) = selectFromField.tree
-    //    val Function(_, Select(_, toName))   = selectToField.tree
-    val builderId = getBuilderId(annoBuilderPrefix)
-    //    MacroCache.classFieldNameMapping
-    //      .getOrElseUpdate(builderId, mutable.Map.empty)
-    //      .update(toName.decodedName.toString, fromName.decodedName.toString)
+    val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.classFieldTypeMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(fromName.decodedName.toString, map)
