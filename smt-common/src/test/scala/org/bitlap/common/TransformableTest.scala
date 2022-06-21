@@ -35,7 +35,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     case class A2(a: String, b: Int, c: Int, d: Option[String])
 
     val a = A1("hello", 1, 2, None)
-    val b: A2 = Transformable[A1, A2] 
+    val b: A2 = Transformable[A1, A2]
       .setName(_.cc, _.c)
       .setType[Long, Int](_.cc, fromField => if (fromField > 0) fromField.toInt else 0)
       .instance

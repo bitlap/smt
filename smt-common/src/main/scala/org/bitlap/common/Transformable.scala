@@ -47,7 +47,17 @@ class Transformable[From, To] {
   ): Transformable[From, To] =
     macro TransformerMacro.mapTypeImpl[From, To, FromField, ToField]
 
-  /** Same method as above, but without the map parameter. That is, no type mapping needs to be configured.
+  /** @param selectFromField
+   *    Select the name of the field to be mapped in the `From` class.
+   *  @param selectToField
+   *    Select the name of the field to be mapped in the `To` class.
+   *
+   *  @tparam FromField
+   *    field type
+   *  @tparam ToField
+   *    field type
+   *  @return
+   *    Transformable
    */
   @unchecked
   def setName[FromField, ToField](
