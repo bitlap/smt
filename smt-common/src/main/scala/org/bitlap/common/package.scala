@@ -68,4 +68,8 @@ package object common {
     new Transformer[List[F], Seq[T]] {
       override def transform(from: List[F]): Seq[T] = from.map(e.transform)
     }
+
+  implicit final class TransformerOps[F](private val from: F) extends AnyVal {
+    final def transform[T](implicit transformer: Transformer[F, T]): T = transformer.transform(from)
+  }
 }

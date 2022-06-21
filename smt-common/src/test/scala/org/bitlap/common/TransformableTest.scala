@@ -197,6 +197,10 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     println(d2)
 
     d2.toString shouldBe "D2(List(List(C2(1))),Some(C1(2)),List(Some(C1(3))),Some(List(C1(4))),Map(hello -> world),Map(1 -> C2(1)))"
+
+    d1.transform[D2]
+      .toString shouldBe "D2(List(List(C2(1))),Some(C1(2)),List(Some(C1(3))),Some(List(C1(4))),Map(hello -> world),Map(1 -> C2(1)))"
+
   }
 
   "TransformableTest different type" should "compile ok if can use weak conformance" in {
@@ -337,4 +341,18 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     d2.toString shouldBe "D2(List(C2(1)),Set(),Vector())"
   }
 
+  "TransformableTest ops from object" should "ok" in {
+    case class A1(a: String, b: Int, cc: Long, d: Option[String])
+    case class A2(a: String, b: Int, c: Int, d: Option[String])
+
+    val a = A1("hello", 1, 2, None)
+
+    implicit val b = Transformable[A1, A2]
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => if (fromField > 0) fromField.toInt else 0)
+      .instance
+
+    a.transform[A2].toString shouldEqual "A2(hello,1,2,None)"
+
+  }
 }
