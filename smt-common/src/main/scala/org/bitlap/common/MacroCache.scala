@@ -44,4 +44,6 @@ object MacroCache {
   lazy val classFieldNameMapping: mutable.Map[Int, mutable.Map[String, String]] = mutable.Map.empty
 
   lazy val classFieldTypeMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
+
+  lazy val classFieldDefaultValueMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
 }

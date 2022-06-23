@@ -66,6 +66,10 @@ class Transformable[From, To] {
   ): Transformable[From, To] =
     macro TransformerMacro.mapNameImpl[From, To, FromField, ToField]
 
+  @unchecked
+  def setDefaultValue[ToField](selectToField: To => ToField, defaultValue: ToField): Transformable[From, To] =
+    macro TransformerMacro.setDefaultValueImpl[From, To, ToField]
+
   def instance: Transformer[From, To] = macro TransformerMacro.instanceImpl[From, To]
 
 }

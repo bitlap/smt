@@ -33,10 +33,13 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
 
   import c.universe._
 
-  protected val packageName         = q"_root_.org.bitlap.common"
-  private val builderFunctionPrefix = "_TransformableFunction$"
-  private val annoBuilderPrefix     = "_AnonObjectTransformable$"
-  private val fromTermName          = TermName("from")
+  import scala.collection.immutable
+
+  protected val packageName              = q"_root_.org.bitlap.common"
+  private val builderFunctionPrefix      = "_TransformableFunction$"
+  private val builderDefaultValuePrefix$ = "_TransformableDefaultValue$"
+  private val annoBuilderPrefix          = "_AnonObjectTransformable$"
+  private val fromTermName               = TermName("from")
 
   def mapTypeImpl[From, To, FromField, ToField](
     selectFromField: Expr[From => FromField],
@@ -47,6 +50,19 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     MacroCache.classFieldTypeMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(fromName.decodedName.toString, map)
+    val tree = q"new ${c.prefix.actualType}"
+    exprPrintTree[Transformable[From, To]](force = false, tree)
+  }
+
+  def setDefaultValueImpl[From, To, ToField](
+    selectToField: Expr[To => ToField],
+    defaultValue: Expr[ToField]
+  ): Expr[Transformable[From, To]] = {
+    val Function(_, Select(_, toName)) = selectToField.tree
+    val builderId                      = getBuilderId(annoBuilderPrefix)
+    MacroCache.classFieldDefaultValueMapping
+      .getOrElseUpdate(builderId, mutable.Map.empty)
+      .update(toName.decodedName.toString, defaultValue)
     val tree = q"new ${c.prefix.actualType}"
     exprPrintTree[Transformable[From, To]](force = false, tree)
   }
@@ -98,14 +114,27 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   private def getPreTree: Iterable[Tree] = {
-    val customTrees = MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val (_, preTrees) = customTrees.collect { case (key, expr: Expr[Tree] @unchecked) =>
+    val customFunctionTrees = buildPreTrees(
+      MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    )
+    val customDefaultValueTrees = buildPreTrees(
+      MacroCache.classFieldDefaultValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    )
+
+    customFunctionTrees ++ customDefaultValueTrees
+  }
+
+  private def buildPreTrees(mapping: mutable.Map[String, Any]): Iterable[Tree] = {
+    val (_, preTrees) = mapping.collect { case (key, expr: Expr[Tree] @unchecked) =>
+      val wrapName = (prefix: String) => TermName(prefix + key)
       expr.tree match {
-        case buildFunction: Function =>
-          val functionName = TermName(builderFunctionPrefix + key)
-          key -> q"lazy val $functionName: ${buildFunction.tpe} = $buildFunction"
+        case function: Function =>
+          key -> q"lazy val ${wrapName(builderFunctionPrefix)}: ${function.tpe} = $function"
+        case tree: Tree =>
+          key -> q"lazy val ${wrapName(builderDefaultValuePrefix$)} = $tree"
       }
     }.unzip
+
     preTrees
   }
 
@@ -114,32 +143,47 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     val fromClassName = resolveClassTypeName[From]
     val toClassInfo   = getCaseClassFieldInfo[To]()
     val fromClassInfo = getCaseClassFieldInfo[From]()
-    if (fromClassInfo.size < toClassInfo.size) {
-      c.abort(
-        c.enclosingPosition,
-        s"From type: `$fromClassName` has fewer fields than To type: `$toClassName` and cannot be transformed"
-      )
-    }
-
+    val customDefaultValueMapping =
+      MacroCache.classFieldDefaultValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldTypeMapping =
       MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    c.info(c.enclosingPosition, s"Field Name Mapping:$customFieldNameMapping", force = true)
-    c.info(c.enclosingPosition, s"Field Type Mapping:$customFieldTypeMapping", force = true)
+
+    c.info(c.enclosingPosition, s"Field default value mapping: $customDefaultValueMapping", force = true)
+    c.info(c.enclosingPosition, s"Field name mapping: $customFieldNameMapping", force = true)
+    c.info(c.enclosingPosition, s"Field type mapping: $customFieldTypeMapping", force = true)
+
+    val missingFields             = toClassInfo.map(_.fieldName).filterNot(fromClassInfo.map(_.fieldName).contains)
+    val missingExcludeMappingName = missingFields.filterNot(customFieldNameMapping.contains)
+    if (missingExcludeMappingName.nonEmpty) {
+      val noDefaultValueFields = missingExcludeMappingName.filterNot(customDefaultValueMapping.keySet.contains)
+      if (noDefaultValueFields.nonEmpty) {
+        c.abort(
+          c.enclosingPosition,
+          s"From type: `$fromClassName` has fewer fields than To type: `$toClassName` and cannot be transformed!" +
+            s"\nMissing field mapping: `$fromClassName`.? => `$toClassName`.`${missingExcludeMappingName.mkString(",")}`." +
+            s"\nPlease consider using `setName` or `setDefaultValue` method for `$toClassName`.${missingExcludeMappingName
+                .mkString(",")}!"
+        )
+      }
+    }
+
     val fields = toClassInfo.map { field =>
       val fromFieldName   = customFieldNameMapping.get(field.fieldName)
       val realToFieldName = fromFieldName.fold(field.fieldName)(x => x)
+      // scalafmt: { maxColumn = 400 }
       fromFieldName match {
         case Some(fromName) if customFieldTypeMapping.contains(fromName) =>
-          q"""${TermName(builderFunctionPrefix + fromName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
+          q"""${TermName(field.fieldName)} = ${TermName(builderFunctionPrefix + fromName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
         case None if customFieldTypeMapping.contains(field.fieldName) =>
-          q"""${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
+          q"""${TermName(field.fieldName)} = ${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
         case _ =>
           checkFieldGetFieldTerm[From](
             realToFieldName,
             fromClassInfo.find(_.fieldName == realToFieldName),
-            field
+            field,
+            customDefaultValueMapping
           )
       }
     }
@@ -153,24 +197,30 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   private def checkFieldGetFieldTerm[From: WeakTypeTag](
     realFromFieldName: String,
     fromFieldOpt: Option[FieldInformation],
-    toField: FieldInformation
+    toField: FieldInformation,
+    customDefaultValueMapping: mutable.Map[String, Any]
   ): Tree = {
     val fromFieldTerm = q"$fromTermName.${TermName(realFromFieldName)}"
     val fromClassName = resolveClassTypeName[From]
 
-    if (fromFieldOpt.isEmpty) {
+    if (fromFieldOpt.isEmpty && !customDefaultValueMapping.keySet.contains(toField.fieldName)) {
       c.abort(
         c.enclosingPosition,
-        s"value `$realFromFieldName` is not a member of `$fromClassName`, Please consider using `setName` method!"
+        s"The value `$realFromFieldName` is not a member of `$fromClassName`!" +
+          s"\nPlease consider using `setDefaultValue` method!"
       )
       return fromFieldTerm
     }
 
-    val fromField = fromFieldOpt.get
-    if (!(fromField.fieldType weak_<:< toField.fieldType)) {
-      tryForWrapType(fromFieldTerm, fromField, toField)
-    } else {
-      fromFieldTerm
+    fromFieldOpt match {
+      case Some(fromField) if !(fromField.fieldType weak_<:< toField.fieldType) =>
+        tryForWrapType(fromFieldTerm, fromField, toField)
+      case Some(fromField) if fromField.fieldType weak_<:< toField.fieldType =>
+        q"${TermName(toField.fieldName)} = $fromFieldTerm"
+      case _ =>
+        val value = q"""${TermName(builderDefaultValuePrefix$ + toField.fieldName)}"""
+        q"${TermName(toField.fieldName)} = $value"
+
     }
   }
 
@@ -186,16 +236,18 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
             (collectionsFlags1.isVector && collectionsFlags2.isVector) ||
             (collectionsFlags1.isOption && collectionsFlags2.isOption))
             && genericType1.nonEmpty && genericType2.nonEmpty =>
+        // scalafmt: { maxColumn = 400 }
         q"""
-            $packageName.Transformer[$fromFieldType, $toFieldType].transform($fromFieldTerm)
+            ${TermName(toField.fieldName)} = $packageName.Transformer[$fromFieldType, $toFieldType].transform($fromFieldTerm)
          """
       case (information1, information2) =>
         c.warning(
           c.enclosingPosition,
           s"No implicit `Transformer` is defined for ${information1.fieldType} => ${information2.fieldType}, which may cause compilation errors!!!" +
-            s"Please consider using `setType` method, or define an `Transformer[${information1.fieldType}, ${information2.fieldType}]` implicit !"
+            s"\nPlease consider using `setType` method, or define an `Transformer[${information1.fieldType}, ${information2.fieldType}]` implicit !"
         )
-        q"""$packageName.Transformer[${information1.fieldType}, ${information2.fieldType}].transform($fromFieldTerm)"""
+        // scalafmt: { maxColumn = 400 }
+        q"""${TermName(toField.fieldName)} = $packageName.Transformer[${information1.fieldType}, ${information2.fieldType}].transform($fromFieldTerm)"""
     }
 
 }
