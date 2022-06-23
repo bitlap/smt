@@ -202,21 +202,17 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   ): Tree = {
     val fromFieldTerm = q"$fromTermName.${TermName(realFromFieldName)}"
     val fromClassName = resolveClassTypeName[From]
-
-    if (fromFieldOpt.isEmpty && !customDefaultValueMapping.keySet.contains(toField.fieldName)) {
-      c.abort(
-        c.enclosingPosition,
-        s"The value `$realFromFieldName` is not a member of `$fromClassName`!" +
-          s"\nPlease consider using `setDefaultValue` method!"
-      )
-      return fromFieldTerm
-    }
-
     fromFieldOpt match {
       case Some(fromField) if !(fromField.fieldType weak_<:< toField.fieldType) =>
         tryForWrapType(fromFieldTerm, fromField, toField)
       case Some(fromField) if fromField.fieldType weak_<:< toField.fieldType =>
         q"${TermName(toField.fieldName)} = $fromFieldTerm"
+      case None if !customDefaultValueMapping.keySet.contains(toField.fieldName) =>
+        c.abort(
+          c.enclosingPosition,
+          s"The value `$realFromFieldName` is not a member of `$fromClassName`!" +
+            s"\nPlease consider using `setDefaultValue` method!"
+        )
       case _ =>
         val value = q"""${TermName(builderDefaultValuePrefix$ + toField.fieldName)}"""
         q"${TermName(toField.fieldName)} = $value"
