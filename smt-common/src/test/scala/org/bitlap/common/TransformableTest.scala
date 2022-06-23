@@ -355,4 +355,33 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     a.transform[A2].toString shouldEqual "A2(hello,1,2,None)"
 
   }
+
+  "TransformableTest setDefaultValue" should "ok" in {
+    case class A1(a: String, b: Int, cc: Long)
+    case class A2(a: String, b: Int, c: Int, d: Option[String])
+
+    val a = A1("hello", 1, 2)
+
+    implicit val b: Transformer[A1, A2] = Transformable[A1, A2]
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => fromField.toInt)
+      .setDefaultValue(_.d, None)
+      .instance
+
+    a.transform[A2].toString shouldEqual "A2(hello,1,2,None)"
+  }
+
+  "TransformableTest not setDefaultValue" should "compile failed" in {
+    """
+      |    case class A1(a: String, b: Int, cc: Long)
+      |    case class A2(a: String, b: Int, c: Int, d: Option[String])
+      |
+      |    val a = A1("hello", 1, 2)
+      |
+      |    implicit val b: Transformer[A1, A2] = Transformable[A1, A2]
+      |      .setName(_.cc, _.c)
+      |      .setType[Long, Int](_.cc, fromField => fromField.toInt)
+      |      .instance
+      |""".stripMargin shouldNot compile
+  }
 }

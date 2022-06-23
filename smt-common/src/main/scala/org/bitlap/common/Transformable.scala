@@ -66,6 +66,14 @@ class Transformable[From, To] {
   ): Transformable[From, To] =
     macro TransformerMacro.mapNameImpl[From, To, FromField, ToField]
 
+  /** Defines default value for missing field to successfully create `To` object. This method has the lowest priority.
+   *
+   *  Only the `selectToField` field does not have the same name found in the `From` and is not in the name mapping.
+   */
+  @unchecked
+  def setDefaultValue[ToField](selectToField: To => ToField, defaultValue: ToField): Transformable[From, To] =
+    macro TransformerMacro.setDefaultValueImpl[From, To, ToField]
+
   def instance: Transformer[From, To] = macro TransformerMacro.instanceImpl[From, To]
 
 }
