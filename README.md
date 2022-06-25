@@ -10,13 +10,6 @@
 |---------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------|
 | [![smt Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] | [![Sonatype Nexus (Snapshots)][Badge-Snapshots]][Link-Snapshots] |
 
-Motivation
---
-
-Learn Scala macro and abstract syntax tree.
-
-> The project is currently experimental
-
 [中文说明](./README_CN.md) | [English](./README.md)
 
 # Environment
