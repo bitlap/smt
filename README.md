@@ -132,7 +132,7 @@ If that doesn't work, google for alternatives.
 In version scala`2.13.x`, the functionality of macro paradise has been included in the scala compiler directly. However,
 you must still enable the compiler flag `-Ymacro-annotations`.
 
-## Especially thanks
+# Especially thanks
 
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" alt="IntelliJ IDEA logo.">
 
