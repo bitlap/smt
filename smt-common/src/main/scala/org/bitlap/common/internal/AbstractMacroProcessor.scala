@@ -44,7 +44,9 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     isOption: Boolean = false,
     isVector: Boolean = false,
     isSet: Boolean = false
-  )
+  ) {
+    def isCollection: Boolean = isSeq || isList || isOption || isVector || isSet
+  }
 
   final case class FieldTreeInformation(
     index: Int,
@@ -60,7 +62,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     fieldType: Type,
     collectionFlags: CollectionFlags,
     genericType: List[Type] = Nil,
-    defaultValue: Option[Tree]
+    hasDefaultValue: Boolean,
+    zeroValue: Tree
   )
 
   def tryGetOrElse(tree: Tree, default: Tree): Tree =
@@ -102,7 +105,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         kv._1._1,
         kv._1._2,
         kv._2,
-        getDefaultValue(kv._2),
+        getZeroValue(kv._2),
         CollectionFlags(isSeq, isList, isOption, isVector, isSet),
         genericType
       )
@@ -110,8 +113,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   }
 
   def getFieldDefaultValueMap[T: WeakTypeTag](init: MethodSymbol): Map[String, Tree] = {
-    val classSym  = weakTypeOf[T].typeSymbol
-    val moduleSym = classSym.companion
+    val classSym = weakTypeOf[T].typeSymbol
     init.paramLists.head
       .map(_.asTerm)
       .zipWithIndex
@@ -119,7 +121,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         if (!p.isParamWithDefault) None
         else {
           val getterName = TermName("apply$default$" + (i + 1))
-          Some(p.name.decodedName.toString -> q"$moduleSym.$getterName")
+          Some(p.name.decodedName.toString -> q"${classSym.name.toTermName}.$getterName") // moduleSym is none
         }
       }
       .toMap
@@ -150,7 +152,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         typed,
         CollectionFlags(isSeq, isList, isOption, isVector, isSet),
         genericType,
-        defaultValuesTerm.get(p.name.decodedName.toString)
+        defaultValuesTerm.contains(p.name.decodedName.toString),
+        getZeroValue(typed)
       )
     }
   }
@@ -206,7 +209,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def getBuilderId(annoBuilderPrefix: String): Int =
     c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt
 
-  private def getDefaultValue(typ: Type): Tree =
+  def getZeroValue(typ: Type): Tree =
     typ match {
       case t if t =:= typeOf[Int] =>
         q"0"
