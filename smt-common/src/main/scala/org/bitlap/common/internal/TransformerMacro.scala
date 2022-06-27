@@ -242,12 +242,9 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
         val value = q"""${TermName(builderDefaultValuePrefix$ + toField.fieldName)}"""
         q"${TermName(toField.fieldName)} = $value"
       case _ =>
-        if (
-          toField.collectionFlags.isCollection && (
-            customOptionsMapping.contains(Options.enableOptionDefaultsToNone) ||
-              customOptionsMapping.contains(Options.enableCollectionDefaultsToEmpty)
-          )
-        ) {
+        val isStrictCollection = toField.collectionFlags.isStrictCollection && customOptionsMapping.contains(Options.enableCollectionDefaultsToEmpty)
+        val isOption           = toField.collectionFlags.isOption && customOptionsMapping.contains(Options.enableOptionDefaultsToNone)
+        if (isStrictCollection || isOption) {
           q"${TermName(toField.fieldName)} = ${getZeroValue(toField.fieldType)}"
         } else {
           if (!toField.hasDefaultValue) {
@@ -255,7 +252,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
               fromClassInfo,
               toClassInfo,
               customDefaultValueMapping,
-              customFieldNameMapping
+              customFieldNameMapping,
+              customOptionsMapping
             )
             EmptyTree
           } else {
@@ -296,7 +294,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     fromClassInfo: List[FieldInformation],
     toClassInfo: List[FieldInformation],
     customDefaultValueMapping: mutable.Map[String, Any],
-    customFieldNameMapping: mutable.Map[String, String]
+    customFieldNameMapping: mutable.Map[String, String],
+    customOptionsMapping: mutable.Set[Options]
   ) = {
     val toClassName               = resolveClassTypeName[To]
     val fromClassName             = resolveClassTypeName[From]
@@ -308,10 +307,17 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
         .filterNot(_.hasDefaultValue)
       if (noDefaultValueFields.nonEmpty) {
         // scalafmt: { maxColumn = 400 }
+        val needHandleFields = (if (customOptionsMapping.contains(Options.enableOptionDefaultsToNone)) {
+                                  noDefaultValueFields.filterNot(_.collectionFlags.isOption)
+                                } else if (customOptionsMapping.contains(Options.enableCollectionDefaultsToEmpty)) {
+                                  noDefaultValueFields.filterNot(_.collectionFlags.isStrictCollection)
+                                } else {
+                                  noDefaultValueFields
+                                }).map(_.fieldName)
         c.abort(
           c.enclosingPosition,
-          s"Missing field mapping: `$fromClassName`.? => `$toClassName`.`${noDefaultValueFields.map(_.fieldName).mkString(",")}`." +
-            s"\nPlease consider using `setName`、`setDefaultValue` or `enable*` methods for `$toClassName`.${noDefaultValueFields.map(_.fieldName).mkString(",")}!"
+          s"Missing field mapping: `$fromClassName`.? => `$toClassName`.[${needHandleFields.mkString(",")}]." +
+            s"\nPlease consider using `setName`、`setDefaultValue` or `enable*` methods for `$toClassName`.[${needHandleFields.mkString(",")}]!"
         )
       }
     }

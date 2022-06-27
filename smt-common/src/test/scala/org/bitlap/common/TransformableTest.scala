@@ -404,6 +404,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       .setName(_.cc, _.c)
       .setType[Long, Int](_.cc, fromField => fromField.toInt)
       .enableOptionDefaultsToNone
+      .enableCollectionDefaultsToEmpty
       .instance
 
     a.transform[A2](b).toString shouldEqual "A2(hello,1,2,None,List(),List(),Set(),Vector())"
@@ -416,6 +417,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
         Vector("Hello world")
       ) // Higher priority than enableCollectionDefaultsToEmpty
       .enableCollectionDefaultsToEmpty
+      .enableOptionDefaultsToNone
       .instance
 
     a.transform[A2](b2).toString shouldEqual "A2(hello,1,2,None,List(),List(),Set(),Vector(Hello world))"
@@ -457,16 +459,19 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
     val a = A1(Some("hello a"))
     implicit val b1: Transformer[A1, A2] =
-      Transformable[A1, A2].enableCollectionDefaultsToEmpty.enableCollectionDefaultsToEmpty.instance
+      Transformable[A1, A2].enableCollectionDefaultsToEmpty.enableOptionDefaultsToNone.instance
 
     a.transform[A2](b1).toString shouldEqual "A2(Some(hello a),None,None,List(),List())"
 
     implicit val b2: Transformer[A1, A2] =
-      Transformable[A1, A2].disableOptionDefaultsToNone // use default in constructor
-        .disableOptionDefaultsToNone                    // use default in constructor
+      Transformable[A1, A2]
+        // This method has a higher priority
+        .setDefaultValue(_.f, Option("1"))
+        .disableCollectionDefaultsToEmpty // use default value, not None
+        .disableOptionDefaultsToNone      // use default value, not Empty
         .instance
 
-    a.transform[A2](b2).toString shouldEqual "A2(Some(hello a),Some(option),None,List(list),List())"
+    a.transform[A2](b2).toString shouldEqual "A2(Some(hello a),Some(option),Some(1),List(list),List())"
 
   }
 

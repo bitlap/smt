@@ -46,6 +46,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     isSet: Boolean = false
   ) {
     def isCollection: Boolean = isSeq || isList || isOption || isVector || isSet
+
+    def isStrictCollection: Boolean = isSeq || isList || isVector || isSet
   }
 
   final case class FieldTreeInformation(
@@ -95,10 +97,10 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     }
 
     indexColumns zip types map { kv =>
-      val FieldTypeFlag(isOption, isSeq, isList, isVector, isSet) = isWrapType(kv._2)
-      val typed                                                   = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
-      var genericType: List[Type]                                 = Nil
-      if (isList || isSeq || isOption || isVector || isSet) {
+      val collectionFlag          = isWrapType(kv._2)
+      val typed                   = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
+      var genericType: List[Type] = Nil
+      if (collectionFlag.isCollection) {
         genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldTreeInformation(
@@ -106,7 +108,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         kv._1._2,
         kv._2,
         getZeroValue(kv._2),
-        CollectionFlags(isSeq, isList, isOption, isVector, isSet),
+        collectionFlag,
         genericType
       )
     }
@@ -141,16 +143,16 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
     }
     parameters.flatten.map { p =>
-      val typed                                                   = c.typecheck(tq"$p", c.TYPEmode).tpe
-      var genericType: List[Type]                                 = Nil
-      val FieldTypeFlag(isOption, isSeq, isList, isVector, isSet) = isWrapType(typed)
-      if (isList || isSeq || isOption || isVector || isSet) {
+      val typed                   = c.typecheck(tq"$p", c.TYPEmode).tpe
+      var genericType: List[Type] = Nil
+      val collectionFlags         = isWrapType(typed)
+      if (collectionFlags.isCollection) {
         genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldInformation(
         p.name.decodedName.toString,
         typed,
-        CollectionFlags(isSeq, isList, isOption, isVector, isSet),
+        collectionFlags,
         genericType,
         defaultValuesTerm.contains(p.name.decodedName.toString),
         getZeroValue(typed)
@@ -239,15 +241,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         q"null"
     }
 
-  final case class FieldTypeFlag(
-    isOption: Boolean = false,
-    isSeq: Boolean = false,
-    isList: Boolean = false,
-    isVector: Boolean = false,
-    isSet: Boolean = false
-  )
-
-  private def isWrapType(typed: Type): FieldTypeFlag = {
+  private def isWrapType(typed: Type): CollectionFlags = {
     var isList: Boolean   = false
     var isSeq: Boolean    = false
     var isOption: Boolean = false
@@ -266,7 +260,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         isSeq = true
       case _ =>
     }
-    FieldTypeFlag(isOption, isSeq, isList, isVector, isSet)
+    CollectionFlags(isSeq, isList, isOption, isVector, isSet)
   }
 
 }
