@@ -1,5 +1,3 @@
-<img align="right" width="20%" height="30%" src="img.png" alt="https://bitlap.org"/> 
-
 # smt
 
 | Project Stage | CI              | Codecov                                   |
@@ -136,6 +134,13 @@ addCompilerPlugin("org.scalamacros" % "paradise_<your-scala-version>" % "<plugin
 如果这不起作用，可以谷歌寻找替代品。
 
 在`scala 2.13.x`版本中，macro paradise的功能直接包含在scala编译器中。然而，仍然必须启用编译器标志`-Ymacro annotations`。
+
+# 特别感谢
+
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" alt="IntelliJ IDEA logo.">
+
+This project is developed using JetBrains IDEA.
+Thanks to JetBrains for providing me with a free license, which is a strong support for me.
 
 [Stage]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
 [Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ScalaCI.yml/badge.svg
