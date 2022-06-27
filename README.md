@@ -1,5 +1,3 @@
-<img align="right" width="20%" height="30%" src="img.png" alt="https://bitlap.org"/>
-
 # smt
 
 | Project Stage | CI              | Codecov                                   |
@@ -133,6 +131,14 @@ If that doesn't work, google for alternatives.
 
 In version scala`2.13.x`, the functionality of macro paradise has been included in the scala compiler directly. However,
 you must still enable the compiler flag `-Ymacro-annotations`.
+
+## Especially thanks
+
+<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" alt="IntelliJ IDEA logo.">
+
+
+This project is developed using JetBrains IDEA.
+Thanks to JetBrains for providing me with a free license, which is a strong support for me.
 
 [Stage]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
 [Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ScalaCI.yml/badge.svg
