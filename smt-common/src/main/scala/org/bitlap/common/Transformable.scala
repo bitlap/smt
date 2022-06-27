@@ -91,12 +91,13 @@ class Transformable[From, To] {
   def enableCollectionDefaultsToEmpty: Transformable[From, To] =
     macro TransformerMacro.enableCollectionDefaultsToEmptyImpl[From, To]
 
-  /** Disable `None` fallback value for optional fields in `To`.
+  /** Disable `None` fallback value for optional fields in `To`. This is the default configuration option.
    */
   def disableOptionDefaultsToNone: Transformable[From, To] =
     macro TransformerMacro.disableOptionDefaultsToNoneImpl[From, To]
 
-  /** Disable `empty` fallback value for collection fields in `To`. Support List, Seq, Vector, Set
+  /** Disable `empty` fallback value for collection fields in `To`. Support List, Seq, Vector, Set. This is the default
+   *  configuration option.
    */
   def disableCollectionDefaultsToEmpty: Transformable[From, To] =
     macro TransformerMacro.disableCollectionDefaultsToEmptyImpl[From, To]
