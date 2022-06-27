@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.macros
 
-import org.bitlap.common.AbstractMacroProcessor
+import org.bitlap.common.internal.AbstractMacroProcessor
 import org.bitlap.csv.CsvFormat
 
 import scala.reflect.macros.blackbox

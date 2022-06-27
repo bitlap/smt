@@ -20,32 +20,21 @@
  */
 
 package org.bitlap.common
-import scala.collection.mutable
 
 /** @author
  *    梦境迷离
- *  @version 1.0,2022/5/1
+ *  @version 1.0,6/27/22
  */
-object MacroCache {
+sealed trait Options
 
-  private var builderCount  = 0
-  private var identityCount = 0
+object Options {
 
-  def getBuilderId: Int = builderCount.synchronized {
-    builderCount += 1; builderCount
-  }
+  case object enableOptionDefaultsToNone extends Options
 
-  def getIdentityId: Int = identityCount.synchronized {
-    identityCount += 1; identityCount
-  }
+  case object enableCollectionDefaultsToEmpty extends Options
 
-  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
+  case object disableCollectionDefaultsToEmpty extends Options
 
-  lazy val classFieldNameMapping: mutable.Map[Int, mutable.Map[String, String]] = mutable.Map.empty
+  case object disableOptionDefaultsToNone extends Options
 
-  lazy val classFieldTypeMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
-
-  lazy val classFieldDefaultValueMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
-
-  lazy val transformerOptionsMapping: mutable.Map[Int, mutable.Set[Options]] = mutable.Map.empty
 }
