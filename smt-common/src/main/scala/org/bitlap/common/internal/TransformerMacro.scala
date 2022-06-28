@@ -19,9 +19,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
+package org.bitlap.common.internal
 
-import org.bitlap.common.{ Transformer => BitlapTransformer }
+import org.bitlap.common.{ MacroCache, Options, Transformable, Transformer => BitlapTransformer }
+
 import scala.collection.mutable
 import scala.reflect.macros.whitebox
 
@@ -32,8 +33,6 @@ import scala.reflect.macros.whitebox
 class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
-
-  import scala.collection.immutable
 
   protected val packageName              = q"_root_.org.bitlap.common"
   private val builderFunctionPrefix      = "_TransformableFunction$"
@@ -77,7 +76,54 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     MacroCache.classFieldNameMapping
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(toName.decodedName.toString, fromName.decodedName.toString)
+    val tree = q"new ${c.prefix.actualType}"
+    exprPrintTree[Transformable[From, To]](force = false, tree)
+  }
 
+  def enableOptionDefaultsToNoneImpl[From, To] =
+    setOptions[From, To](
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .add(Options.enableOptionDefaultsToNone),
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .remove(Options.disableOptionDefaultsToNone)
+    )
+
+  def enableCollectionDefaultsToEmptyImpl[From, To] =
+    setOptions[From, To](
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .add(Options.enableCollectionDefaultsToEmpty),
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .remove(Options.disableCollectionDefaultsToEmpty)
+    )
+
+  def disableOptionDefaultsToNoneImpl[From, To] =
+    setOptions[From, To](
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .add(Options.disableOptionDefaultsToNone),
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .remove(Options.enableCollectionDefaultsToEmpty)
+    )
+
+  def disableCollectionDefaultsToEmptyImpl[From, To] =
+    setOptions[From, To](
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .add(Options.disableCollectionDefaultsToEmpty),
+      MacroCache.transformerOptionsMapping
+        .getOrElseUpdate(_, mutable.Set.empty)
+        .remove(Options.enableCollectionDefaultsToEmpty)
+    )
+
+  private def setOptions[From, To](enable: Int => Unit, disable: Int => Unit): Expr[Transformable[From, To]] = {
+    val builderId = getBuilderId(annoBuilderPrefix)
+    enable(builderId)
+    disable(builderId)
     val tree = q"new ${c.prefix.actualType}"
     exprPrintTree[Transformable[From, To]](force = false, tree)
   }
@@ -140,34 +186,12 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
 
   private def getTransformBody[From: WeakTypeTag, To: WeakTypeTag]: Tree = {
     val toClassName   = resolveClassTypeName[To]
-    val fromClassName = resolveClassTypeName[From]
-    val toClassInfo   = getCaseClassFieldInfo[To]()
-    val fromClassInfo = getCaseClassFieldInfo[From]()
-    val customDefaultValueMapping =
-      MacroCache.classFieldDefaultValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+    val toClassInfo   = getCaseClassFieldInfoList[To]()
+    val fromClassInfo = getCaseClassFieldInfoList[From]()
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldTypeMapping =
       MacroCache.classFieldTypeMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-
-    c.info(c.enclosingPosition, s"Field default value mapping: $customDefaultValueMapping", force = true)
-    c.info(c.enclosingPosition, s"Field name mapping: $customFieldNameMapping", force = true)
-    c.info(c.enclosingPosition, s"Field type mapping: $customFieldTypeMapping", force = true)
-
-    val missingFields             = toClassInfo.map(_.fieldName).filterNot(fromClassInfo.map(_.fieldName).contains)
-    val missingExcludeMappingName = missingFields.filterNot(customFieldNameMapping.contains)
-    if (missingExcludeMappingName.nonEmpty) {
-      val noDefaultValueFields = missingExcludeMappingName.filterNot(customDefaultValueMapping.keySet.contains)
-      if (noDefaultValueFields.nonEmpty) {
-        c.abort(
-          c.enclosingPosition,
-          s"From type: `$fromClassName` has fewer fields than To type: `$toClassName` and cannot be transformed!" +
-            s"\nMissing field mapping: `$fromClassName`.? => `$toClassName`.`${missingExcludeMappingName.mkString(",")}`." +
-            s"\nPlease consider using `setName` or `setDefaultValue` method for `$toClassName`.${missingExcludeMappingName
-                .mkString(",")}!"
-        )
-      }
-    }
 
     val fields = toClassInfo.map { field =>
       val fromFieldName   = customFieldNameMapping.get(field.fieldName)
@@ -179,14 +203,14 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
         case None if customFieldTypeMapping.contains(field.fieldName) =>
           q"""${TermName(field.fieldName)} = ${TermName(builderFunctionPrefix + field.fieldName)}.apply(${q"$fromTermName.${TermName(realToFieldName)}"})"""
         case _ =>
-          checkFieldGetFieldTerm[From](
+          checkForNoMappingField[From, To](
             realToFieldName,
             fromClassInfo.find(_.fieldName == realToFieldName),
             field,
-            customDefaultValueMapping
+            customFieldNameMapping
           )
       }
-    }
+    }.filterNot(_ == EmptyTree)
     q"""
        ${toClassName.toTermName}.apply(
           ..$fields
@@ -194,37 +218,57 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
      """
   }
 
-  private def checkFieldGetFieldTerm[From: WeakTypeTag](
+  private def checkForNoMappingField[From: WeakTypeTag, To: WeakTypeTag](
     realFromFieldName: String,
     fromFieldOpt: Option[FieldInformation],
     toField: FieldInformation,
-    customDefaultValueMapping: mutable.Map[String, Any]
+    customFieldNameMapping: mutable.Map[String, String]
   ): Tree = {
+    val toClassInfo   = getCaseClassFieldInfoList[To]()
+    val fromClassInfo = getCaseClassFieldInfoList[From]()
+
+    val customOptionsMapping =
+      MacroCache.transformerOptionsMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Set.empty)
+    val customDefaultValueMapping =
+      MacroCache.classFieldDefaultValueMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
+
     val fromFieldTerm = q"$fromTermName.${TermName(realFromFieldName)}"
-    val fromClassName = resolveClassTypeName[From]
     fromFieldOpt match {
       case Some(fromField) if !(fromField.fieldType weak_<:< toField.fieldType) =>
-        tryForWrapType(fromFieldTerm, fromField, toField)
+        tryForCollectionType(fromFieldTerm, fromField, toField)
       case Some(fromField) if fromField.fieldType weak_<:< toField.fieldType =>
         q"${TermName(toField.fieldName)} = $fromFieldTerm"
-      case None if !customDefaultValueMapping.keySet.contains(toField.fieldName) =>
-        c.abort(
-          c.enclosingPosition,
-          s"The value `$realFromFieldName` is not a member of `$fromClassName`!" +
-            s"\nPlease consider using `setDefaultValue` method!"
-        )
-      case _ =>
+      case None if customDefaultValueMapping.keySet.contains(toField.fieldName) =>
         val value = q"""${TermName(builderDefaultValuePrefix$ + toField.fieldName)}"""
         q"${TermName(toField.fieldName)} = $value"
+      case _ =>
+        val isStrictCollection = toField.collectionFlags.isStrictCollection && customOptionsMapping.contains(Options.enableCollectionDefaultsToEmpty)
+        val isOption           = toField.collectionFlags.isOption && customOptionsMapping.contains(Options.enableOptionDefaultsToNone)
+        if (isStrictCollection || isOption) {
+          q"${TermName(toField.fieldName)} = ${getZeroValue(toField.fieldType)}"
+        } else {
+          if (!toField.hasDefaultValue) {
+            checkMissingFields[From, To](
+              fromClassInfo,
+              toClassInfo,
+              customDefaultValueMapping,
+              customFieldNameMapping,
+              customOptionsMapping
+            )
+            EmptyTree
+          } else {
+            EmptyTree
+          }
+        }
 
     }
   }
 
-  private def tryForWrapType(fromFieldTerm: Tree, fromField: FieldInformation, toField: FieldInformation): Tree =
+  private def tryForCollectionType(fromFieldTerm: Tree, fromField: FieldInformation, toField: FieldInformation): Tree =
     (fromField, toField) match {
       case (
-            FieldInformation(_, fromFieldType, collectionsFlags1, genericType1),
-            FieldInformation(_, toFieldType, collectionsFlags2, genericType2)
+            FieldInformation(_, fromFieldType, collectionsFlags1, genericType1, _, _),
+            FieldInformation(_, toFieldType, collectionsFlags2, genericType2, _, _)
           )
           if ((collectionsFlags1.isSeq && collectionsFlags2.isSeq) ||
             (collectionsFlags1.isList && collectionsFlags2.isList) ||
@@ -246,4 +290,36 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
         q"""${TermName(toField.fieldName)} = $packageName.Transformer[${information1.fieldType}, ${information2.fieldType}].transform($fromFieldTerm)"""
     }
 
+  private def checkMissingFields[From: WeakTypeTag, To: WeakTypeTag](
+    fromClassInfo: List[FieldInformation],
+    toClassInfo: List[FieldInformation],
+    customDefaultValueMapping: mutable.Map[String, Any],
+    customFieldNameMapping: mutable.Map[String, String],
+    customOptionsMapping: mutable.Set[Options]
+  ) = {
+    val toClassName               = resolveClassTypeName[To]
+    val fromClassName             = resolveClassTypeName[From]
+    val missingFields             = toClassInfo.filterNot(t => fromClassInfo.map(_.fieldName).contains(t.fieldName))
+    val missingExcludeMappingName = missingFields.filterNot(m => customFieldNameMapping.contains(m.fieldName))
+    if (missingExcludeMappingName.nonEmpty) {
+      val noDefaultValueFields = missingExcludeMappingName
+        .filterNot(m => customDefaultValueMapping.keySet.contains(m.fieldName))
+        .filterNot(_.hasDefaultValue)
+      if (noDefaultValueFields.nonEmpty) {
+        // scalafmt: { maxColumn = 400 }
+        val needHandleFields = (if (customOptionsMapping.contains(Options.enableOptionDefaultsToNone)) {
+                                  noDefaultValueFields.filterNot(_.collectionFlags.isOption)
+                                } else if (customOptionsMapping.contains(Options.enableCollectionDefaultsToEmpty)) {
+                                  noDefaultValueFields.filterNot(_.collectionFlags.isStrictCollection)
+                                } else {
+                                  noDefaultValueFields
+                                }).map(_.fieldName)
+        c.abort(
+          c.enclosingPosition,
+          s"Missing field mapping: `$fromClassName`.? => `$toClassName`.[${needHandleFields.mkString(",")}]." +
+            s"\nPlease consider using `setName`、`setDefaultValue` or `enable*` methods for `$toClassName`.[${needHandleFields.mkString(",")}]!"
+        )
+      }
+    }
+  }
 }

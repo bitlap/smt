@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
+package org.bitlap.common.internal
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -44,7 +44,11 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     isOption: Boolean = false,
     isVector: Boolean = false,
     isSet: Boolean = false
-  )
+  ) {
+    def isCollection: Boolean = isSeq || isList || isOption || isVector || isSet
+
+    def isStrictCollection: Boolean = isSeq || isList || isVector || isSet
+  }
 
   final case class FieldTreeInformation(
     index: Int,
@@ -59,7 +63,9 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     fieldName: String,
     fieldType: Type,
     collectionFlags: CollectionFlags,
-    genericType: List[Type] = Nil
+    genericType: List[Type] = Nil,
+    hasDefaultValue: Boolean,
+    zeroValue: Tree
   )
 
   def tryGetOrElse(tree: Tree, default: Tree): Tree =
@@ -82,7 +88,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    */
   def checkGetFieldTreeInformationList[T: WeakTypeTag](columnsFunc: TermName): List[FieldTreeInformation] = {
     val idxColumn    = (i: Int) => q"$columnsFunc()($i)"
-    val params       = getCaseClassFieldInfo[T]()
+    val params       = getCaseClassFieldInfoList[T]()
     val paramsSize   = params.size
     val types        = params.map(_.fieldType)
     val indexColumns = (0 until paramsSize).toList.map(i => i -> idxColumn(i))
@@ -91,21 +97,36 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     }
 
     indexColumns zip types map { kv =>
-      val (isOption, isSeq, isList, isVector, isSet) = isWrapType(kv._2)
-      val typed                                      = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
-      var genericType: List[Type]                    = Nil
-      if (isList || isSeq || isOption || isVector || isSet) {
+      val collectionFlag          = isWrapType(kv._2)
+      val typed                   = c.typecheck(tq"${kv._2}", c.TYPEmode).tpe
+      var genericType: List[Type] = Nil
+      if (collectionFlag.isCollection) {
         genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldTreeInformation(
         kv._1._1,
         kv._1._2,
         kv._2,
-        getDefaultValue(kv._2),
-        CollectionFlags(isSeq, isList, isOption, isVector, isSet),
+        getZeroValue(kv._2),
+        collectionFlag,
         genericType
       )
     }
+  }
+
+  def getFieldDefaultValueMap[T: WeakTypeTag](init: MethodSymbol): Map[String, Tree] = {
+    val classSym = weakTypeOf[T].typeSymbol
+    init.paramLists.head
+      .map(_.asTerm)
+      .zipWithIndex
+      .flatMap { case (p, i) =>
+        if (!p.isParamWithDefault) None
+        else {
+          val getterName = TermName("apply$default$" + (i + 1))
+          Some(p.name.decodedName.toString -> q"${classSym.name.toTermName}.$getterName") // moduleSym is none
+        }
+      }
+      .toMap
   }
 
   /** Get only the symbol of the case class constructor parameters.
@@ -114,23 +135,27 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *    Type of the case class.
    *  @return
    */
-  def getCaseClassFieldInfo[T: WeakTypeTag](): List[FieldInformation] = {
-    val parameters = resolveParameters[T]
+  def getCaseClassFieldInfoList[T: WeakTypeTag](): List[FieldInformation] = {
+    val init              = c.weakTypeOf[T].resultType.member(TermName("<init>")).asMethod
+    val defaultValuesTerm = getFieldDefaultValueMap[T](init)
+    val parameters        = init.typeSignature.paramLists
     if (parameters.size > 1) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
     }
     parameters.flatten.map { p =>
-      val typed                                      = c.typecheck(tq"$p", c.TYPEmode).tpe
-      var genericType: List[Type]                    = Nil
-      val (isOption, isSeq, isList, isVector, isSet) = isWrapType(typed)
-      if (isList || isSeq || isOption || isVector || isSet) {
+      val typed                   = c.typecheck(tq"$p", c.TYPEmode).tpe
+      var genericType: List[Type] = Nil
+      val collectionFlags         = isWrapType(typed)
+      if (collectionFlags.isCollection) {
         genericType = typed.dealias.typeArgs ::: genericType
       }
       FieldInformation(
         p.name.decodedName.toString,
         typed,
-        CollectionFlags(isSeq, isList, isOption, isVector, isSet),
-        genericType
+        collectionFlags,
+        genericType,
+        defaultValuesTerm.contains(p.name.decodedName.toString),
+        getZeroValue(typed)
       )
     }
   }
@@ -152,16 +177,6 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     c.Expr[T](resTree)
   }
 
-  /** Get the constructor symbol of the case class.
-   *
-   *  @tparam T
-   *    Type of the case class.
-   *  @return
-   *    The parameters may be currying, so it's a two-level list.
-   */
-  def resolveParameters[T: WeakTypeTag]: List[List[Symbol]] =
-    c.weakTypeOf[T].resultType.member(TermName("<init>")).typeSignature.paramLists
-
   /** Get the `TypeName` of the class.
    *
    *  @tparam T
@@ -179,7 +194,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *  @return
    */
   def checkGetFieldZipInformation[T: WeakTypeTag]: FieldZipInformation = {
-    val params     = getCaseClassFieldInfo[T]()
+    val params     = getCaseClassFieldInfoList[T]()
     val paramsSize = params.size
     val names      = params.map(_.fieldName)
     FieldZipInformation(
@@ -196,7 +211,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def getBuilderId(annoBuilderPrefix: String): Int =
     c.prefix.actualType.toString.replace(annoBuilderPrefix, "").toInt
 
-  private def getDefaultValue(typ: Type): Tree =
+  def getZeroValue(typ: Type): Tree =
     typ match {
       case t if t =:= typeOf[Int] =>
         q"0"
@@ -226,9 +241,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         q"null"
     }
 
-  private type OptionSeqListVectorSet = (Boolean, Boolean, Boolean, Boolean, Boolean)
-
-  private def isWrapType(typed: Type): OptionSeqListVectorSet = {
+  private def isWrapType(typed: Type): CollectionFlags = {
     var isList: Boolean   = false
     var isSeq: Boolean    = false
     var isOption: Boolean = false
@@ -247,7 +260,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
         isSeq = true
       case _ =>
     }
-    Tuple5(isOption, isSeq, isList, isVector, isSet)
+    CollectionFlags(isSeq, isList, isOption, isVector, isSet)
   }
 
 }

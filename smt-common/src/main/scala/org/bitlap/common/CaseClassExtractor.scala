@@ -21,9 +21,8 @@
 
 package org.bitlap.common
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import scala.reflect.macros.whitebox
+import org.bitlap.common.internal.CaseClassExtractorMacro
+
 import scala.reflect.ClassTag
 import scala.reflect.runtime.{ universe => ru }
 import scala.reflect.runtime.universe._
@@ -38,34 +37,7 @@ object CaseClassExtractor {
   /** Using the characteristics of the product type to get the field value should force the conversion externally
    *  (safely).
    */
-  def ofValue[T <: Product](t: T, field: CaseClassField): Option[Any] = macro macroImpl[T]
-
-  def macroImpl[T: c.WeakTypeTag](
-    c: whitebox.Context
-  )(t: c.Expr[T], field: c.Expr[CaseClassField]): c.Expr[Option[Any]] = {
-    import c.universe._
-    // scalafmt: { maxColumn = 400 }
-    val tree =
-      q"""
-       if ($t == null) None else {
-          val _field = $field
-          _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(CaseClassField.stringifyTermName)})
-          .map(kv => $t.productElement(kv._1))       
-       }
-     """
-    exprPrintTree[Option[Any]](c)(tree)
-
-  }
-
-  def exprPrintTree[Field: c.WeakTypeTag](c: whitebox.Context)(resTree: c.Tree): c.Expr[Field] = {
-    c.info(
-      c.enclosingPosition,
-      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
-        .toString() + "\n###### Expanded macro end ######\n",
-      force = false
-    )
-    c.Expr[Field](resTree)
-  }
+  def ofValue[T <: Product](t: T, field: CaseClassField): Option[Any] = macro CaseClassExtractorMacro.macroImpl[T]
 
   /** Using scala reflect to get the field value (safely).
    */

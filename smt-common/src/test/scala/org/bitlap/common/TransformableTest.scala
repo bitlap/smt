@@ -384,4 +384,128 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |      .instance
       |""".stripMargin shouldNot compile
   }
+
+  "TransformableTest enable* method" should "ok" in {
+    case class A1(a: String, b: Int, cc: Long)
+    case class A2(
+      a: String,
+      b: Int,
+      c: Int,
+      d: Option[String],
+      e: List[String],
+      f: Seq[String],
+      g: Set[String],
+      h: Vector[String]
+    )
+
+    val a = A1("hello", 1, 2)
+
+    implicit val b: Transformer[A1, A2] = Transformable[A1, A2]
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => fromField.toInt)
+      .enableOptionDefaultsToNone
+      .enableCollectionDefaultsToEmpty
+      .instance
+
+    a.transform[A2](b).toString shouldEqual "A2(hello,1,2,None,List(),List(),Set(),Vector())"
+
+    implicit val b2: Transformer[A1, A2] = Transformable[A1, A2]
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => fromField.toInt)
+      .setDefaultValue[Vector[String]](
+        _.h,
+        Vector("Hello world")
+      ) // Higher priority than enableCollectionDefaultsToEmpty
+      .enableCollectionDefaultsToEmpty
+      .enableOptionDefaultsToNone
+      .instance
+
+    a.transform[A2](b2).toString shouldEqual "A2(hello,1,2,None,List(),List(),Set(),Vector(Hello world))"
+
+    implicit val b3: Transformer[A1, A2] = Transformable[A1, A2]
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => fromField.toInt)
+      .setDefaultValue[Option[String]](_.d, Option("Hello world")) // Higher priority than enableOptionDefaultsToNone
+      .enableCollectionDefaultsToEmpty
+      .instance
+
+    a.transform[A2](b3).toString shouldEqual "A2(hello,1,2,Some(Hello world),List(),List(),Set(),Vector())"
+
+    implicit val b4: Transformer[A1, A2] = Transformable[A1, A2]
+      .setName(_.cc, _.c)
+      .setType[Long, Int](_.cc, fromField => fromField.toInt)
+      .setDefaultValue[Vector[String]](
+        _.h,
+        Vector("Hello world1")
+      ) // Higher priority than enableCollectionDefaultsToEmpty
+      .setDefaultValue[Option[String]](_.d, Option("Hello world2")) // Higher priority than enableOptionDefaultsToNone
+      .enableOptionDefaultsToNone
+      .enableCollectionDefaultsToEmpty
+      .instance
+
+    a.transform[A2](b4).toString shouldEqual "A2(hello,1,2,Some(Hello world2),List(),List(),Set(),Vector(Hello world1))"
+
+  }
+
+  "TransformableTest disable* method" should "ok" in {
+    case class A1(d: Option[String])
+    case class A2(
+      d: Option[String],
+      e: Option[String] = Some("option"),
+      f: Option[String] = None,
+      h: List[String] = List("list"),
+      i: List[String] = List.empty
+    )
+
+    val a = A1(Some("hello a"))
+    implicit val b1: Transformer[A1, A2] =
+      Transformable[A1, A2].enableCollectionDefaultsToEmpty.enableOptionDefaultsToNone.instance
+
+    a.transform[A2](b1).toString shouldEqual "A2(Some(hello a),None,None,List(),List())"
+
+    implicit val b2: Transformer[A1, A2] =
+      Transformable[A1, A2]
+        // This method has a higher priority
+        .setDefaultValue(_.f, Option("1"))
+        .disableCollectionDefaultsToEmpty // use default value, not None
+        .disableOptionDefaultsToNone      // use default value, not Empty
+        .instance
+
+    a.transform[A2](b2).toString shouldEqual "A2(Some(hello a),Some(option),Some(1),List(list),List())"
+
+  }
+
+  "TransformableTest disable* is ok" should "compile ok" in {
+    case class A1(d: Option[String])
+    case class A2(
+      d: Option[String],
+      e: Option[String] = Some("option"),
+      f: Option[String] = None,
+      h: List[String] = List("list"),
+      i: List[String] = List.empty
+    )
+
+    val a                                = A1(Some("hello a"))
+    implicit val b1: Transformer[A1, A2] = Transformable[A1, A2].instance
+
+    a.transform[A2](b1).toString shouldEqual "A2(Some(hello a),Some(option),None,List(list),List())"
+  }
+
+  "TransformableTest disable* is ok if no default value" should "compile failed" in {
+    """
+      |    case class A1(d: Option[String])
+      |    case class A2(
+      |      d: Option[String],
+      |      e: Option[String],
+      |      f: Option[String] = None,
+      |      h: List[String] = List("list"),
+      |      i: List[String] = List.empty,
+      |    )
+      |
+      |    val a = A1(Some("hello a"))
+      |    implicit val b1: Transformer[A1, A2] = Transformable[A1, A2].instance
+      |
+      |    a.transform[A2](b1)
+      |""".stripMargin shouldNot compile
+  }
 }

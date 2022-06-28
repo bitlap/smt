@@ -19,33 +19,39 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
-import scala.collection.mutable
+package org.bitlap.common.internal
+
+import org.bitlap.common.CaseClassField
+
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import scala.reflect.macros.whitebox
 
 /** @author
  *    梦境迷离
- *  @version 1.0,2022/5/1
+ *  @version 1.0,6/27/22
  */
-object MacroCache {
+object CaseClassExtractorMacro {
 
-  private var builderCount  = 0
-  private var identityCount = 0
-
-  def getBuilderId: Int = builderCount.synchronized {
-    builderCount += 1; builderCount
+  def macroImpl[T](
+    c: whitebox.Context
+  )(t: c.Expr[T], field: c.Expr[CaseClassField]): c.Expr[Option[Any]] = {
+    import c.universe._
+    // scalafmt: { maxColumn = 400 }
+    val tree =
+      q"""
+       if ($t == null) None else {
+          val _field = $field
+          _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(CaseClassField.stringifyTermName)})
+          .map(kv => $t.productElement(kv._1))       
+       }
+     """
+    c.info(
+      c.enclosingPosition,
+      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + tree
+        .toString() + "\n###### Expanded macro end ######\n",
+      force = false
+    )
+    c.Expr[Option[Any]](tree)
   }
-
-  def getIdentityId: Int = identityCount.synchronized {
-    identityCount += 1; identityCount
-  }
-
-  lazy val builderFunctionTrees: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
-
-  lazy val classFieldNameMapping: mutable.Map[Int, mutable.Map[String, String]] = mutable.Map.empty
-
-  lazy val classFieldTypeMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
-
-  lazy val classFieldDefaultValueMapping: mutable.Map[Int, mutable.Map[String, Any]] = mutable.Map.empty
-
-  lazy val transformerOptionsMapping: mutable.Map[Int, mutable.Set[Options]] = mutable.Map.empty
 }

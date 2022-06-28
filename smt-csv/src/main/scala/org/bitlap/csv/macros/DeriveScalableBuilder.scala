@@ -21,7 +21,8 @@
 
 package org.bitlap.csv.macros
 
-import org.bitlap.common.{ AbstractMacroProcessor, MacroCache }
+import org.bitlap.common.MacroCache
+import org.bitlap.common.internal.AbstractMacroProcessor
 import org.bitlap.csv.{ CsvFormat, ScalableBuilder }
 
 import java.io.InputStream
@@ -160,7 +161,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
   // scalafmt: { maxColumn = 400 }
   private def scalableBody[T: WeakTypeTag](clazzName: TypeName, innerFuncTermName: TermName): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val params      = getCaseClassFieldInfo[T]()
+    val params      = getCaseClassFieldInfoList[T]()
     val fieldNames  = params.map(_.fieldName)
     val fields = checkGetFieldTreeInformationList[T](innerFuncTermName).map { fieldTreeInformation =>
       val idx            = fieldTreeInformation.index
