@@ -83,36 +83,30 @@
 
 ## cacheable
 
-A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media.
+A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media. (not support Scala2.11.x)
 
 - `@cacheable` / `Cache.apply`
 - `@cacheEvict` / `Cache.evict`
 
 ```scala
-// cache API, include dependencies: zio, zio-streams, zio-logging
-"org.bitlap" %% "smt-cacheable" % "<VERSION>" // not support Scala2.11.x
+"org.bitlap" %% "smt-cacheable" % "<VERSION>"
 ```
 
 ## cacheable-redis
 
-A distributed cache based on zio and zio-redis. It needs `cacheable` module.
+A distributed cache based on zio and zio-redis. It depends on `cacheable` module.
 
-> TODO Not unavailable, no distributed lock
+> TODO Not unavailable
 
 ```scala
-// distributed cache, include dependencies: zio-redis, config, zio-schema, zio-schema-json, optional (zio-schema-derivation for case class)
-// dependsOn `smt-cacheable`
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // not support Scala2.11.x
 ```
 
 ## cacheable-caffeine
 
-A memory cache based on zio and caffeine. It needs `cacheable` module.
-
+A memory cache based on zio and caffeine. It needs `cacheable` module. (not support Scala2.11.x)
 ```scala
-// local cache, include dependencies: config, caffeine
-// dependsOn `smt-cacheable`
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>" // not support Scala2.11.x
+"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
 ```
 
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
@@ -140,7 +134,7 @@ you must still enable the compiler flag `-Ymacro-annotations`.
 This project is developed using JetBrains IDEA.
 Thanks to JetBrains for providing me with a free license, which is a strong support for me.
 
-[Stage]: https://img.shields.io/badge/Project%20Stage-Experimental-yellow.svg
+[Stage]: https://img.shields.io/badge/Project%20Stage-Development-yellowgreen.svg
 [Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ScalaCI.yml/badge.svg
 [Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-annotations/latest.svg?platform=jvm
 [Badge-Jetbrains]: https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools

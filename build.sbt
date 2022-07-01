@@ -11,7 +11,7 @@ ThisBuild / resolvers ++= Seq(
 lazy val scala212               = "2.12.14"
 lazy val scala211               = "2.11.12"
 lazy val scala213               = "2.13.8"
-lazy val lastVersionForExamples = "0.5.2"
+lazy val lastVersionForExamples = "0.7.3"
 
 lazy val configVersion                = "1.4.2"
 lazy val scalatestVersion             = "3.2.12"
@@ -24,7 +24,6 @@ lazy val scalaLoggingVersion          = "3.9.5"
 lazy val playJsonVersion              = "2.7.4"
 lazy val log4jVersion                 = "2.17.2"
 lazy val jacksonScalaVersion          = "2.13.3"
-lazy val jraftVersion                 = "1.3.9"
 lazy val scalaCollectionCompatVersion = "2.7.0"
 
 lazy val commonSettings =
@@ -33,9 +32,9 @@ lazy val commonSettings =
     startYear    := Some(2022),
     scalaVersion := scala213,
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-lang" % "scala-reflect"  % scalaVersion.value,
-      "org.scalatest" %% "scalatest"      % scalatestVersion % Test
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value % Provided,
+      "org.scala-lang" % "scala-reflect"  % scalaVersion.value % Provided,
+      "org.scalatest" %% "scalatest"      % scalatestVersion   % Test
     ),
     Compile / scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -59,7 +58,7 @@ lazy val `smt-cacheable` = (project in file("smt-cacheable"))
     name               := "smt-cacheable",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio"         % zioVersion, // FIXME we should use compile or provide ???
+      "dev.zio" %% "zio"         % zioVersion % Provided,
       "dev.zio" %% "zio-streams" % zioVersion,
       "dev.zio" %% "zio-logging" % zioLoggingVersion
     )
@@ -89,7 +88,7 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
     name               := "smt-cacheable-redis",
     crossScalaVersions := List(scala213, scala212),
     libraryDependencies ++= Seq(
-      "dev.zio"     %% "zio-redis"             % zioRedisVersion,
+      "dev.zio"     %% "zio-redis"             % zioRedisVersion  % Provided,
       "com.typesafe" % "config"                % configVersion,
       "dev.zio"     %% "zio-schema"            % zioSchemaVersion,
       "dev.zio"     %% "zio-schema-json"       % zioSchemaVersion,
@@ -217,7 +216,9 @@ lazy val `scala2-13` = (project in file("examples/scala2-13"))
       "org.bitlap" %% "smt-tools"              % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-core"     % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
+      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
+      "dev.zio"    %% "zio-redis"              % zioRedisVersion,
+      "dev.zio"    %% "zio"                    % zioVersion
     )
   )
   .settings(
@@ -232,7 +233,9 @@ lazy val `scala2-12` = (project in file("examples/scala2-12"))
       "org.bitlap" %% "smt-tools"              % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-core"     % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples
+      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
+      "dev.zio"    %% "zio-redis"              % zioRedisVersion,
+      "dev.zio"    %% "zio"                    % zioVersion
     )
   )
   .settings(
