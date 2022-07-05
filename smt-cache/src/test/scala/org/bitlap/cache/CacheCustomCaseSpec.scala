@@ -51,7 +51,7 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
   }
 
   "cache2" should "ok while defines a custom cache" in {
-    implicit val lruCache =
+    implicit val customCache =
       GenericCache[String, TestEntity](CacheStrategy.CustomCacheStrategy(new CacheAdapter[TestEntity] {
         lazy val underlyingCache: util.HashMap[String, TestEntity] = new util.HashMap[String, TestEntity]()
 
