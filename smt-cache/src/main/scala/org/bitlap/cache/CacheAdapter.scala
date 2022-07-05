@@ -29,27 +29,34 @@ import java.util.Collections
  *    梦境迷离
  *  @version 1.0,2022/7/5
  */
-trait CacheContainer[V] {
+trait CacheAdapter[V] {
   def getAllKeys: Set[String]
+
   def putAll(map: Map[String, V]): Unit
+
   def put(k: String, v: V): Unit
+
   def get(k: String): V
+
   def clear(): Unit
 }
-object CacheContainer {
 
-  def getCacheByStrategy[V](cacheType: CacheStrategy): CacheContainer[V] =
+object CacheAdapter {
+
+  def adapted[V](cacheType: CacheStrategy): CacheAdapter[V] =
     cacheType match {
       case CacheStrategy.Lru(maxSize) =>
-        new LruHashMapCacheContainer(
-          Collections.synchronizedMap(new java.util.LinkedHashMap[String, V](maxSize, 0.75f, true))
+        new LruHashMapCacheAdapter(
+          Collections.synchronizedMap(new java.util.LinkedHashMap[String, V](16, 0.75f, true) {
+            override def removeEldestEntry(eldest: java.util.Map.Entry[String, V]): Boolean = size > maxSize
+          })
         )
       case CacheStrategy.Normal =>
-        new ConcurrentMapContainer(new java.util.concurrent.ConcurrentHashMap[String, V]())
-      case CacheStrategy.CustomUnderlyingCache(cacheContainer) => cacheContainer.asInstanceOf[CacheContainer[V]]
+        new ConcurrentMapCacheAdapter(new java.util.concurrent.ConcurrentHashMap[String, V]())
+      case CacheStrategy.CustomCacheStrategy(cacheContainer) => cacheContainer.asInstanceOf[CacheAdapter[V]]
     }
 
-  class LruHashMapCacheContainer[V](underlyingCache: java.util.Map[String, V]) extends CacheContainer[V] {
+  class LruHashMapCacheAdapter[V](underlyingCache: java.util.Map[String, V]) extends CacheAdapter[V] {
 
     override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
 
@@ -62,8 +69,8 @@ object CacheContainer {
     override def clear(): Unit = underlyingCache.clear()
   }
 
-  class ConcurrentMapContainer[V](underlyingCache: java.util.concurrent.ConcurrentMap[String, V])
-      extends CacheContainer[V] {
+  class ConcurrentMapCacheAdapter[V](underlyingCache: java.util.concurrent.ConcurrentMap[String, V])
+      extends CacheAdapter[V] {
 
     override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
 

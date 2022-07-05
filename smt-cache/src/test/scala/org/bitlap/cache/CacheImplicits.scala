@@ -33,4 +33,7 @@ object CacheImplicits {
   implicit lazy val testEntityAsyncCache =
     GenericCache[String, TestEntity](CacheStrategy.Normal, ExecutionContext.Implicits.global)
 
+  implicit lazy val testEntitySyncLruCache =
+    GenericCache[String, TestEntity](CacheStrategy.Lru(3))
+
 }

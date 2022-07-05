@@ -20,6 +20,7 @@
  */
 
 package org.bitlap.cache
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 /** @author
@@ -39,12 +40,13 @@ sealed trait GenericCache[K, F[_]] {
   def clear(): F[Unit]
 
 }
+
 object GenericCache {
 
   type Aux[K, Out0, F[_]] = GenericCache[K, F] { type Out = Out0 }
 
   def apply[K, Out0 <: Product](cacheStrategy: CacheStrategy): Aux[K, Out0, Identity] = new GenericCache[K, Identity] {
-    private val typedCache = CacheContainer.getCacheByStrategy[Out0](cacheStrategy)
+    private val adaptedCache = CacheAdapter.adapted[Out0](cacheStrategy)
 
     override type Out = Out0
 
@@ -53,19 +55,19 @@ object GenericCache {
     )(implicit
       keyBuilder: CacheKeyBuilder[K]
     ): Identity[Option[Out]] = {
-      val v = typedCache.get(keyBuilder.generateKey(key))
+      val v = adaptedCache.get(keyBuilder.generateKey(key))
       if (v == null) None else Option(v)
     }
 
     override def put(key: K, value: Out)(implicit
       keyBuilder: CacheKeyBuilder[K]
     ): Identity[Unit] =
-      typedCache.put(keyBuilder.generateKey(key), value)
+      adaptedCache.put(keyBuilder.generateKey(key), value)
 
     override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Unit] =
-      typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
+      adaptedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
 
-    override def clear(): Identity[Unit] = typedCache.clear()
+    override def clear(): Identity[Unit] = adaptedCache.clear()
   }
 
   def apply[K, Out0 <: Product](
@@ -73,29 +75,29 @@ object GenericCache {
     executionContext: ExecutionContext
   ): Aux[K, Out0, Future] =
     new GenericCache[K, Future] {
-      implicit val ec        = executionContext
-      private val typedCache = CacheContainer.getCacheByStrategy[Out0](cacheStrategy)
+      implicit val ec          = executionContext
+      private val adaptedCache = CacheAdapter.adapted[Out0](cacheStrategy)
 
       override type Out = Out0
 
       override def get(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Option[Out]] =
         Future {
-          val v = typedCache.get(keyBuilder.generateKey(key))
+          val v = adaptedCache.get(keyBuilder.generateKey(key))
           println(s"key => $key | value => $v")
           if (v == null) None else Option(v)
         }
 
       def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
-          typedCache.put(keyBuilder.generateKey(key), value)
+          adaptedCache.put(keyBuilder.generateKey(key), value)
         }.map(_ => ())
 
       override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
           println(s"all map => ${map.mkString(" | ")}")
-          typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
+          adaptedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
         }
 
-      override def clear(): Future[Unit] = Future.successful(typedCache.clear())
+      override def clear(): Future[Unit] = Future.successful(adaptedCache.clear())
     }
 }
