@@ -22,9 +22,6 @@
 package org.bitlap.cache
 
 import java.util.UUID
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
-import java.time.ZoneOffset
 
 /** @author
  *    梦境迷离
@@ -66,18 +63,5 @@ object CacheKeyBuilder {
     override def generateKey(key: UUID): String = key.toString
 
     override def unGenerateKey(key: String): UUID = UUID.fromString(key)
-  }
-
-  implicit val localDateTimeKey: CacheKeyBuilder[LocalDateTime] = new CacheKeyBuilder[LocalDateTime] {
-    override def generateKey(key: LocalDateTime): String = key.atOffset(ZoneOffset.UTC).toEpochSecond.toString
-
-    override def unGenerateKey(key: String): LocalDateTime = LocalDateTime.ofEpochSecond(key.toLong, 0, ZoneOffset.UTC)
-  }
-
-  implicit val zoneDateTimeKey: CacheKeyBuilder[ZonedDateTime] = new CacheKeyBuilder[ZonedDateTime] {
-    override def generateKey(key: ZonedDateTime): String = key.toEpochSecond.toString
-
-    override def unGenerateKey(key: String) =
-      LocalDateTime.ofEpochSecond(key.toLong, 0, ZoneOffset.UTC).atOffset(ZoneOffset.UTC).toZonedDateTime
   }
 }
