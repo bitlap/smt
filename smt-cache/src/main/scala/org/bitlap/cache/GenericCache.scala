@@ -83,7 +83,6 @@ object GenericCache {
       override def get(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Option[Out]] =
         Future {
           val v = adaptedCache.get(keyBuilder.generateKey(key))
-          println(s"key => $key | value => $v")
           if (v == null) None else Option(v)
         }
 
@@ -94,7 +93,6 @@ object GenericCache {
 
       override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
-          println(s"all map => ${map.mkString(" | ")}")
           adaptedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
         }
 
