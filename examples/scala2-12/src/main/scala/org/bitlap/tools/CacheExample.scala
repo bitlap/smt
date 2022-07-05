@@ -29,11 +29,11 @@ import zio.stream.ZStream
 
 import scala.util.Random
 
-/**
- * use these function to test it.
+/** use these function to test it.
  *
- * @author 梦境迷离
- * @version 1.0,2022/3/18
+ *  @author
+ *    梦境迷离
+ *  @version 1.0,2022/3/18
  */
 object CacheExample extends zio.App {
 
@@ -54,16 +54,15 @@ object CacheExample extends zio.App {
   }
 
   @cacheable // caffeine
-  def readStreamEntityFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] = {
+  def readStreamEntityFunction(id: Int, key: String): ZStream[Any, Throwable, CacheValue] =
     ZStream.fromEffect(ZIO.effect(CacheValue(Random.nextInt() + "")))
-  }
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
     (for {
       cache1 <- readStreamEntityFunction(1, "hello-world").runHead
       cache2 <- updateStreamFunction(2, "helloworld").runHead
-      _ <- Utils.debug(s"${cache1.toString}  ${cache2.toString}")
-      _ <- putStrLn("Hello good to meet you!")
+      _      <- Utils.debug(s"${cache1.toString}  ${cache2.toString}")
+      _      <- putStrLn("Hello good to meet you!")
     } yield ()).foldM(
       e => Utils.debug(s"error => $e").exitCode,
       _ => UIO.effectTotal(ExitCode.success)

@@ -20,10 +20,7 @@
  */
 
 package org.bitlap.cache
-import java.util
-import java.util.Collections
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.jdk.CollectionConverters._
 
 /** @author
  *    梦境迷离
@@ -47,9 +44,10 @@ object GenericCache {
   type Aux[K, Out0, F[_]] = GenericCache[K, F] { type Out = Out0 }
 
   def apply[K, Out0 <: Product](cacheStrategy: CacheStrategy): Aux[K, Out0, Identity] = new GenericCache[K, Identity] {
+    private val typedCache = CacheContainer.getCacheByStrategy[Out0](cacheStrategy)
 
-    private val typedCache = getCacheByStrategy[Out0](cacheStrategy)
     override type Out = Out0
+
     override def get(
       key: K
     )(implicit
@@ -65,7 +63,7 @@ object GenericCache {
       typedCache.put(keyBuilder.generateKey(key), value)
 
     override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Unit] =
-      typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2).asJava)
+      typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
 
     override def clear(): Identity[Unit] = typedCache.clear()
   }
@@ -76,7 +74,8 @@ object GenericCache {
   ): Aux[K, Out0, Future] =
     new GenericCache[K, Future] {
       implicit val ec        = executionContext
-      private val typedCache = getCacheByStrategy[Out0](cacheStrategy)
+      private val typedCache = CacheContainer.getCacheByStrategy[Out0](cacheStrategy)
+
       override type Out = Out0
 
       override def get(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Option[Out]] =
@@ -94,17 +93,9 @@ object GenericCache {
       override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
           println(s"all map => ${map.mkString(" | ")}")
-          typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2).asJava)
+          typedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
         }
 
       override def clear(): Future[Unit] = Future.successful(typedCache.clear())
-    }
-
-  private def getCacheByStrategy[Out0](cacheType: CacheStrategy): util.Map[String, Out0] =
-    cacheType match {
-      case CacheStrategy.Lru(maxSize) =>
-        Collections.synchronizedMap(new java.util.LinkedHashMap[String, Out0](maxSize, 0.75f, true))
-      case CacheStrategy.Normal => new java.util.concurrent.ConcurrentHashMap[String, Out0]()
-      // TODO other cache, redis cache, caffeine cache
     }
 }
