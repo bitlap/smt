@@ -48,6 +48,19 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
 
     val result: Option[TestEntity] = cache.getT("btc")
     result shouldBe None
+
+    cache.clear()
+
+    val result2: Option[TestEntity] = cache.getT("etc1")
+    result2 shouldBe None
+
+    cache.putTAll(data)
+
+    val result3: Option[TestEntity] = cache.getT("etc1")
+    result3 shouldBe Some(TestEntity("eth1", "hello1", "world2"))
+
+    val result4 = cache.getAllT
+    result4 shouldBe data
   }
 
   "cache2" should "ok while defines a custom cache" in {
@@ -69,5 +82,8 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("btc")
     result shouldBe Some(TestEntity("btc", "hello1", "world1"))
+
+    val result2 = cache.getAllT
+    result2 shouldBe data
   }
 }

@@ -61,6 +61,8 @@ object Cache {
         )
 
       override def clear(): Future[Unit] = cache.clear()
+
+      override def getAllT: Future[Map[K, T]] = cache.getAll
     }
 
   def getSyncCache[K, T <: Product](implicit
@@ -88,6 +90,8 @@ object Cache {
         getT(key).flatMap(t => CaseClassExtractor.ofValue[cache.Out](t, field).asInstanceOf[Option[field.Field]])
 
       override def clear(): Identity[Unit] = cache.clear()
+
+      override def getAllT: Identity[Map[K, cache.Out]] = cache.getAll
     }
 
 }

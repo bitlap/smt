@@ -53,7 +53,7 @@ object CacheAdapter {
         )
       case CacheStrategy.Normal =>
         new ConcurrentMapCacheAdapter(new java.util.concurrent.ConcurrentHashMap[String, V]())
-      case CacheStrategy.CustomCacheStrategy(cacheContainer) => cacheContainer.asInstanceOf[CacheAdapter[V]]
+      case CacheStrategy.CustomCacheStrategy(cacheAdapter) => cacheAdapter.asInstanceOf[CacheAdapter[V]]
     }
 
   class LruHashMapCacheAdapter[V](underlyingCache: java.util.Map[String, V]) extends CacheAdapter[V] {

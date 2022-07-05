@@ -24,6 +24,7 @@ package org.bitlap.cache
 import java.util.UUID
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.time.ZoneOffset
 
 /** @author
  *    梦境迷离
@@ -31,35 +32,52 @@ import java.time.ZonedDateTime
  */
 trait CacheKeyBuilder[T] {
   def generateKey(key: T): String
+
+  def unGenerateKey(key: String): T
 }
 
 object CacheKeyBuilder {
 
   implicit val intKey: CacheKeyBuilder[Int] = new CacheKeyBuilder[Int] {
     override def generateKey(key: Int): String = key.toString
+
+    override def unGenerateKey(key: String): Int = key.toInt
   }
 
   implicit val stringKey: CacheKeyBuilder[String] = new CacheKeyBuilder[String] {
     override def generateKey(key: String): String = key
+
+    override def unGenerateKey(key: String): String = key
   }
 
   implicit val longKey: CacheKeyBuilder[Long] = new CacheKeyBuilder[Long] {
     override def generateKey(key: Long): String = key.toString
+
+    override def unGenerateKey(key: String): Long = key.toLong
   }
 
   implicit val doubleKey: CacheKeyBuilder[Double] = new CacheKeyBuilder[Double] {
     override def generateKey(key: Double): String = String.valueOf(key)
+
+    override def unGenerateKey(key: String): Double = key.toDouble
   }
 
   implicit val uuidKey: CacheKeyBuilder[UUID] = new CacheKeyBuilder[UUID] {
     override def generateKey(key: UUID): String = key.toString
+
+    override def unGenerateKey(key: String): UUID = UUID.fromString(key)
   }
 
   implicit val localDateTimeKey: CacheKeyBuilder[LocalDateTime] = new CacheKeyBuilder[LocalDateTime] {
-    override def generateKey(key: LocalDateTime): String = key.toString
+    override def generateKey(key: LocalDateTime): String = key.atOffset(ZoneOffset.UTC).toEpochSecond.toString
+
+    override def unGenerateKey(key: String): LocalDateTime = LocalDateTime.ofEpochSecond(key.toLong, 0, ZoneOffset.UTC)
   }
 
   implicit val zoneDateTimeKey: CacheKeyBuilder[ZonedDateTime] = new CacheKeyBuilder[ZonedDateTime] {
-    override def generateKey(key: ZonedDateTime): String = key.toString
+    override def generateKey(key: ZonedDateTime): String = key.toEpochSecond.toString
+
+    override def unGenerateKey(key: String) =
+      LocalDateTime.ofEpochSecond(key.toLong, 0, ZoneOffset.UTC).atOffset(ZoneOffset.UTC).toZonedDateTime
   }
 }

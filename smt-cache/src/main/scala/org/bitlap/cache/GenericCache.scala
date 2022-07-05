@@ -37,6 +37,8 @@ sealed trait GenericCache[K, F[_]] {
 
   def putAll(map: Map[K, Out])(implicit keyBuilder: CacheKeyBuilder[K]): F[Unit]
 
+  def getAll(implicit keyBuilder: CacheKeyBuilder[K]): F[Map[K, Out]]
+
   def clear(): F[Unit]
 
 }
@@ -46,7 +48,7 @@ object GenericCache {
   type Aux[K, Out0, F[_]] = GenericCache[K, F] { type Out = Out0 }
 
   def apply[K, Out0 <: Product](cacheStrategy: CacheStrategy): Aux[K, Out0, Identity] = new GenericCache[K, Identity] {
-    private val adaptedCache = CacheAdapter.adapted[Out0](cacheStrategy)
+    private val adaptedCache: CacheAdapter[Out0] = CacheAdapter.adapted[Out0](cacheStrategy)
 
     override type Out = Out0
 
@@ -68,6 +70,14 @@ object GenericCache {
       adaptedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
 
     override def clear(): Identity[Unit] = adaptedCache.clear()
+
+    override def getAll(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Map[K, Out0]] =
+      adaptedCache.getAllKeys
+        .map(key => keyBuilder.unGenerateKey(key) -> adaptedCache.get(key))
+        .collect {
+          case (k, out) if out != null => k -> out
+        }
+        .toMap
   }
 
   def apply[K, Out0 <: Product](
@@ -75,8 +85,8 @@ object GenericCache {
     executionContext: ExecutionContext
   ): Aux[K, Out0, Future] =
     new GenericCache[K, Future] {
-      implicit val ec          = executionContext
-      private val adaptedCache = CacheAdapter.adapted[Out0](cacheStrategy)
+      implicit val ec                              = executionContext
+      private val adaptedCache: CacheAdapter[Out0] = CacheAdapter.adapted[Out0](cacheStrategy)
 
       override type Out = Out0
 
@@ -94,6 +104,16 @@ object GenericCache {
       override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
           adaptedCache.putAll(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
+        }
+
+      override def getAll(implicit keyBuilder: CacheKeyBuilder[K]): Future[Map[K, Out0]] =
+        Future {
+          adaptedCache.getAllKeys
+            .map(key => keyBuilder.unGenerateKey(key) -> adaptedCache.get(key))
+            .collect {
+              case (k, out) if out != null => k -> out
+            }
+            .toMap
         }
 
       override def clear(): Future[Unit] = Future.successful(adaptedCache.clear())
