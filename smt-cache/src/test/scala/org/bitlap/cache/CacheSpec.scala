@@ -48,6 +48,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("etc")
     result shouldBe data.get("etc")
+
+    val result2 = cache.getAllT
+    result2 shouldBe data
   }
 
   "cache2" should "get entity's field from cache successfully" in {

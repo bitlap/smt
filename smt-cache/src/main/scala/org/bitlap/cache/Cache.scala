@@ -62,7 +62,7 @@ object Cache {
 
       override def clear(): Future[Unit] = cache.clear()
 
-      override def getAllT: Future[Map[K, T]] = cache.getAll
+      override def getAllT: Future[Map[K, cache.Out]] = cache.getAll
     }
 
   def getSyncCache[K, T <: Product](implicit
