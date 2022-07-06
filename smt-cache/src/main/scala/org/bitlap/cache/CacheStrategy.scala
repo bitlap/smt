@@ -29,6 +29,7 @@ trait CacheStrategy
 
 object CacheStrategy {
 
-  case class Lru(maxSize: Int = 1000) extends CacheStrategy
-  case object Normal                  extends CacheStrategy
+  case class Lru(maxSize: Int = 1000)                              extends CacheStrategy
+  case object Normal                                               extends CacheStrategy
+  case class CustomCacheStrategy[V](cacheAdapter: CacheAdapter[V]) extends CacheStrategy
 }

@@ -24,7 +24,6 @@ import org.bitlap.common.CaseClassField
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.cache.CacheImplicits._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
@@ -36,6 +35,9 @@ import org.bitlap.common.TestEntity
  */
 class CacheSpec extends AnyFlatSpec with Matchers {
 
+  private implicit val syncCache  = CacheImplicits.testEntitySyncCache
+  private implicit val asyncCache = CacheImplicits.testEntityAsyncCache
+
   private val data = Map(
     "btc" -> TestEntity("btc", "hello1", "world1"),
     "etc" -> TestEntity("eth", "hello2", "world2")
@@ -46,6 +48,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
     cache.init(data)
     val result: Option[TestEntity] = cache.getT("etc")
     result shouldBe data.get("etc")
+
+    val result2 = cache.getAllT
+    result2 shouldBe data
   }
 
   "cache2" should "get entity's field from cache successfully" in {

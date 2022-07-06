@@ -181,7 +181,10 @@ lazy val `smt` = (project in file("."))
     `smt-csv`,
     `smt-csv-derive`,
     `smt-cache`,
-    `smt-common`
+    `smt-common`,
+    `scala2-11`,
+    `scala2-12`,
+    `scala2-13`
   )
   .settings(
     commands ++= Commands.value,
@@ -208,13 +211,12 @@ lazy val `smt` = (project in file("."))
     )
   )
 
-//FIXME  root doesnot aggregate these examples
 lazy val `scala2-13` = (project in file("examples/scala2-13"))
   .settings(scalaVersion := scala213)
   .settings(
     libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-tools"              % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-core"     % lastVersionForExamples,
+      "org.bitlap" %% "smt-annotations"        % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable"          % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
       "dev.zio"    %% "zio-redis"              % zioRedisVersion,
@@ -230,8 +232,8 @@ lazy val `scala2-12` = (project in file("examples/scala2-12"))
   .settings(scalaVersion := scala212)
   .settings(
     libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-tools"              % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-core"     % lastVersionForExamples,
+      "org.bitlap" %% "smt-annotations"        % lastVersionForExamples,
+      "org.bitlap" %% "smt-cacheable"          % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
       "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
       "dev.zio"    %% "zio-redis"              % zioRedisVersion,
@@ -247,7 +249,7 @@ lazy val `scala2-11` = (project in file("examples/scala2-11"))
   .settings(scalaVersion := scala211)
   .settings(
     libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-tools" % lastVersionForExamples
+      "org.bitlap" %% "smt-annotations" % lastVersionForExamples
     )
   )
   .settings(

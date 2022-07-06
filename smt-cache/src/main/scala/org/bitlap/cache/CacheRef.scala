@@ -39,5 +39,7 @@ trait CacheRef[In, T <: Product, F[_]] {
 
   def getTField(key: In, field: CaseClassField): F[Option[field.Field]]
 
+  def getAllT: F[Map[In, T]]
+
   def clear(): F[Unit]
 }
