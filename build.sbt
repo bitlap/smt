@@ -22,7 +22,7 @@ lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验�
 lazy val zioSchemaVersion             = "0.1.9"
 lazy val scalaLoggingVersion          = "3.9.5"
 lazy val playJsonVersion              = "2.7.4"
-lazy val log4jVersion                 = "2.17.2"
+lazy val log4jVersion                 = "2.18.0"
 lazy val jacksonScalaVersion          = "2.13.3"
 lazy val scalaCollectionCompatVersion = "2.7.0"
 
