@@ -24,7 +24,7 @@ lazy val scalaLoggingVersion          = "3.9.5"
 lazy val playJsonVersion              = "2.7.4"
 lazy val log4jVersion                 = "2.18.0"
 lazy val jacksonScalaVersion          = "2.13.3"
-lazy val scalaCollectionCompatVersion = "2.7.0"
+lazy val scalaCollectionCompatVersion = "2.8.0"
 
 lazy val commonSettings =
   Seq(
