@@ -15,7 +15,7 @@ lazy val lastVersionForExamples = "0.7.3"
 
 lazy val configVersion                = "1.4.2"
 lazy val scalatestVersion             = "3.2.12"
-lazy val zioVersion                   = "1.0.15"
+lazy val zioVersion                   = "2.0.0"
 lazy val zioLoggingVersion            = "0.5.14"
 lazy val caffeineVersion              = "2.9.3"
 lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
