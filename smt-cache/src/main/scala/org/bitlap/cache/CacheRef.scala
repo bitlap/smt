@@ -29,9 +29,7 @@ import org.bitlap.common.CaseClassField
  */
 trait CacheRef[In, T <: Product, F[_]] {
 
-  def init(initKvs: => Map[In, T]): F[Unit]
-
-  def putTAll(map: => Map[In, T]): F[Unit]
+  def batchPutT(data: => Map[In, T]): F[Unit]
 
   def getT(key: In): F[Option[T]]
 
@@ -42,4 +40,8 @@ trait CacheRef[In, T <: Product, F[_]] {
   def getAllT: F[Map[In, T]]
 
   def clear(): F[Unit]
+
+  def remove(key: In): F[Unit]
+
+  def safeRefreshT(allNewData: Map[In, T]): F[Unit]
 }
