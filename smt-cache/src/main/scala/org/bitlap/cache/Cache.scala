@@ -60,7 +60,8 @@ object Cache {
 
       override def safeRefreshT(allNewData: Map[K, T]): Future[Unit] =
         this.getAllT.map { t =>
-          this.batchPutT(allNewData).map(_ => t.keySet.foreach(this.remove))
+          val invalidData = t.keySet.filterNot(allNewData.keySet)
+          this.batchPutT(allNewData).map(_ => invalidData.foreach(this.remove))
         }
     }
 
