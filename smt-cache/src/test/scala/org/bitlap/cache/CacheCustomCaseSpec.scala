@@ -42,7 +42,7 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
   "cache1" should "ok while uses lru cache" in {
     implicit val lruCache = CacheImplicits.testEntitySyncLruCache
     val cache             = Cache.getSyncCache[String, TestEntity]
-    cache.init(data)
+    cache.batchPutT(data)
 
     cache.putT("etc3", TestEntity("eth3", "hello3", "world2"))
 
@@ -54,7 +54,7 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
     val result2: Option[TestEntity] = cache.getT("etc1")
     result2 shouldBe None
 
-    cache.putTAll(data)
+    cache.batchPutT(data)
 
     val result3: Option[TestEntity] = cache.getT("etc1")
     result3 shouldBe Some(TestEntity("eth1", "hello1", "world2"))
@@ -70,16 +70,18 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
 
         override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
 
-        override def putAll(map: Map[String, TestEntity]): Unit = underlyingCache.putAll(map.asJava)
+        override def batchPut(data: Map[String, TestEntity]): Unit = underlyingCache.putAll(data.asJava)
 
         override def put(k: String, v: TestEntity): Unit = underlyingCache.put(k, v)
 
         override def get(k: String): TestEntity = underlyingCache.get(k)
 
         override def clear(): Unit = underlyingCache.clear()
+
+        override def remove(k: String): Unit = underlyingCache.remove(k)
       }))
     val cache = Cache.getSyncCache[String, TestEntity]
-    cache.init(data)
+    cache.batchPutT(data)
     val result: Option[TestEntity] = cache.getT("btc")
     result shouldBe Some(TestEntity("btc", "hello1", "world1"))
 

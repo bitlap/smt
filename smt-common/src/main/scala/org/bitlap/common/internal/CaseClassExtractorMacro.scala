@@ -40,7 +40,7 @@ object CaseClassExtractorMacro {
     // scalafmt: { maxColumn = 400 }
     val tree =
       q"""
-       if ($t == null) None else {
+       if ($t == null) _root_.scala.None else {
           val _field = $field
           _field.${TermName(CaseClassField.fieldNamesTermName)}.find(kv => kv._2 == _field.${TermName(CaseClassField.stringifyTermName)})
           .map(kv => $t.productElement(kv._1))       

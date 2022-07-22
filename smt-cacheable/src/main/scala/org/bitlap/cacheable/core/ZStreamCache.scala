@@ -21,19 +21,17 @@
 
 package org.bitlap.cacheable.core
 
-import zio.stream.ZStream
-
 /** Redis Cache for ZStream.
  *
  *  @author
  *    梦境迷离
  *  @version 2.0,2022/3/19
  */
-trait ZStreamCache[R, E, T] extends Cache[ZStream[R, E, T]] {
+trait ZStreamCache[T] extends Cache[T, UZStream] {
 
-  override def getIfPresent(business: => ZStream[R, E, T])(identities: List[String], args: List[_]): ZStream[R, E, T]
+  override def getIfPresent(business: => UZStream[T])(identities: List[String], args: List[_]): UZStream[T]
 
-  override final def evict(business: => ZStream[R, E, T])(identities: List[String]): ZStream[R, E, T] =
+  override final def evict(business: => UZStream[T])(identities: List[String]): UZStream[T] =
     throw new UnsupportedOperationException()
 
   override def toString: String = "ZStreamCache"
