@@ -27,6 +27,8 @@ import zio.schema.Schema
 import zio.stream.ZStream
 import zio.Chunk
 import java.util.concurrent.atomic.AtomicLong
+import org.bitlap.cacheable.core.UZStream
+import zio.Task
 
 /** redis cache
  *
@@ -36,11 +38,9 @@ import java.util.concurrent.atomic.AtomicLong
  */
 object Implicits {
 
-  implicit def StreamUpdateCache[T: Schema]: ZStreamUpdateCache[Any, Throwable, T] =
-    new ZStreamUpdateCache[Any, Throwable, T] {
-      override def evict(
-        business: => ZStream[Any, Throwable, T]
-      )(identities: List[String]): ZStream[Any, Throwable, T] =
+  implicit def StreamUpdateCache[T: Schema]: ZStreamUpdateCache[T] =
+    new ZStreamUpdateCache[T] {
+      override def evict(business: => UZStream[T])(identities: List[String]): UZStream[T] =
         for {
           updateResult <- ZStream
             .fromIterable(identities)
@@ -51,9 +51,9 @@ object Implicits {
         } yield updateResult
     }
 
-  implicit def StreamReadCache[T: Schema]: ZStreamCache[Any, Throwable, T] = new ZStreamCache[Any, Throwable, T] {
+  implicit def StreamReadCache[T: Schema]: ZStreamCache[T] = new ZStreamCache[T] {
     override def getIfPresent(
-      business: => ZStream[Any, Throwable, T]
+      business: => UZStream[T]
     )(identities: List[String], args: List[_]): ZStream[Any, Throwable, T] = {
       val key            = cacheKey(identities)
       val field          = cacheField(args)
@@ -78,8 +78,8 @@ object Implicits {
     }
   }
 
-  implicit def UpdateCache[T: Schema]: ZIOUpdateCache[Any, Throwable, T] = new ZIOUpdateCache[Any, Throwable, T] {
-    override def evict(business: => ZIO[Any, Throwable, T])(identities: List[String]): ZIO[Any, Throwable, T] =
+  implicit def UpdateCache[T: Schema]: ZIOUpdateCache[T] = new ZIOUpdateCache[T] {
+    override def evict(business: => Task[T])(identities: List[String]): Task[T] =
       for {
         updateResult <- ZIO.foreach_(identities)(key => ZRedisService.del(key)) *> business
         _ <- Utils
@@ -88,10 +88,10 @@ object Implicits {
       } yield updateResult
   }
 
-  implicit def ReadCache[T: Schema]: ZIOCache[Any, Throwable, T] = new ZIOCache[Any, Throwable, T] {
+  implicit def ReadCache[T: Schema]: ZIOCache[T] = new ZIOCache[T] {
     override def getIfPresent(
-      business: => ZIO[Any, Throwable, T]
-    )(identities: List[String], args: List[_]): ZIO[Any, Throwable, T] = {
+      business: => Task[T]
+    )(identities: List[String], args: List[_]): Task[T] = {
       val key   = cacheKey(identities)
       val field = cacheField(args)
       for {

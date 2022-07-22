@@ -27,6 +27,7 @@ import org.scalatest.matchers.should.Matchers
 import zio.ZIO
 
 import scala.util.Random
+import zio.Task
 
 /** @author
  *    梦境迷离
@@ -36,16 +37,16 @@ import scala.util.Random
 class CustomCacheableTest extends AnyFlatSpec with Matchers {
 
   "create a custom cacheable by implicit" should "" in {
-    implicit def cache: ZIOCache[Any, Throwable, String] = new ZIOCache[Any, Throwable, String] {
+    implicit def cache: ZIOCache[String] = new ZIOCache[String] {
       override def getIfPresent(
-        business: => ZIO[Any, Throwable, String]
-      )(identities: List[String], args: List[_]): ZIO[Any, Throwable, String] = {
+        business: => Task[String]
+      )(identities: List[String], args: List[_]): Task[String] = {
         println("hello world!!")
         business
       }
     }
 
-    def readIOFunction(id: Int, key: String): ZIO[Any, Throwable, String] = {
+    def readIOFunction(id: Int, key: String): Task[String] = {
       val $result = ZIO.effect("hello world" + Random.nextInt())
       Cache($result)(List("UseCaseExample", "readIOFunction"), List(id, key))
     }

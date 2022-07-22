@@ -19,22 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.cacheable.core
+package org.bitlap.cacheable
 
-/** Redis Update Cache for ZStream.
- *
- *  @author
+/** @author
  *    梦境迷离
- *  @version 2.0,2022/3/19
+ *  @version 1.0,2022/7/22
  */
-trait ZStreamUpdateCache[T] extends Cache[T, UZStream] {
-
-  override final def getIfPresent(
-    business: => UZStream[T]
-  )(identities: List[String], args: List[_]): UZStream[T] = throw new UnsupportedOperationException()
-
-  override def evict(business: => UZStream[T])(identities: List[String]): UZStream[T]
-
-  override def toString: String = "ZStreamUpdateCache"
-
+package object core {
+  type UZStream[+A] = zio.stream.Stream[Throwable, A]
 }
