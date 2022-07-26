@@ -99,16 +99,6 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `smt-benchmark` = (project in file("smt-benchmark"))
-  .settings(commonSettings)
-  .settings(
-    name           := "smt-benchmark",
-    publish / skip := true
-  )
-  .dependsOn(`smt-cacheable`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
-  .settings(paradise())
-  .enablePlugins(HeaderPlugin, JmhPlugin)
-
 lazy val `smt-csv` = (project in file("smt-csv"))
   .settings(commonSettings)
   .settings(
@@ -177,7 +167,6 @@ lazy val `smt` = (project in file("."))
     `smt-cacheable`,
     `smt-cacheable-redis`,
     `smt-cacheable-caffeine`,
-    `smt-benchmark`,
     `smt-csv`,
     `smt-csv-derive`,
     `smt-cache`,
@@ -262,3 +251,5 @@ def paradise(): Def.Setting[Seq[ModuleID]] =
     case Some((2, n)) if n < 13 => Some("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     case _                      => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
+
+ThisBuild / logLevel := Level.Warn
