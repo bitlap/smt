@@ -22,6 +22,4 @@ ignore:
   - "**/ZRedisConfiguration.scala"
   - "**/ZRedisLive.scala"
   - "**/ZRedisService.scala"
-  - "**/BenchmarkRuntime.scala"
-  - "**/CacheableBenchmarks.scala"
   - "examples/**/*"

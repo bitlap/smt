@@ -20,7 +20,6 @@
  */
 
 package org.bitlap.cache
-import org.bitlap.common.CaseClassField
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -53,16 +52,6 @@ class CacheSpec extends AnyFlatSpec with Matchers {
     result2 shouldBe data
   }
 
-  "cache2" should "get entity's field from cache successfully" in {
-    val cache = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-    val result = cache.getTField("etc", CaseClassField[TestEntity](_.key))
-    result shouldBe Some("world2")
-
-    val result2 = cache.getTField("etc", CaseClassField[TestEntity](_.key))
-    result2 shouldBe Some("world2")
-  }
-
   "cache3" should "get entity's field after refresh" in {
     val cache = Cache.getSyncCache[String, TestEntity]
     cache.batchPutT(data)
@@ -92,9 +81,9 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.batchPutT(newData)
-      btcKey <- cache.getTField("btc", CaseClassField[TestEntity](_.key))
+      btcKey <- cache.getT("btc").map(_.map(_.key))
       _      <- cache.batchPutT(newData2)
-      ethKey <- cache.getTField("eth", CaseClassField[TestEntity](_.key))
+      ethKey <- cache.getT("eth").map(_.map(_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> Option("eth_key456")
@@ -110,28 +99,13 @@ class CacheSpec extends AnyFlatSpec with Matchers {
 
     val ret = for {
       _      <- cache.batchPutT(newData)
-      btcKey <- cache.getTField("btc", CaseClassField[TestEntity](_.key))
+      btcKey <- cache.getT("btc").map(_.map(_.key))
       _      <- cache.clear()
-      ethKey <- cache.getTField("eth", CaseClassField[TestEntity](_.key))
+      ethKey <- cache.getT("eth").map(_.map(_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> None
 
-  }
-
-  "cache6" should "get entity with selectField successfully" in {
-    val cache = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-
-    val id: Identity[Option[CaseClassField#Field]] =
-      cache.getTField("etc", CaseClassField[TestEntity](_.id))
-    println(id)
-    id shouldBe data.get("etc").map(_.id)
-
-    val value =
-      cache.getTField("etc", CaseClassField[TestEntity](_.value))
-    println(value)
-    value shouldBe data.get("etc").map(_.value)
   }
 
   "cache7" should "refresh successfully" in {

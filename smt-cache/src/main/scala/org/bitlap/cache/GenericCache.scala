@@ -59,30 +59,30 @@ object GenericCache {
     )(implicit
       keyBuilder: CacheKeyBuilder[K]
     ): Identity[Option[Out]] = {
-      val v = cacheAdapter.get(keyBuilder.generateKey(key))
+      val v = cacheAdapter.get(keyBuilder.serialize(key))
       if (v == null) None else Option(v)
     }
 
     override def put(key: K, value: Out)(implicit
       keyBuilder: CacheKeyBuilder[K]
     ): Identity[Unit] =
-      cacheAdapter.put(keyBuilder.generateKey(key), value)
+      cacheAdapter.put(keyBuilder.serialize(key), value)
 
     override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Unit] =
-      cacheAdapter.batchPut(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
+      cacheAdapter.batchPut(map.map(kv => keyBuilder.serialize(kv._1) -> kv._2))
 
     override def clear(): Identity[Unit] = cacheAdapter.clear()
 
     override def getAll(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Map[K, Out0]] =
       cacheAdapter.getAllKeys
-        .map(key => keyBuilder.unGenerateKey(key) -> cacheAdapter.get(key))
+        .map(key => keyBuilder.deserialize(key) -> cacheAdapter.get(key))
         .collect {
           case (k, out) if out != null => k -> out
         }
         .toMap
 
     override def remove(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Identity[Unit] =
-      cacheAdapter.remove(keyBuilder.generateKey(key))
+      cacheAdapter.remove(keyBuilder.serialize(key))
   }
 
   def apply[K, Out0 <: Product](
@@ -97,24 +97,24 @@ object GenericCache {
 
       override def get(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Option[Out]] =
         Future {
-          val v = cacheAdapter.get(keyBuilder.generateKey(key))
+          val v = cacheAdapter.get(keyBuilder.serialize(key))
           if (v == null) None else Option(v)
         }
 
       def put(key: K, value: Out)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
-          cacheAdapter.put(keyBuilder.generateKey(key), value)
+          cacheAdapter.put(keyBuilder.serialize(key), value)
         }.map(_ => ())
 
       override def putAll(map: Map[K, Out0])(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] =
         Future {
-          cacheAdapter.batchPut(map.map(kv => keyBuilder.generateKey(kv._1) -> kv._2))
+          cacheAdapter.batchPut(map.map(kv => keyBuilder.serialize(kv._1) -> kv._2))
         }
 
       override def getAll(implicit keyBuilder: CacheKeyBuilder[K]): Future[Map[K, Out0]] =
         Future {
           cacheAdapter.getAllKeys
-            .map(key => keyBuilder.unGenerateKey(key) -> cacheAdapter.get(key))
+            .map(key => keyBuilder.deserialize(key) -> cacheAdapter.get(key))
             .collect {
               case (k, out) if out != null => k -> out
             }
@@ -124,7 +124,7 @@ object GenericCache {
       override def clear(): Future[Unit] = Future.successful(cacheAdapter.clear())
 
       override def remove(key: K)(implicit keyBuilder: CacheKeyBuilder[K]): Future[Unit] = Future {
-        cacheAdapter.remove(keyBuilder.generateKey(key))
+        cacheAdapter.remove(keyBuilder.serialize(key))
       }
     }
 }
