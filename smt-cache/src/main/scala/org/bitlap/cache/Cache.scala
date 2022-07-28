@@ -22,7 +22,6 @@
 package org.bitlap.cache
 
 import org.bitlap.cache.GenericCache.Aux
-import org.bitlap.common.{ CaseClassExtractor, CaseClassField }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -47,18 +46,13 @@ object Cache {
       override def putT(key: K, value: cache.Out): Future[Unit] =
         cache.put(key, value)
 
-      override def getTField(key: K, field: CaseClassField): Future[Option[field.Field]] =
-        getT(key).map(opt =>
-          opt.flatMap(t => CaseClassExtractor.ofValue[cache.Out](t, field).asInstanceOf[Option[field.Field]])
-        )
-
       override def clear(): Future[Unit] = cache.clear()
 
       override def remove(key: K): Future[Unit] = cache.remove(key)
 
       override def getAllT: Future[Map[K, cache.Out]] = cache.getAll
 
-      override def safeRefreshT(allNewData: Map[K, T]): Future[Unit] =
+      override def safeRefreshT(allNewData: Map[K, cache.Out]): Future[Unit] =
         this.getAllT.map { t =>
           val invalidData = t.keySet.filterNot(allNewData.keySet)
           this.batchPutT(allNewData).map(_ => invalidData.foreach(this.remove))
@@ -78,9 +72,6 @@ object Cache {
 
       override def putT(key: K, value: cache.Out): Identity[Unit] =
         cache.put(key, value)
-
-      override def getTField(key: K, field: CaseClassField): Identity[Option[field.Field]] =
-        getT(key).flatMap(t => CaseClassExtractor.ofValue[cache.Out](t, field).asInstanceOf[Option[field.Field]])
 
       override def clear(): Identity[Unit] = cache.clear()
 

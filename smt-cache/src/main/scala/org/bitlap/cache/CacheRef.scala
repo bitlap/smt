@@ -21,8 +21,6 @@
 
 package org.bitlap.cache
 
-import org.bitlap.common.CaseClassField
-
 /** @author
  *    梦境迷离
  *  @version 1.0,6/8/22
@@ -34,8 +32,6 @@ trait CacheRef[In, T <: Product, F[_]] {
   def getT(key: In): F[Option[T]]
 
   def putT(key: In, value: T): F[Unit]
-
-  def getTField(key: In, field: CaseClassField): F[Option[field.Field]]
 
   def getAllT: F[Map[In, T]]
 

@@ -34,11 +34,11 @@ class CacheKeyBuilderSpec extends AnyFlatSpec with Matchers {
 
   "CacheKeyBuilder1" should "ok while uses uuid type" in {
     val now = UUID.randomUUID()
-    val str = CacheKeyBuilder.uuidKey.generateKey(now)
+    val str = CacheKeyBuilder.uuidKey.serialize(now)
 
     println(str)
 
-    val v = CacheKeyBuilder.uuidKey.unGenerateKey(str)
+    val v = CacheKeyBuilder.uuidKey.deserialize(str)
     v shouldBe now
   }
 
