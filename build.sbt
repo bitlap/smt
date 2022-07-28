@@ -21,9 +21,7 @@ lazy val caffeineVersion              = "2.9.3"
 lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
 lazy val zioSchemaVersion             = "0.1.9"
 lazy val scalaLoggingVersion          = "3.9.5"
-lazy val playJsonVersion              = "2.7.4"
 lazy val log4jVersion                 = "2.18.0"
-lazy val jacksonScalaVersion          = "2.13.3"
 lazy val scalaCollectionCompatVersion = "2.8.0"
 
 lazy val commonSettings =
@@ -150,7 +148,6 @@ lazy val `smt-annotations` = (project in file("smt-annotations"))
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging"    % scalaLoggingVersion,
-      "com.typesafe.play"          %% "play-json"        % playJsonVersion % Test,
       "org.apache.logging.log4j"    % "log4j-api"        % log4jVersion    % Test,
       "org.apache.logging.log4j"    % "log4j-core"       % log4jVersion    % Test,
       "org.apache.logging.log4j"    % "log4j-slf4j-impl" % log4jVersion    % Test
