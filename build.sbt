@@ -148,9 +148,9 @@ lazy val `smt-annotations` = (project in file("smt-annotations"))
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging"    % scalaLoggingVersion,
-      "org.apache.logging.log4j"    % "log4j-api"        % log4jVersion    % Test,
-      "org.apache.logging.log4j"    % "log4j-core"       % log4jVersion    % Test,
-      "org.apache.logging.log4j"    % "log4j-slf4j-impl" % log4jVersion    % Test
+      "org.apache.logging.log4j"    % "log4j-api"        % log4jVersion % Test,
+      "org.apache.logging.log4j"    % "log4j-core"       % log4jVersion % Test,
+      "org.apache.logging.log4j"    % "log4j-slf4j-impl" % log4jVersion % Test
     )
   )
   .settings(Publishing.publishSettings)
