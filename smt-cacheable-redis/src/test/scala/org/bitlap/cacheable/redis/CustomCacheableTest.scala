@@ -27,6 +27,7 @@ import org.scalatest.matchers.should.Matchers
 import zio.ZIO
 import zio.schema.Schema.Primitive
 import zio.schema.{ Schema, StandardType }
+import zio.Task
 
 import scala.util.Random
 
@@ -40,9 +41,9 @@ class CustomCacheableTest extends AnyFlatSpec with Matchers {
   "create a custom cacheable by implicit" should "" in {
     implicit val schema: Schema[String] = Primitive(StandardType.StringType)
 
-    implicit def cache[T: Schema]: ZIOCache[Any, Throwable, String] = new ZIOCache[Any, Throwable, String] {
+    implicit def cache[T: Schema]: ZIOCache[String] = new ZIOCache[String] {
       override def getIfPresent(
-        business: => ZIO[Any, Throwable, String]
+        business: => Task[String]
       )(identities: List[String], args: List[_]): ZIO[Any, Throwable, String] = {
         println("hello world!!")
         business

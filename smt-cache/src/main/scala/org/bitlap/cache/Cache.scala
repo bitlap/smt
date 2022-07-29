@@ -22,9 +22,7 @@
 package org.bitlap.cache
 
 import org.bitlap.cache.GenericCache.Aux
-import org.bitlap.common.{ CaseClassExtractor, CaseClassField }
 
-import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.{ ExecutionContext, Future }
 
 /** @author
@@ -39,15 +37,8 @@ object Cache {
     keyBuilder: CacheKeyBuilder[K]
   ): CacheRef[K, T, Future] =
     new CacheRef[K, cache.Out, Future] {
-      private lazy val initFlag = new AtomicBoolean(false)
-
-      override def init(initKvs: => Map[K, cache.Out]): Future[Unit] =
-        if (initFlag.compareAndSet(false, true)) {
-          putTAll(initKvs)
-        } else Future.successful(())
-
-      override def putTAll(map: => Map[K, cache.Out]): Future[Unit] =
-        cache.putAll(map)
+      override def batchPutT(data: => Map[K, cache.Out]): Future[Unit] =
+        cache.putAll(data)
 
       override def getT(key: K): Future[Option[cache.Out]] =
         cache.get(key)
@@ -55,14 +46,17 @@ object Cache {
       override def putT(key: K, value: cache.Out): Future[Unit] =
         cache.put(key, value)
 
-      override def getTField(key: K, field: CaseClassField): Future[Option[field.Field]] =
-        getT(key).map(opt =>
-          opt.flatMap(t => CaseClassExtractor.ofValue[cache.Out](t, field).asInstanceOf[Option[field.Field]])
-        )
-
       override def clear(): Future[Unit] = cache.clear()
 
+      override def remove(key: K): Future[Unit] = cache.remove(key)
+
       override def getAllT: Future[Map[K, cache.Out]] = cache.getAll
+
+      override def safeRefreshT(allNewData: Map[K, cache.Out]): Future[Unit] =
+        this.getAllT.map { t =>
+          val invalidData = t.keySet.filterNot(allNewData.keySet)
+          this.batchPutT(allNewData).map(_ => invalidData.foreach(this.remove))
+        }
     }
 
   def getSyncCache[K, T <: Product](implicit
@@ -70,15 +64,8 @@ object Cache {
     keyBuilder: CacheKeyBuilder[K]
   ): CacheRef[K, T, Identity] =
     new CacheRef[K, cache.Out, Identity] {
-      private lazy val initFlag = new AtomicBoolean(false)
-
-      override def init(initKvs: => Map[K, cache.Out]): Identity[Unit] =
-        if (initFlag.compareAndSet(false, true)) {
-          putTAll(initKvs)
-        } else ()
-
-      override def putTAll(map: => Map[K, cache.Out]): Identity[Unit] =
-        map.foreach(kv => cache.put(kv._1, kv._2))
+      override def batchPutT(data: => Map[K, cache.Out]): Identity[Unit] =
+        data.foreach(kv => cache.put(kv._1, kv._2))
 
       override def getT(key: K): Identity[Option[cache.Out]] =
         cache.get(key)
@@ -86,12 +73,17 @@ object Cache {
       override def putT(key: K, value: cache.Out): Identity[Unit] =
         cache.put(key, value)
 
-      override def getTField(key: K, field: CaseClassField): Identity[Option[field.Field]] =
-        getT(key).flatMap(t => CaseClassExtractor.ofValue[cache.Out](t, field).asInstanceOf[Option[field.Field]])
-
       override def clear(): Identity[Unit] = cache.clear()
 
       override def getAllT: Identity[Map[K, cache.Out]] = cache.getAll
+
+      override def remove(key: K): Identity[Unit] = cache.remove(key)
+
+      override def safeRefreshT(allNewData: Map[K, cache.Out]): Identity[Unit] = {
+        val invalidData = this.getAllT.keySet.filterNot(allNewData.keySet)
+        this.batchPutT(allNewData)
+        invalidData.foreach(this.remove)
+      }
     }
 
 }

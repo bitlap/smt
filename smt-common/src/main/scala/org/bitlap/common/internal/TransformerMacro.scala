@@ -281,11 +281,6 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
             ${TermName(toField.fieldName)} = $packageName.Transformer[$fromFieldType, $toFieldType].transform($fromFieldTerm)
          """
       case (information1, information2) =>
-        c.warning(
-          c.enclosingPosition,
-          s"No implicit `Transformer` is defined for ${information1.fieldType} => ${information2.fieldType}, which may cause compilation errors!!!" +
-            s"\nPlease consider using `setType` method, or define an `Transformer[${information1.fieldType}, ${information2.fieldType}]` implicit !"
-        )
         // scalafmt: { maxColumn = 400 }
         q"""${TermName(toField.fieldName)} = $packageName.Transformer[${information1.fieldType}, ${information2.fieldType}].transform($fromFieldTerm)"""
     }

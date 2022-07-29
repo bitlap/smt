@@ -21,7 +21,7 @@
 
 package org.bitlap.cacheable.core
 
-import zio.ZIO
+import zio.Task
 
 /** Redis Cache for ZIO.
  *
@@ -29,11 +29,11 @@ import zio.ZIO
  *    梦境迷离
  *  @version 2.0,2022/3/18
  */
-trait ZIOCache[R, E, T] extends Cache[ZIO[R, E, T]] {
+trait ZIOCache[T] extends Cache[T, Task] {
 
-  override def getIfPresent(business: => ZIO[R, E, T])(identities: List[String], args: List[_]): ZIO[R, E, T]
+  override def getIfPresent(business: => Task[T])(identities: List[String], args: List[_]): Task[T]
 
-  override final def evict(business: => ZIO[R, E, T])(identities: List[String]): ZIO[R, E, T] =
+  override def evict(business: => Task[T])(identities: List[String]): Task[T] =
     throw new UnsupportedOperationException()
 
   override def toString: String = "ZIOCache"

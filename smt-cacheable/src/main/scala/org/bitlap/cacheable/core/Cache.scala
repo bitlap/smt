@@ -20,16 +20,14 @@
  */
 
 package org.bitlap.cacheable.core
-
-import zio.ZIO
-import zio.stream.ZStream
+import zio.Task
 
 /** A distributed cache for zio.
  *
  *  @tparam Z
  *    The result type of the function that returns the ZIO or ZStream effect.
  */
-trait Cache[Z] {
+trait Cache[T, F[_]] {
 
   /** Get cache or getAndSet cache from Cache while read data.
    *
@@ -42,7 +40,7 @@ trait Cache[Z] {
    *  @return
    *    The result fo the business function.
    */
-  def getIfPresent(business: => Z)(identities: List[String], args: List[_]): Z
+  def getIfPresent(business: => F[T])(identities: List[String], args: List[_]): F[T]
 
   /** Evict cache while data update.
    *
@@ -53,7 +51,7 @@ trait Cache[Z] {
    *  @return
    *    The result fo the business function.
    */
-  def evict(business: => Z)(identities: List[String]): Z
+  def evict(business: => F[T])(identities: List[String]): F[T]
 
   /** Build a string for cache key.
    *
@@ -77,24 +75,24 @@ trait Cache[Z] {
 
 object Cache {
 
-  def apply[R, E, T](business: => ZStream[R, E, T])(identities: List[String], args: List[_])(implicit
-    streamCache: ZStreamCache[R, E, T]
-  ): ZStream[R, E, T] =
+  def apply[T](business: => UZStream[T])(identities: List[String], args: List[_])(implicit
+    streamCache: ZStreamCache[T]
+  ): UZStream[T] =
     streamCache.getIfPresent(business)(identities, args)
 
-  def apply[R, E, T](business: => ZIO[R, E, T])(identities: List[String], args: List[_])(implicit
-    cache: ZIOCache[R, E, T]
-  ): ZIO[R, E, T] =
+  def apply[T](business: => Task[T])(identities: List[String], args: List[_])(implicit
+    cache: ZIOCache[T]
+  ): Task[T] =
     cache.getIfPresent(business)(identities, args)
 
-  def evict[R, E, T](business: => ZStream[R, E, T])(identities: List[String])(implicit
-    streamCache: ZStreamUpdateCache[R, E, T]
-  ): ZStream[R, E, T] =
+  def evict[T](business: => UZStream[T])(identities: List[String])(implicit
+    streamCache: ZStreamUpdateCache[T]
+  ): UZStream[T] =
     streamCache.evict(business)(identities)
 
-  def evict[R, E, T](business: => ZIO[R, E, T])(identities: List[String])(implicit
-    cache: ZIOUpdateCache[R, E, T]
-  ): ZIO[R, E, T] =
+  def evict[T](business: => Task[T])(identities: List[String])(implicit
+    cache: ZIOUpdateCache[T]
+  ): Task[T] =
     cache.evict(business)(identities)
 
 }
