@@ -508,4 +508,53 @@ class TransformableTest extends AnyFlatSpec with Matchers {
       |    a.transform[A2](b1)
       |""".stripMargin shouldNot compile
   }
+
+  "TransformableTest extends TransformableOps" should "compile ok" in {
+    case class A1(a: Option[String], b: Boolean)
+
+    object A1 extends TransformableSyntax[A1, A2] {
+      override val transformer: Transformer[A1, A2] =
+        Syntax
+          .setName(_.a, _.b)
+          .setName(_.b, _.c)
+          .setType[Boolean, String](_.b, _.toString)
+          .setDefaultValue(_.b, None)
+          .instance
+    }
+
+    case class A2(
+      b: Option[String],
+      c: String,
+      e: Option[String] = Some("option")
+    )
+
+    val a = A1(Some("hello a"), false)
+    a.transformBySyntax[A2].toString shouldEqual "A2(Some(hello a),false,Some(option))"
+  }
+
+  "TransformableTest extends TransformableOps" should "ok" in {
+    case class A1(d: Option[String])
+
+    object A1 extends TransformableSyntax[A1, A2] {
+      override val transformer: Transformer[A1, A2] =
+        Syntax
+          .setDefaultValue(_.f, Option("1"))
+          .disableCollectionDefaultsToEmpty // use default value, not None
+          .disableOptionDefaultsToNone      // use default value, not Empty
+          .instance
+
+    }
+    case class A2(
+      d: Option[String],
+      e: Option[String] = Some("option"),
+      f: Option[String] = None,
+      h: List[String] = List("list"),
+      i: List[String] = List.empty
+    )
+
+    val a = A1(Some("hello a"))
+
+    a.transformBySyntax[A2].toString shouldEqual "A2(Some(hello a),Some(option),Some(1),List(list),List())"
+
+  }
 }

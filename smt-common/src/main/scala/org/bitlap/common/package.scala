@@ -72,4 +72,9 @@ package object common {
   implicit final class TransformerOps[F](private val from: F) extends AnyVal {
     final def transform[T](implicit transformer: Transformer[F, T]): T = transformer.transform(from)
   }
+
+  implicit final class TransformableSyntaxOps[F <: Product](private val from: F) extends AnyVal {
+    final def transformBySyntax[T <: Product](implicit transformableSyntax: TransformableSyntax[F, T]): T =
+      transformableSyntax.transformer.transform(from)
+  }
 }
