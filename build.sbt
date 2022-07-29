@@ -15,16 +15,14 @@ lazy val lastVersionForExamples = "0.7.3"
 
 lazy val configVersion                = "1.4.2"
 lazy val scalatestVersion             = "3.2.12"
-lazy val zioVersion                   = "1.0.15"
+lazy val zioVersion                   = "1.0.16"
 lazy val zioLoggingVersion            = "0.5.14"
 lazy val caffeineVersion              = "2.9.3"
 lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
 lazy val zioSchemaVersion             = "0.1.9"
 lazy val scalaLoggingVersion          = "3.9.5"
-lazy val playJsonVersion              = "2.7.4"
 lazy val log4jVersion                 = "2.18.0"
-lazy val jacksonScalaVersion          = "2.13.3"
-lazy val scalaCollectionCompatVersion = "2.7.0"
+lazy val scalaCollectionCompatVersion = "2.8.0"
 
 lazy val commonSettings =
   Seq(
@@ -99,16 +97,6 @@ lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
-lazy val `smt-benchmark` = (project in file("smt-benchmark"))
-  .settings(commonSettings)
-  .settings(
-    name           := "smt-benchmark",
-    publish / skip := true
-  )
-  .dependsOn(`smt-cacheable`, `smt-cacheable-redis`, `smt-cacheable-caffeine`)
-  .settings(paradise())
-  .enablePlugins(HeaderPlugin, JmhPlugin)
-
 lazy val `smt-csv` = (project in file("smt-csv"))
   .settings(commonSettings)
   .settings(
@@ -159,12 +147,10 @@ lazy val `smt-annotations` = (project in file("smt-annotations"))
     name               := "smt-annotations",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies ++= Seq(
-      "com.typesafe.scala-logging"   %% "scala-logging"        % scalaLoggingVersion,
-      "com.typesafe.play"            %% "play-json"            % playJsonVersion     % Test,
-      "org.apache.logging.log4j"      % "log4j-api"            % log4jVersion        % Test,
-      "org.apache.logging.log4j"      % "log4j-core"           % log4jVersion        % Test,
-      "org.apache.logging.log4j"      % "log4j-slf4j-impl"     % log4jVersion        % Test,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonScalaVersion % Test
+      "com.typesafe.scala-logging" %% "scala-logging"    % scalaLoggingVersion,
+      "org.apache.logging.log4j"    % "log4j-api"        % log4jVersion % Test,
+      "org.apache.logging.log4j"    % "log4j-core"       % log4jVersion % Test,
+      "org.apache.logging.log4j"    % "log4j-slf4j-impl" % log4jVersion % Test
     )
   )
   .settings(Publishing.publishSettings)
@@ -177,7 +163,6 @@ lazy val `smt` = (project in file("."))
     `smt-cacheable`,
     `smt-cacheable-redis`,
     `smt-cacheable-caffeine`,
-    `smt-benchmark`,
     `smt-csv`,
     `smt-csv-derive`,
     `smt-cache`,
@@ -225,7 +210,7 @@ lazy val `scala2-13` = (project in file("examples/scala2-13"))
   )
   .settings(
     publish / skip := true,
-    Compile / scalacOptions += "-Ymacro-annotations"
+    Compile / scalacOptions ++= List("-Ymacro-annotations", "-Ywarn-unused")
   )
 
 lazy val `scala2-12` = (project in file("examples/scala2-12"))
@@ -242,6 +227,7 @@ lazy val `scala2-12` = (project in file("examples/scala2-12"))
   )
   .settings(
     publish / skip := true,
+    scalacOptions ++= List("-Xlint:unused"),
     paradise()
   )
 
@@ -254,6 +240,7 @@ lazy val `scala2-11` = (project in file("examples/scala2-11"))
   )
   .settings(
     publish / skip := true,
+    scalacOptions ++= List("-Xlint:unused"),
     paradise()
   )
 
@@ -262,3 +249,5 @@ def paradise(): Def.Setting[Seq[ModuleID]] =
     case Some((2, n)) if n < 13 => Some("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     case _                      => None
   }).fold(Seq.empty[ModuleID])(f => Seq(compilerPlugin(f)))
+
+ThisBuild / logLevel := Level.Warn

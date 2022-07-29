@@ -19,27 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.common
+package org.bitlap.cacheable
 
-import scala.reflect.runtime.currentMirror
-import scala.reflect.runtime.universe._
-
-/** Scala runtime reflection
- *
- *  @author
+/** @author
  *    梦境迷离
- *  @since 2021/12/5
- *  @version 1.0
+ *  @version 1.0,2022/7/22
  */
-class ScalaReflectionUtils[T: WeakTypeTag] {
-
-  def createInstance(args: AnyRef*)(ctor: Int = 0): T = {
-    val tt = weakTypeTag[T]
-    currentMirror
-      .reflectClass(tt.tpe.typeSymbol.asClass)
-      .reflectConstructor(
-        tt.tpe.members.sorted.filter(m => m.isMethod && m.asMethod.isConstructor).iterator.toSeq(ctor).asMethod
-      )(args: _*)
-      .asInstanceOf[T]
-  }
+package object core {
+  type UZStream[+A] = zio.stream.Stream[Throwable, A]
 }

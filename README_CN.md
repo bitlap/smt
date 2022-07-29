@@ -69,13 +69,11 @@
 ## annotations
 
 - `@toString`
-- `@json`
 - `@builder`
 - `@log`
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
-- `@jacksonEnum`
 - `@elapsed`
 - `@javaCompatible`
 
@@ -85,7 +83,7 @@
 "org.bitlap" %% "smt-annotations" % "<VERSION>" // 从0.6.0开始名字改成 smt-annotations 
 ```
 
-## cacheable
+## cacheable [不可上生产]
 
 基于zio的类似Spring`@Cacheable`和`@CacheEvict`注解的缓存API定义。该模块不包含具体的存储媒介。
 
@@ -97,7 +95,7 @@
 "org.bitlap" %% "smt-cacheable" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
-## cacheable-redis
+## cacheable-redis [不可上生产]
 
 基于zio和zio-redis的分布式缓存实现，内部依赖`cacheable`。
 
@@ -107,7 +105,7 @@
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // 不支持Scala2.11.x
 ```
 
-## cacheable-caffeine
+## cacheable-caffeine [不可上生产]
 
 基于zio和caffeine的内存缓存实现，内部依赖`cacheable`。（不支持Scala2.11.x）
 
@@ -117,8 +115,8 @@
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。
 
-| Scala 2.11               | Scala 2.12               | Scala 2.13                            |
-| ------------------------ | ------------------------ | ------------------------------------- |
+| Scala 2.11           | Scala 2.12           | Scala 2.13                     |
+|----------------------|----------------------|--------------------------------|
 | 导入 macro paradise 插件 | 导入 macro paradise 插件 | 开启 编译器标记 `-Ymacro-annotations` |
 
 ```scala

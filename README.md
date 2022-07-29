@@ -65,13 +65,11 @@
 ## annotations
 
 - `@toString`
-- `@json`
 - `@builder`
 - `@log`
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
-- `@jacksonEnum`
 - `@elapsed`
 - `@javaCompatible`
 
@@ -81,7 +79,7 @@
 "org.bitlap" %% "smt-annotations" % "<VERSION>" // named smt-annotations since 0.6.0 
 ```
 
-## cacheable
+## cacheable [Not available for production]
 
 A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media. (not support Scala2.11.x)
 
@@ -92,7 +90,7 @@ A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no imple
 "org.bitlap" %% "smt-cacheable" % "<VERSION>"
 ```
 
-## cacheable-redis
+## cacheable-redis [Not available for production]
 
 A distributed cache based on zio and zio-redis. It depends on `cacheable` module.
 
@@ -102,7 +100,7 @@ A distributed cache based on zio and zio-redis. It depends on `cacheable` module
 "org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // not support Scala2.11.x
 ```
 
-## cacheable-caffeine
+## cacheable-caffeine [Not available for production]
 
 A memory cache based on zio and caffeine. It needs `cacheable` module. (not support Scala2.11.x)
 ```scala
@@ -112,7 +110,7 @@ A memory cache based on zio and caffeine. It needs `cacheable` module. (not supp
 The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
 
 | Scala 2.11                   | Scala 2.12                   | Scala 2.13                                          |
-| ---------------------------- | ---------------------------- | --------------------------------------------------- |
+|------------------------------|------------------------------|-----------------------------------------------------|
 | Import macro paradise plugin | Import macro paradise plugin | Enable compiler flag `-Ymacro-annotations` required |
 
 ```scala
