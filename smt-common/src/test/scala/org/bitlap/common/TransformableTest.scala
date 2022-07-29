@@ -529,7 +529,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     )
 
     val a = A1(Some("hello a"), false)
-    a.transformBySyntax[A2].toString shouldEqual "A2(Some(hello a),false,Some(option))"
+    a.transformCaseClass[A2].toString shouldEqual "A2(Some(hello a),false,Some(option))"
   }
 
   "TransformableTest extends TransformableOps" should "ok" in {
@@ -554,7 +554,7 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
     val a = A1(Some("hello a"))
 
-    a.transformBySyntax[A2].toString shouldEqual "A2(Some(hello a),Some(option),Some(1),List(list),List())"
+    a.transformCaseClass[A2].toString shouldEqual "A2(Some(hello a),Some(option),Some(1),List(list),List())"
 
   }
 }

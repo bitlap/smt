@@ -74,7 +74,7 @@ package object common {
   }
 
   implicit final class TransformableSyntaxOps[F <: Product](private val from: F) extends AnyVal {
-    final def transformBySyntax[T <: Product](implicit transformableSyntax: TransformableSyntax[F, T]): T =
+    final def transformCaseClass[T <: Product](implicit transformableSyntax: TransformableSyntax[F, T]): T =
       transformableSyntax.transformer.transform(from)
   }
 }
