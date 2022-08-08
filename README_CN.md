@@ -36,10 +36,10 @@
 ## common
 
 - 存放一些很通用的工具类。
-- 对象转换器Transformer
+- 对象转换器`transform`
     - 零依赖，类型安全。
     - `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
-    - `Transformable` 自动生成`Transformer`的实例。
+    - `Transformable` 使用宏派生任意类型的`Transformer`实例。
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
 ```
