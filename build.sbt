@@ -14,7 +14,7 @@ lazy val scala213               = "2.13.8"
 lazy val lastVersionForExamples = "0.7.3"
 
 lazy val configVersion                = "1.4.2"
-lazy val scalatestVersion             = "3.2.12"
+lazy val scalatestVersion             = "3.2.13"
 lazy val zioVersion                   = "1.0.16"
 lazy val zioLoggingVersion            = "0.5.14"
 lazy val caffeineVersion              = "2.9.3"
@@ -22,7 +22,7 @@ lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验�
 lazy val zioSchemaVersion             = "0.1.9"
 lazy val scalaLoggingVersion          = "3.9.5"
 lazy val log4jVersion                 = "2.18.0"
-lazy val scalaCollectionCompatVersion = "2.8.0"
+lazy val scalaCollectionCompatVersion = "2.8.1"
 
 lazy val commonSettings =
   Seq(

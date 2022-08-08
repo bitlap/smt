@@ -24,7 +24,6 @@ smt-benchmark/target
 smt-cacheable/target
 smt-cacheable-caffeine/target
 smt-cacheable-redis/target
-smt-cacheable/target
 smt-csv/target
 smt-csv-derive/target
 smt-annotations/target
