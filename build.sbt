@@ -14,7 +14,7 @@ lazy val scala213               = "2.13.8"
 lazy val lastVersionForExamples = "0.7.3"
 
 lazy val configVersion                = "1.4.2"
-lazy val scalatestVersion             = "3.2.12"
+lazy val scalatestVersion             = "3.2.13"
 lazy val zioVersion                   = "1.0.16"
 lazy val zioLoggingVersion            = "0.5.14"
 lazy val caffeineVersion              = "2.9.3"
