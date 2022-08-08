@@ -8,12 +8,10 @@
 |---------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------|
 | [![smt Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] | [![Sonatype Nexus (Snapshots)][Badge-Snapshots]][Link-Snapshots] |
 
-**[中文说明](./README_CN.md) | [English](./README.md)**
-
 # 环境
 
-- Java 8、11 编译通过
-- Scala 2.11.12、2.12.14、2.13.8 编译通过
+- Java 8+
+- Scala 2.11.12、2.12.14、2.13.8
 
 # 文档
 
