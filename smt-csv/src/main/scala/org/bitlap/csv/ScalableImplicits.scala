@@ -30,34 +30,34 @@ import scala.util.Try
 trait ScalableImplicits {
 
   implicit final val stringScalable: Scalable[String] = new Scalable[String] {
-    override def _toScala(column: String): Option[String] = if (column.isEmpty) None else Some(column)
+    override def transform(column: String): Option[String] = if (column.isEmpty) None else Some(column)
   }
 
   implicit final val intScalable: Scalable[Int] = new Scalable[Int] {
-    override def _toScala(column: String): Option[Int] = Try(column.toInt).toOption
+    override def transform(column: String): Option[Int] = Try(column.toInt).toOption
   }
 
   implicit final val charScalable: Scalable[Char] = new Scalable[Char] {
-    override def _toScala(column: String): Option[Char] = if (column.isEmpty) None else Try(column.charAt(0)).toOption
+    override def transform(column: String): Option[Char] = if (column.isEmpty) None else Try(column.charAt(0)).toOption
   }
 
   implicit final val longScalable: Scalable[Long] = new Scalable[Long] {
-    override def _toScala(column: String): Option[Long] = Try(column.toLong).toOption
+    override def transform(column: String): Option[Long] = Try(column.toLong).toOption
   }
 
   implicit final val shortScalable: Scalable[Short] = new Scalable[Short] {
-    override def _toScala(column: String): Option[Short] = Try(column.toShort).toOption
+    override def transform(column: String): Option[Short] = Try(column.toShort).toOption
   }
 
   implicit final val doubleScalable: Scalable[Double] = new Scalable[Double] {
-    override def _toScala(column: String): Option[Double] = Try(column.toDouble).toOption
+    override def transform(column: String): Option[Double] = Try(column.toDouble).toOption
   }
 
   implicit final val floatScalable: Scalable[Float] = new Scalable[Float] {
-    override def _toScala(column: String): Option[Float] = Try(column.toFloat).toOption
+    override def transform(column: String): Option[Float] = Try(column.toFloat).toOption
   }
 
   implicit final val booleanScalable: Scalable[Boolean] = new Scalable[Boolean] {
-    override def _toScala(column: String): Option[Boolean] = Try(column.toBoolean).toOption
+    override def transform(column: String): Option[Boolean] = Try(column.toBoolean).toOption
   }
 }

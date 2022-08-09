@@ -22,7 +22,7 @@
 package org.bitlap.csv.test
 
 import org.bitlap.csv.Converter
-import org.bitlap.csv.macros.{ DeriveToCaseClass, DeriveToString }
+import org.bitlap.csv.internal.{ ToCaseClassMacro, ToStringMacro }
 
 /** @author
  *    梦境迷离
@@ -49,8 +49,8 @@ object Dimension {
 
   implicit def dimensionCsvConverter: Converter[Dimension] = new Converter[Dimension] {
 
-    override def toScala(line: String): Option[Dimension] = DeriveToCaseClass[Dimension](line)
+    override def toScala(line: String): Option[Dimension] = ToCaseClassMacro[Dimension](line)
 
-    override def toCsvString(t: Dimension): String = DeriveToString[Dimension](t)
+    override def toCsvString(t: Dimension): String = ToStringMacro[Dimension](t)
   }
 }

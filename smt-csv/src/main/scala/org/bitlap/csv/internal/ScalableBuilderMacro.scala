@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.macros
+package org.bitlap.csv.internal
 
 import org.bitlap.common.MacroCache
 import org.bitlap.common.internal.AbstractMacroProcessor
@@ -33,7 +33,7 @@ import scala.reflect.macros.whitebox
  *    梦境迷离
  *  @version 1.0,2022/4/29
  */
-class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+class ScalableBuilderMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
 
@@ -109,7 +109,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
          ..${getAnnoClassObject[T](clazzName, format)}
          $packageName.FileUtils.reader($file, $format).map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
-             $scalableInstanceTermName._toScala($innerLName) 
+             $scalableInstanceTermName.transform($innerLName) 
          }
       """
     exprPrintTree[List[Option[T]]](force = false, tree)
@@ -124,7 +124,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
          ..${getAnnoClassObject[T](clazzName, format)}
          $lines.map { ($innerLName: String) =>
              $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
-             $scalableInstanceTermName._toScala($innerLName) 
+             $scalableInstanceTermName.transform($innerLName) 
          }
       """
     exprPrintTree[List[Option[T]]](force = false, tree)
@@ -153,7 +153,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
             final lazy private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
             ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
          }
-         $annoClassName._toScala($line)
+         $annoClassName.transform($line)
       """
     exprPrintTree[Option[T]](force = false, tree)
   }
@@ -175,25 +175,25 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case Nil if !customTrees.contains(fieldNames(idx)) =>
           fieldType match {
             case t if t =:= typeOf[Int] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[String] =>
-              q"""$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"""
+              q"""$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"""
             case t if t =:= typeOf[Float] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Float](${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse[Float](${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Double] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse[Double](${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse[Double](${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Char] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Byte] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Short] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Boolean] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Long] =>
-              q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case _ =>
-              tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName]._toScala($columnValues)", fieldTreeInformation.zeroValue)
+              tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName].transform($columnValues)", fieldTreeInformation.zeroValue)
           }
         case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isList =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$generic]]", fieldTreeInformation.zeroValue)
@@ -206,7 +206,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
         case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isSeq =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Seq[$generic]]", fieldTreeInformation.zeroValue)
         case generic :: Nil if fieldTreeInformation.collectionsFlags.isOption =>
-          tryOption(q"$packageName.Scalable[$generic]._toScala($columnValues)")
+          tryOption(q"$packageName.Scalable[$generic].transform($columnValues)")
         case generic =>
           c.abort(
             c.enclosingPosition,
@@ -216,7 +216,7 @@ class DeriveScalableBuilder(override val c: whitebox.Context) extends AbstractMa
     }
 
     // input args not need used
-    q"""override def _toScala(column: String): _root_.scala.Option[$clazzName] = 
+    q"""override def transform(column: String): _root_.scala.Option[$clazzName] = 
        ${tryOption(q"_root_.scala.Option(${clazzName.toTermName}(..$fields))")}"""
   }
 }

@@ -36,7 +36,7 @@ trait Scalable[T] {
    *    The column value of CSV line data.
    *  @return
    */
-  def _toScala(column: String): Option[T]
+  def transform(column: String): Option[T]
 }
 
 object Scalable extends ScalableImplicits {

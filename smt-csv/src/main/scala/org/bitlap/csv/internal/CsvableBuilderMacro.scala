@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.macros
+package org.bitlap.csv.internal
 
 import org.bitlap.common.MacroCache
 import org.bitlap.common.internal.AbstractMacroProcessor
@@ -33,7 +33,7 @@ import scala.reflect.macros.whitebox
  *    梦境迷离
  *  @version 1.0,2022/4/29
  */
-class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+class CsvableBuilderMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
 
@@ -103,7 +103,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          ..${getAnnoClassObject[T](customTrees, format)}
          $packageName.FileUtils.writer($file, $ts.map { ($innerTName: $clazzName) =>
                $csvableInstanceTermName.$innerTmpTermName = $innerTName
-               $csvableInstanceTermName._toCsvString($innerTName)
+               $csvableInstanceTermName.transform($innerTName)
            }, $format
          )
       """
@@ -120,7 +120,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          ..${getAnnoClassObject[T](customTrees, format)}
          lazy val lines = $ts.map { ($innerTName: $clazzName) =>
              $csvableInstanceTermName.$innerTmpTermName = $innerTName
-             $csvableInstanceTermName._toCsvString($innerTName)
+             $csvableInstanceTermName.transform($innerTName)
          }
          $packageName.StringUtils.combineRows(lines, $format)
       """
@@ -139,7 +139,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
                 val values = if (null == fields) _root_.scala.List.empty else ${fieldsToString[T](funcArgsTempTermName, customTrees)}
                 $packageName.StringUtils.combineColumns(values, $format)
            }
-           override def _toCsvString(t: $clazzName): String = _toCsv($annoClassName.$innerTmpTermName)
+           override def transform(t: $clazzName): String = _toCsv($annoClassName.$innerTmpTermName)
        }
        
        final lazy private val $csvableInstanceTermName = $annoClassName
@@ -156,13 +156,13 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
          object $annoClassName extends $packageName.Csvable[$clazzName] {
             final private val $innerTmpTermName = $t
            
-            override def _toCsvString(t: $clazzName): String = {
+            override def transform(t: $clazzName): String = {
                 val fields = ${clazzName.toTermName}.unapply($innerTmpTermName).orNull
                 val values = if (null == fields) _root_.scala.List.empty else ${fieldsToString[T](innerTmpTermName, customTrees)}
                 $packageName.StringUtils.combineColumns(values, $format)
             }
          }
-         $annoClassName._toCsvString($t)
+         $annoClassName.transform($t)
       """
     exprPrintTree[String](force = false, tree)
   }
@@ -210,7 +210,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
         case t if t <:< typeOf[Option[_]] && !customTrees.contains(fieldNames(indexType._1)) =>
           val genericType = c.typecheck(q"${indexType._2}", c.TYPEmode).tpe.dealias.typeArgs.head
           q"""
-              $packageName.Csvable[$genericType]._toCsvString {
+              $packageName.Csvable[$genericType].transform {
                 if ($innerVarTermName.${indexByName(indexType._1)}.isEmpty) "" 
                 else $innerVarTermName.${indexByName(indexType._1)}.get
               }
@@ -218,7 +218,7 @@ class DeriveCsvableBuilder(override val c: whitebox.Context) extends AbstractMac
         case _ if customTrees.contains(fieldNames(indexType._1)) =>
           customFunction()
         case _ =>
-          q"$packageName.Csvable[${indexType._2}]._toCsvString($innerVarTermName.${indexByName(indexType._1)})"
+          q"$packageName.Csvable[${indexType._2}].transform($innerVarTermName.${indexByName(indexType._1)})"
       }
     }
   }
