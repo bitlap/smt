@@ -21,7 +21,7 @@
 
 package org.bitlap.csv
 
-import org.bitlap.csv.macros.DeriveScalableBuilder
+import org.bitlap.csv.internal.ScalableBuilderMacro
 import java.io.InputStream
 
 /** Builder to create a custom Csv Decoder.
@@ -43,7 +43,7 @@ class ScalableBuilder[T] {
    *  @return
    */
   def setField[SF](scalaField: T => SF, value: String => SF): ScalableBuilder[T] =
-    macro DeriveScalableBuilder.setFieldImpl[T, SF]
+    macro ScalableBuilderMacro.setFieldImpl[T, SF]
 
   /** Create a custom builder for converting this CSV line to scala values.
    *
@@ -53,7 +53,7 @@ class ScalableBuilder[T] {
    *    For processing CSV in the specified format.
    *  @return
    */
-  def convert(line: String)(implicit format: CsvFormat): Option[T] = macro DeriveScalableBuilder.convertOneImpl[T]
+  def convert(line: String)(implicit format: CsvFormat): Option[T] = macro ScalableBuilderMacro.convertOneImpl[T]
 
   /** Convert all CSV lines to the sequence of Scala case class.
    *
@@ -64,7 +64,7 @@ class ScalableBuilder[T] {
    *  @return
    */
   def convert(lines: List[String])(implicit format: CsvFormat): List[Option[T]] =
-    macro DeriveScalableBuilder.convertAllImpl[T]
+    macro ScalableBuilderMacro.convertAllImpl[T]
 
   /** Read all CSV lines of the file and convert them to the sequence of Scala case class.
    *
@@ -75,12 +75,12 @@ class ScalableBuilder[T] {
    *  @return
    */
   def convertFrom(file: InputStream)(implicit format: CsvFormat): List[Option[T]] =
-    macro DeriveScalableBuilder.convertFromFileImpl[T]
+    macro ScalableBuilderMacro.convertFromFileImpl[T]
 
 }
 
 object ScalableBuilder {
 
-  def apply[T <: Product]: ScalableBuilder[T] = macro DeriveScalableBuilder.applyImpl[T]
+  def apply[T <: Product]: ScalableBuilder[T] = macro ScalableBuilderMacro.applyImpl[T]
 
 }

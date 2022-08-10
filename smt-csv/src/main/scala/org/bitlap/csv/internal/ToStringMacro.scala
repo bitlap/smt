@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.csv.macros
+package org.bitlap.csv.internal
 
 import org.bitlap.common.internal.AbstractMacroProcessor
 import org.bitlap.csv.CsvFormat
@@ -30,7 +30,7 @@ import scala.reflect.macros.blackbox
  *    梦境迷离
  *  @version 1.0,2022/4/29
  */
-object DeriveToString {
+object ToStringMacro {
 
   def apply[T <: Product](t: T)(implicit csvFormat: CsvFormat): String = macro Macro.macroImpl[T]
 

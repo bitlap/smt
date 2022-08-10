@@ -21,7 +21,7 @@
 
 package org.bitlap.csv
 
-import org.bitlap.csv.macros.DeriveCsvableBuilder
+import org.bitlap.csv.internal.CsvableBuilderMacro
 import java.io.File
 
 /** Builder to create a custom Csv Encoder.
@@ -43,7 +43,7 @@ class CsvableBuilder[T] {
    *  @return
    */
   def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
-    macro DeriveCsvableBuilder.setFieldImpl[T, SF]
+    macro CsvableBuilderMacro.setFieldImpl[T, SF]
 
   /** Create a custom builder for converting this scala value to CSV line string.
    *
@@ -54,7 +54,7 @@ class CsvableBuilder[T] {
    *  @return
    *    The string of one CSV line.
    */
-  def convert(t: T)(implicit format: CsvFormat): String = macro DeriveCsvableBuilder.convertOneImpl[T]
+  def convert(t: T)(implicit format: CsvFormat): String = macro CsvableBuilderMacro.convertOneImpl[T]
 
   /** Convert the sequence of Scala case class to CSV string.
    *
@@ -65,7 +65,7 @@ class CsvableBuilder[T] {
    *  @return
    *    The string of all CSV lines.
    */
-  def convert(ts: List[T])(implicit format: CsvFormat): String = macro DeriveCsvableBuilder.convertAllImpl[T]
+  def convert(ts: List[T])(implicit format: CsvFormat): String = macro CsvableBuilderMacro.convertAllImpl[T]
 
   /** Convert the sequence of Scala case class to CSV string and write to file.
    *
@@ -79,12 +79,12 @@ class CsvableBuilder[T] {
    *    The string of all CSV lines.
    */
   def convertTo(ts: List[T], file: File)(implicit format: CsvFormat): Boolean =
-    macro DeriveCsvableBuilder.convertToFileImpl[T]
+    macro CsvableBuilderMacro.convertToFileImpl[T]
 
 }
 
 object CsvableBuilder {
 
-  def apply[T <: Product]: CsvableBuilder[T] = macro DeriveCsvableBuilder.applyImpl[T]
+  def apply[T <: Product]: CsvableBuilder[T] = macro CsvableBuilderMacro.applyImpl[T]
 
 }
