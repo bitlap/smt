@@ -30,21 +30,24 @@ import java.util.Collections
  *  @version 1.0,2022/7/5
  */
 trait CacheAdapter[V] {
+
   def getAllKeys: Set[String]
 
-  def putAll(map: Map[String, V]): Unit
+  def batchPut(data: Map[String, V]): Unit
 
   def put(k: String, v: V): Unit
 
   def get(k: String): V
 
   def clear(): Unit
+
+  def remove(k: String): Unit
 }
 
 object CacheAdapter {
 
-  def adapted[V](cacheType: CacheStrategy): CacheAdapter[V] =
-    cacheType match {
+  def adapted[V](cacheStrategy: CacheStrategy): CacheAdapter[V] =
+    cacheStrategy match {
       case CacheStrategy.Lru(maxSize) =>
         new LruHashMapCacheAdapter(
           Collections.synchronizedMap(new java.util.LinkedHashMap[String, V](16, 0.75f, true) {
@@ -60,13 +63,15 @@ object CacheAdapter {
 
     override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
 
-    override def putAll(map: Map[String, V]): Unit = underlyingCache.putAll(map.asJava)
+    override def batchPut(data: Map[String, V]): Unit = underlyingCache.putAll(data.asJava)
 
     override def put(k: String, v: V): Unit = underlyingCache.put(k, v)
 
     override def get(k: String): V = underlyingCache.get(k)
 
     override def clear(): Unit = underlyingCache.clear()
+
+    override def remove(k: String): Unit = underlyingCache.remove(k)
   }
 
   class ConcurrentMapCacheAdapter[V](underlyingCache: java.util.concurrent.ConcurrentMap[String, V])
@@ -74,13 +79,15 @@ object CacheAdapter {
 
     override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
 
-    override def putAll(map: Map[String, V]): Unit = underlyingCache.putAll(map.asJava)
+    override def batchPut(data: Map[String, V]): Unit = underlyingCache.putAll(data.asJava)
 
     override def put(k: String, v: V): Unit = underlyingCache.put(k, v)
 
     override def get(k: String): V = underlyingCache.get(k)
 
     override def clear(): Unit = underlyingCache.clear()
+
+    override def remove(k: String): Unit = underlyingCache.remove(k)
   }
 
 }

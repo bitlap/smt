@@ -21,18 +21,19 @@
 
 package org.bitlap.tools
 
-import org.bitlap.tools.internal.builderMacro
-
-import scala.annotation.{ compileTimeOnly, StaticAnnotation }
-
-/** annotation to generate builder pattern for classes.
- *
- *  @author
+/** @author
  *    梦境迷离
- *  @since 2021/6/19
+ *  @since 2021/7/7
  *  @version 1.0
  */
-@compileTimeOnly("enable macro to expand macro annotations")
-final class builder extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro builderMacro.BuilderProcessor.impl
+package object internal {
+
+  private[internal] object ErrorMessage {
+    // common error msg
+    final lazy val ONLY_CLASS: String         = "Annotation is only supported on class."
+    final lazy val ONLY_CASE_CLASS: String    = "Annotation is only supported on case class."
+    final lazy val ONLY_OBJECT_CLASS: String  = "Annotation is only supported on class or object."
+    final lazy val UNEXPECTED_PATTERN: String = "Unexpected annotation pattern!"
+  }
+
 }

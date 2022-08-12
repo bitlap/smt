@@ -8,128 +8,96 @@
 |---------------------------------------------------------------|-----------------------------------------------|------------------------------------------------------------------|
 | [![smt Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] | [![Sonatype Nexus (Snapshots)][Badge-Snapshots]][Link-Snapshots] |
 
-[中文说明](./README_CN.md) | [English](./README.md)
+# 环境
 
-# Environment
+- Java 8+
+- Scala 2.11.12、2.12.14、2.13.8
 
-- Compile passed in Java 8、11
-- Compile passed in Scala 2.11.12、2.12.14、2.13.8
+# 文档
 
-# Document
+[详细文档 https://bitlap.org/lab/smt](https://bitlap.org/lab/smt)
 
-[https://bitlap.org/en-US/lab/smt](https://bitlap.org/en-US/lab/smt)
+# 如何使用
 
-# How to use
+添加库依赖，下面是如何在 SBT 中使用
+
+> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`，其中，`2.12`表示Scala版本号。
 
 ## cache
 
-- Memory cache.
-- Zero dependencies, type-safe.
-- API and implementation are completely independent.
+- 一个统一的缓存适配器。
+- 零依赖，类型安全。
 ```scala
-"org.bitlap" %% "smt-cache" % "<VERSION>" // since 0.6.0 
+"org.bitlap" %% "smt-cache" % "<VERSION>" // 从0.6.0开始 
 ```
 
 ## common
 
-- Some very general tool classes.
-- `Transformer` Transform the case class`From`'s object to the case class`To`'s object.
-- `Transformable` Automatically generate instances of`Transformer`.
-- Two ways to map fields: 
-  - 1.use`Transformer`and define`Transformer`implicitly in the companion object of the case class.
-  - 2.use`Transformable`'s`mapField`method directly.
+- 存放一些很通用的工具类。
+- 对象转换器`transform`
+    - 零依赖，类型安全。
+    - `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
+    - `Transformable` 使用宏派生任意类型的`Transformer`实例。
 ```scala
-"org.bitlap" %% "smt-common" % "<VERSION>" // since 0.6.0 
+"org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
 ```
 
 ## csv
 
-- `Converter` A basic CSV converter.
-- `CsvableBuilder` Support for converting Scala`case class`to one CSV line in a custom way.
-- `ScalableBuilder` Support for converting one CSV line to Scala`case class`in a custom way.
-- `CsvFormat` Custom format and TSV file support.
-- Zero dependency, type-safe
+- `Converter` 基础的CSV转换器。
+- `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为一行CSV字符串。
+- `ScalableBuilder` 支持以自定义的方式将一行CSV字符串转化为Scala`case class`。
+- `CsvFormat` 支持自定义格式和TSV文件。
+- 零依赖，类型安全。
 
 ```scala
-"org.bitlap" %% "smt-csv" % "<VERSION>" // since 0.5.2
+"org.bitlap" %% "smt-csv" % "<VERSION>" 
 ```
 
 ## csv-derive
 
-- `DeriveCsvConverter` Automatically derive`Converter`instances for Scala`case class`
+- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例。
 
 ```scala
-"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // since 0.5.2
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" 
 ```
 
 ## annotations
 
 - `@toString`
-- `@json`
 - `@builder`
 - `@log`
 - `@apply`
 - `@constructor`
 - `@equalsAndHashCode`
-- `@jacksonEnum`
 - `@elapsed`
 - `@javaCompatible`
 
-> The intellij plugin named `Scala-Macro-Tools` in marketplace.
+> Intellij插件 `Scala-Macro-Tools`。
 
 ```scala
-"org.bitlap" %% "smt-annotations" % "<VERSION>" // named smt-annotations since 0.6.0 
+"org.bitlap" %% "smt-annotations" % "<VERSION>" 
 ```
 
-## cacheable
+该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。
 
-A cache like Spring `@Cacheable` and `@cacheEvict` based on zio. It has no implementation of storage media. (not support Scala2.11.x)
-
-- `@cacheable` / `Cache.apply`
-- `@cacheEvict` / `Cache.evict`
-
-```scala
-"org.bitlap" %% "smt-cacheable" % "<VERSION>"
-```
-
-## cacheable-redis
-
-A distributed cache based on zio and zio-redis. It depends on `cacheable` module.
-
-> TODO Not unavailable
-
-```scala
-"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // not support Scala2.11.x
-```
-
-## cacheable-caffeine
-
-A memory cache based on zio and caffeine. It needs `cacheable` module. (not support Scala2.11.x)
-```scala
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
-```
-
-The artefacts have been uploaded to Maven Central. Importing the library into your build system (e.g gradle, sbt), is not enough. You need to follow an extra step.
-
-| Scala 2.11                   | Scala 2.12                   | Scala 2.13                                          |
-| ---------------------------- | ---------------------------- | --------------------------------------------------- |
-| Import macro paradise plugin | Import macro paradise plugin | Enable compiler flag `-Ymacro-annotations` required |
+| Scala 2.11           | Scala 2.12           | Scala 2.13                     |
+|----------------------|----------------------|--------------------------------|
+| 导入 macro paradise 插件 | 导入 macro paradise 插件 | 开启 编译器标记 `-Ymacro-annotations` |
 
 ```scala
 addCompilerPlugin("org.scalamacros" % "paradise_<your-scala-version>" % "<plugin-version>")
 ```
 
-Where `<your-scala-version>` must be the full scala version. For example 2.12.13, and not 2.12.
+`<your-scala-version>`必须是Scala版本号的完整编号，如`2.12.13`，而不是`2.12`。
 
-If that doesn't work, google for alternatives.
+如果这不起作用，可以谷歌寻找替代品。
 
-In version scala`2.13.x`, the functionality of macro paradise has been included in the scala compiler directly. However,
-you must still enable the compiler flag `-Ymacro-annotations`.
+在`scala 2.13.x`版本中，macro paradise的功能直接包含在scala编译器中。然而，仍然必须启用编译器标志`-Ymacro annotations`。
 
-# Especially thanks
+# 特别感谢
 
 <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" alt="IntelliJ IDEA logo.">
-
 
 This project is developed using JetBrains IDEA.
 Thanks to JetBrains for providing me with a free license, which is a strong support for me.

@@ -22,7 +22,7 @@
 package org.bitlap.tools
 
 import org.bitlap.tools.logs.LogType
-import org.bitlap.tools.macros.logMacro
+import org.bitlap.tools.internal.logMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 

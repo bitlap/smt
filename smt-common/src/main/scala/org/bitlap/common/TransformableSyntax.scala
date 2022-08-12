@@ -19,20 +19,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools
+package org.bitlap.common
+import org.bitlap.common.internal.TransformerMacro
 
-import org.bitlap.tools.internal.builderMacro
-
-import scala.annotation.{ compileTimeOnly, StaticAnnotation }
-
-/** annotation to generate builder pattern for classes.
- *
- *  @author
+/** @author
  *    梦境迷离
- *  @since 2021/6/19
- *  @version 1.0
+ *  @version 1.0,2022/7/29
  */
-@compileTimeOnly("enable macro to expand macro annotations")
-final class builder extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro builderMacro.BuilderProcessor.impl
+trait TransformableSyntax[From <: Product, To <: Product] { self =>
+
+  val transformer: Transformer[From, To]
+
+  def Syntax: Transformable[From, To] = macro TransformerMacro.applyImpl[From, To]
+
+  implicit val _self: TransformableSyntax[From, To] = self
+
 }

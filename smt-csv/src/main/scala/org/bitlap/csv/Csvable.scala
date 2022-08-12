@@ -36,7 +36,7 @@ trait Csvable[T] {
    *    case class object
    *  @return
    */
-  def _toCsvString(t: T): String
+  def transform(t: T): String
 
 }
 

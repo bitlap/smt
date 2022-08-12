@@ -23,7 +23,7 @@ package org.bitlap.csv.test
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.csv.{ CsvableBuilder, DefaultCsvFormat, ScalableBuilder, ScalableHelper, StringUtils }
+import org.bitlap.csv.{ CsvableBuilder, DefaultCsvFormat, ScalableBuilder, StringUtils }
 import java.io.File
 
 /** Complex use of common tests
