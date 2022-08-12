@@ -21,7 +21,7 @@
 
 package org.bitlap.tools
 
-import org.bitlap.tools.macros.equalsAndHashCodeMacro.EqualsAndHashCodeProcessor
+import org.bitlap.tools.internal.equalsAndHashCodeMacro.EqualsAndHashCodeProcessor
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 

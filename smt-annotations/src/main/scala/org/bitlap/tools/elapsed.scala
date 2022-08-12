@@ -22,7 +22,7 @@
 package org.bitlap.tools
 
 import org.bitlap.tools.LogLevel.LogLevel
-import org.bitlap.tools.macros.elapsedMacro.ElapsedProcessor
+import org.bitlap.tools.internal.elapsedMacro.ElapsedProcessor
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 
