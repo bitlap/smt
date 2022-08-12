@@ -21,7 +21,7 @@
 
 package org.bitlap.tools
 
-import org.bitlap.tools.macros.toStringMacro
+import org.bitlap.tools.internal.toStringMacro
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 

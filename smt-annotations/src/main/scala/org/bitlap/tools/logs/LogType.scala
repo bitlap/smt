@@ -45,7 +45,7 @@ object LogType extends Enumeration {
   def getLogImpl(logType: LogType): BaseLog =
     types.getOrElse(logType, default = throw new Exception(s"Not support log type: $logType"))
 
-  // TODO not use Enumeratio
+  // TODO not use Enumeration
   def getLogType(shortType: String): LogType = {
     val tpe1 = s"$PACKAGE.logs.$shortType"         // LogType.JLog
     val tpe2 = s"$PACKAGE.logs.LogType.$shortType" // JLog

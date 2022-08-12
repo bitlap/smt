@@ -35,11 +35,11 @@ object LogLevel extends Enumeration {
 
   private[bitlap] def getLogLevel(shortType: String): LogLevel = {
     // TODO not good way
-    val tpe1 = s"$PACKAGE.elapsed.$shortType"          // LogLevel.INFO
-    val tpe2 = s"$PACKAGE.elapsed.LogLevel.$shortType" // INFO
+    val tpe1 = s"$PACKAGE.$shortType"          // LogLevel.INFO
+    val tpe2 = s"$PACKAGE.LogLevel.$shortType" // INFO
     val v = LogLevel.values.find { p =>
-      s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe1 ||
-      s"$PACKAGE.elapsed.LogLevel.${p.toString}" == tpe2 || s"$PACKAGE.elapsed.LogLevel.${p.toString}" == shortType
+      s"$PACKAGE.LogLevel.${p.toString}" == tpe1 ||
+      s"$PACKAGE.LogLevel.${p.toString}" == tpe2 || s"$PACKAGE.LogLevel.${p.toString}" == shortType
     }.get.toString
     LogLevel.withName(v)
   }
