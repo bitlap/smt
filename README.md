@@ -25,7 +25,7 @@
 
 ## cache
 
-- 统一缓存API，缓存适配器（零依赖，类型安全。）。
+- 统一缓存API，缓存适配器（零依赖，类型安全）。
 ```scala
 "org.bitlap" %% "smt-cache" % "<VERSION>"
 ```
@@ -41,7 +41,7 @@
 
 ## csv
 
-- CSV/TSV文件解析器（零依赖，类型安全。）。
+- CSV/TSV文件解析器（零依赖，类型安全）。
 
 ```scala
 "org.bitlap" %% "smt-csv" % "<VERSION>" 
@@ -49,7 +49,7 @@
 
 ## csv-derive
 
-- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例。
+- 为Scala`case class`自动派生`Converter`实例。
 
 ```scala
 "org.bitlap" %% "smt-csv-derive" % "<VERSION>" 
