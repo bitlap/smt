@@ -25,30 +25,23 @@
 
 ## cache
 
-- 一个统一的缓存适配器。
-- 零依赖，类型安全。
+- 统一缓存API，缓存适配器（零依赖，类型安全。）。
 ```scala
-"org.bitlap" %% "smt-cache" % "<VERSION>" // 从0.6.0开始 
+"org.bitlap" %% "smt-cache" % "<VERSION>"
 ```
 
 ## common
 
-- 存放一些很通用的工具类。
-- 对象转换器`transform`
-    - 零依赖，类型安全。
-    - `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
-    - `Transformable` 使用宏派生任意类型的`Transformer`实例。
+- 通用的宏操作API的封装。
+- 对象转换器（零依赖，类型安全）。
+
 ```scala
-"org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
+"org.bitlap" %% "smt-common" % "<VERSION>"
 ```
 
 ## csv
 
-- `Converter` 基础的CSV转换器。
-- `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为一行CSV字符串。
-- `ScalableBuilder` 支持以自定义的方式将一行CSV字符串转化为Scala`case class`。
-- `CsvFormat` 支持自定义格式和TSV文件。
-- 零依赖，类型安全。
+- CSV/TSV文件解析器（零依赖，类型安全。）。
 
 ```scala
 "org.bitlap" %% "smt-csv" % "<VERSION>" 
