@@ -11,7 +11,7 @@
 # 环境
 
 - Java 8+
-- Scala 2.11.12、2.12.14、2.13.8
+- Scala 2.11.12、2.12.16、2.13.8
 
 # 文档
 
@@ -21,45 +21,38 @@
 
 添加库依赖，下面是如何在 SBT 中使用
 
-> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`这种。其中，`2.12`表示Scala版本号。
+> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`，其中，`2.12`表示Scala版本号。
 
 ## cache
 
-- 一个统一的缓存适配器。
-- 零依赖，类型安全。
+- 统一缓存API，缓存适配器（零依赖，类型安全）。
 ```scala
-"org.bitlap" %% "smt-cache" % "<VERSION>" // 从0.6.0开始 
+"org.bitlap" %% "smt-cache" % "<VERSION>"
 ```
 
 ## common
 
-- 存放一些很通用的工具类。
-- 对象转换器`transform`
-    - 零依赖，类型安全。
-    - `Transformer` 将样例类`From`的对象转变为样例类`To`的对象。
-    - `Transformable` 使用宏派生任意类型的`Transformer`实例。
+- 通用的宏操作API的封装。
+- 对象转换器（零依赖，类型安全）。
+
 ```scala
-"org.bitlap" %% "smt-common" % "<VERSION>" // 从0.6.0开始 
+"org.bitlap" %% "smt-common" % "<VERSION>"
 ```
 
 ## csv
 
-- `Converter` 基础的CSV转换器。
-- `CsvableBuilder` 支持以自定义的方式将Scala`case class`转化为一行CSV字符串。
-- `ScalableBuilder` 支持以自定义的方式将一行CSV字符串转化为Scala`case class`。
-- `CsvFormat` 支持自定义格式和TSV文件。
-- 零依赖，类型安全。
+- CSV/TSV文件解析器（零依赖，类型安全）。
 
 ```scala
-"org.bitlap" %% "smt-csv" % "<VERSION>" // 从0.5.2开始 
+"org.bitlap" %% "smt-csv" % "<VERSION>" 
 ```
 
 ## csv-derive
 
-- `DeriveCsvConverter` 为Scala`case class`自动派生`Converter`实例。
+- 为Scala`case class`自动派生`Converter`实例。
 
 ```scala
-"org.bitlap" %% "smt-csv-derive" % "<VERSION>" // 从0.5.2开始 
+"org.bitlap" %% "smt-csv-derive" % "<VERSION>" 
 ```
 
 ## annotations
@@ -76,37 +69,7 @@
 > Intellij插件 `Scala-Macro-Tools`。
 
 ```scala
-"org.bitlap" %% "smt-annotations" % "<VERSION>" // 从0.6.0开始名字改成 smt-annotations 
-```
-
-## cacheable [不可上生产]
-
-基于zio的类似Spring`@Cacheable`和`@CacheEvict`注解的缓存API定义。该模块不包含具体的存储媒介。
-
-- `@cacheable` / `Cache.apply`
-- `@cacheEvict` / `Cache.evict`
-
-```scala
-// 内部包含的依赖: zio, zio-streams, zio-logging
-"org.bitlap" %% "smt-cacheable" % "<VERSION>" // 不支持Scala2.11.x
-```
-
-## cacheable-redis [不可上生产]
-
-基于zio和zio-redis的分布式缓存实现，内部依赖`cacheable`。
-
-> TODO，目前不可用
-
-```scala
-"org.bitlap" %% "smt-cacheable-redis" % "<VERSION>" // 不支持Scala2.11.x
-```
-
-## cacheable-caffeine [不可上生产]
-
-基于zio和caffeine的内存缓存实现，内部依赖`cacheable`。（不支持Scala2.11.x）
-
-```scala
-"org.bitlap" %% "smt-cacheable-caffeine" % "<VERSION>"
+"org.bitlap" %% "smt-annotations" % "<VERSION>" 
 ```
 
 该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。你需要多走一步。

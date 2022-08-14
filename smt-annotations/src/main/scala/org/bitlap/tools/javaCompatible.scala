@@ -22,7 +22,7 @@
 package org.bitlap.tools
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
-import org.bitlap.tools.macros.javaCompatibleMacro
+import org.bitlap.tools.internal.javaCompatibleMacro
 
 /** annotation to generate non-parameter constructor and get/set method for case classes. Fields marked `private[this]`
  *  in curry are not supported !

@@ -8,18 +8,11 @@ ThisBuild / resolvers ++= Seq(
   "New snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 )
 
-lazy val scala212               = "2.12.14"
-lazy val scala211               = "2.11.12"
-lazy val scala213               = "2.13.8"
-lazy val lastVersionForExamples = "0.7.3"
+lazy val scala212 = "2.12.16"
+lazy val scala211 = "2.11.12"
+lazy val scala213 = "2.13.8"
 
-lazy val configVersion                = "1.4.2"
 lazy val scalatestVersion             = "3.2.13"
-lazy val zioVersion                   = "1.0.16"
-lazy val zioLoggingVersion            = "0.5.14"
-lazy val caffeineVersion              = "2.9.3"
-lazy val zioRedisVersion              = "0.0.0+381-86c20614-SNAPSHOT" // 实验性质的
-lazy val zioSchemaVersion             = "0.1.9"
 lazy val scalaLoggingVersion          = "3.9.5"
 lazy val log4jVersion                 = "2.18.0"
 lazy val scalaCollectionCompatVersion = "2.8.1"
@@ -48,54 +41,6 @@ lazy val commonSettings =
     publishConfiguration      := publishConfiguration.value.withOverwrite(true),
     publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
   )
-
-lazy val `smt-cacheable` = (project in file("smt-cacheable"))
-  .settings(commonSettings)
-  .settings(Publishing.publishSettings)
-  .settings(
-    name               := "smt-cacheable",
-    crossScalaVersions := List(scala213, scala212),
-    libraryDependencies ++= Seq(
-      "dev.zio" %% "zio"         % zioVersion % Provided,
-      "dev.zio" %% "zio-streams" % zioVersion,
-      "dev.zio" %% "zio-logging" % zioLoggingVersion
-    )
-  )
-  .settings(paradise())
-  .enablePlugins(HeaderPlugin)
-
-lazy val `smt-cacheable-caffeine` = (project in file("smt-cacheable-caffeine"))
-  .settings(commonSettings)
-  .settings(Publishing.publishSettings)
-  .settings(
-    name               := "smt-cacheable-caffeine",
-    crossScalaVersions := List(scala213, scala212),
-    libraryDependencies ++= Seq(
-      "com.typesafe"                  % "config"   % configVersion,
-      "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion
-    )
-  )
-  .dependsOn(`smt-cacheable` % "compile->compile;test->test")
-  .settings(paradise())
-  .enablePlugins(HeaderPlugin)
-
-lazy val `smt-cacheable-redis` = (project in file("smt-cacheable-redis"))
-  .settings(commonSettings)
-  .settings(Publishing.publishSettings)
-  .settings(
-    name               := "smt-cacheable-redis",
-    crossScalaVersions := List(scala213, scala212),
-    libraryDependencies ++= Seq(
-      "dev.zio"     %% "zio-redis"             % zioRedisVersion  % Provided,
-      "com.typesafe" % "config"                % configVersion,
-      "dev.zio"     %% "zio-schema"            % zioSchemaVersion,
-      "dev.zio"     %% "zio-schema-json"       % zioSchemaVersion,
-      "dev.zio"     %% "zio-schema-derivation" % zioSchemaVersion % Test
-    )
-  )
-  .dependsOn(`smt-cacheable` % "compile->compile;test->test")
-  .settings(paradise())
-  .enablePlugins(HeaderPlugin)
 
 lazy val `smt-csv` = (project in file("smt-csv"))
   .settings(commonSettings)
@@ -160,16 +105,10 @@ lazy val `smt-annotations` = (project in file("smt-annotations"))
 lazy val `smt` = (project in file("."))
   .aggregate(
     `smt-annotations`,
-    `smt-cacheable`,
-    `smt-cacheable-redis`,
-    `smt-cacheable-caffeine`,
     `smt-csv`,
     `smt-csv-derive`,
     `smt-cache`,
-    `smt-common`,
-    `scala2-11`,
-    `scala2-12`,
-    `scala2-13`
+    `smt-common`
   )
   .settings(
     commands ++= Commands.value,
@@ -194,54 +133,6 @@ lazy val `smt` = (project in file("."))
       commitNextVersion,
       pushChanges
     )
-  )
-
-lazy val `scala2-13` = (project in file("examples/scala2-13"))
-  .settings(scalaVersion := scala213)
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-annotations"        % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable"          % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
-      "dev.zio"    %% "zio-redis"              % zioRedisVersion,
-      "dev.zio"    %% "zio"                    % zioVersion
-    )
-  )
-  .settings(
-    publish / skip := true,
-    Compile / scalacOptions ++= List("-Ymacro-annotations", "-Ywarn-unused")
-  )
-
-lazy val `scala2-12` = (project in file("examples/scala2-12"))
-  .settings(scalaVersion := scala212)
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-annotations"        % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable"          % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-redis"    % lastVersionForExamples,
-      "org.bitlap" %% "smt-cacheable-caffeine" % lastVersionForExamples,
-      "dev.zio"    %% "zio-redis"              % zioRedisVersion,
-      "dev.zio"    %% "zio"                    % zioVersion
-    )
-  )
-  .settings(
-    publish / skip := true,
-    scalacOptions ++= List("-Xlint:unused"),
-    paradise()
-  )
-
-lazy val `scala2-11` = (project in file("examples/scala2-11"))
-  .settings(scalaVersion := scala211)
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.bitlap" %% "smt-annotations" % lastVersionForExamples
-    )
-  )
-  .settings(
-    publish / skip := true,
-    scalacOptions ++= List("-Xlint:unused"),
-    paradise()
   )
 
 def paradise(): Def.Setting[Seq[ModuleID]] =

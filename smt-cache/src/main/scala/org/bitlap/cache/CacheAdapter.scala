@@ -46,8 +46,8 @@ trait CacheAdapter[V] {
 
 object CacheAdapter {
 
-  def adapted[V](cacheType: CacheStrategy): CacheAdapter[V] =
-    cacheType match {
+  def adapted[V](cacheStrategy: CacheStrategy): CacheAdapter[V] =
+    cacheStrategy match {
       case CacheStrategy.Lru(maxSize) =>
         new LruHashMapCacheAdapter(
           Collections.synchronizedMap(new java.util.LinkedHashMap[String, V](16, 0.75f, true) {
