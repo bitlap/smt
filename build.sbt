@@ -14,7 +14,7 @@ lazy val scala213 = "2.13.8"
 
 lazy val scalatestVersion             = "3.2.13"
 lazy val scalaLoggingVersion          = "3.9.5"
-lazy val log4jVersion                 = "2.18.0"
+lazy val log4jVersion                 = "2.19.0"
 lazy val scalaCollectionCompatVersion = "2.8.1"
 
 lazy val commonSettings =
