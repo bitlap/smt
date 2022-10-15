@@ -8,7 +8,7 @@ ThisBuild / resolvers ++= Seq(
   "New snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 )
 
-lazy val scala212 = "2.12.16"
+lazy val scala212 = "2.12.17"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
 
