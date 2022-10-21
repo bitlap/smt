@@ -57,7 +57,14 @@ lazy val `smt-common` = (project in file("smt-common"))
   .settings(commonSettings)
   .settings(
     name               := "smt-common",
-    crossScalaVersions := List(scala213, scala212, scala211)
+    crossScalaVersions := List(scala213, scala212, scala211),
+    libraryDependencies += (
+      "org.bitlap" % "bitlap-client" % "0.1.0-SNAPSHOT" % Test
+    ),
+    dependencyOverrides ++= Seq(
+      "io.grpc" % "grpc-core"  % "1.46.0" % Test,
+      "io.grpc" % "grpc-netty" % "1.46.0" % Test
+    )
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())
