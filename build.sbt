@@ -16,6 +16,7 @@ lazy val scalatestVersion             = "3.2.13"
 lazy val scalaLoggingVersion          = "3.9.5"
 lazy val log4jVersion                 = "2.18.0"
 lazy val scalaCollectionCompatVersion = "2.8.1"
+lazy val h2                           = "2.1.214"
 
 lazy val commonSettings =
   Seq(
@@ -59,11 +60,7 @@ lazy val `smt-common` = (project in file("smt-common"))
     name               := "smt-common",
     crossScalaVersions := List(scala213, scala212, scala211),
     libraryDependencies += (
-      "org.bitlap" % "bitlap-client" % "0.1.0-SNAPSHOT" % Test
-    ),
-    dependencyOverrides ++= Seq(
-      "io.grpc" % "grpc-core"  % "1.46.0" % Test,
-      "io.grpc" % "grpc-netty" % "1.46.0" % Test
+      "com.h2database" % "h2" % h2 % Test
     )
   )
   .settings(Publishing.publishSettings)

@@ -20,6 +20,7 @@
  */
 
 package org.bitlap.common
+
 import org.bitlap.common.jdbc._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -34,30 +35,30 @@ import java.sql.Types
  */
 class RowTransformerTest extends AnyFlatSpec with Matchers {
 
+  Class.forName("org.h2.Driver")
+
   // TODO  need bitlap server
   "RowTransformerTest simple case" should "ok for GenericRow2" in {
-    Class.forName(classOf[org.bitlap.Driver].getName)
-    val statement = DriverManager.getConnection("jdbc:bitlap://localhost:23333/default").createStatement()
-    statement.execute(s"""select _time, sum(vv) as vv, sum(pv) as pv, count(distinct pv) as uv
-                                         |from table_test
-                                         |where _time >= 0
-                                         |group by _time""".stripMargin)
+    val statement = DriverManager
+      .getConnection(
+        "jdbc:h2:mem:zim?caseSensitive=false;MODE=MYSQL;TRACE_LEVEL_FILE=2;INIT=RUNSCRIPT FROM 'classpath:test.sql'"
+      )
+      .createStatement()
+    statement.execute(s"""select * from T_USER""".stripMargin)
 
     val rowSet: ResultSet = statement.getResultSet
 
     // default type mapping
-    val ret1 = ResultSetTransformer[GenericRow4[Long, Double, Double, Long]].toResults(rowSet)
+    val ret1 = ResultSetTransformer[GenericRow4[Int, String, String, String]].toResults(rowSet)
+    assert(ret1.size == 2)
     println(ret1)
 
-    statement.execute(s"""select _time, sum(vv) as vv, sum(pv) as pv, count(distinct pv) as uv
-                         |from table_test
-                         |where _time >= 0
-                         |group by _time""".stripMargin)
+    statement.execute(s"""select * from T_USER""".stripMargin)
 
     val rowSet2: ResultSet = statement.getResultSet
 
     // custom type mapping
-    val ret2 = ResultSetTransformer[GenericRow4[Long, Double, Double, Long]].toResults(
+    val ret2 = ResultSetTransformer[GenericRow4[Int, String, String, String]].toResults(
       rowSet2,
       (resultSet, columnSize) => {
         val metadata = resultSet.getMetaData
@@ -78,7 +79,7 @@ class RowTransformerTest extends AnyFlatSpec with Matchers {
         }
       }
     )
-
     println(ret2)
+    assert(ret2.size == 2)
   }
 }
