@@ -33,7 +33,7 @@ import java.sql.Types
  *  @version 1.0,2022/10/21
  */
 class RowTransformerTest extends AnyFlatSpec with Matchers {
-  
+
   // TODO  need bitlap server
   "RowTransformerTest simple case" should "ok for GenericRow2" in {
     Class.forName(classOf[org.bitlap.Driver].getName)
