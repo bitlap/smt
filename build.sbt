@@ -16,6 +16,7 @@ lazy val scalatestVersion             = "3.2.14"
 lazy val scalaLoggingVersion          = "3.9.5"
 lazy val log4jVersion                 = "2.19.0"
 lazy val scalaCollectionCompatVersion = "2.8.1"
+lazy val h2                           = "2.1.214"
 
 lazy val commonSettings =
   Seq(
@@ -57,7 +58,10 @@ lazy val `smt-common` = (project in file("smt-common"))
   .settings(commonSettings)
   .settings(
     name               := "smt-common",
-    crossScalaVersions := List(scala213, scala212, scala211)
+    crossScalaVersions := List(scala213, scala212, scala211),
+    libraryDependencies += (
+      "com.h2database" % "h2" % h2 % Test
+    )
   )
   .settings(Publishing.publishSettings)
   .settings(paradise())

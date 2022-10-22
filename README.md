@@ -34,6 +34,7 @@
 
 - 通用的宏操作API的封装。
 - 对象转换器（零依赖，类型安全）。
+- JDBC `ResultSet`对象转样例类。
 
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>"

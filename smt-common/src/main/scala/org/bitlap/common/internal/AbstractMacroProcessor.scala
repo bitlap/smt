@@ -186,6 +186,15 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   def resolveClassTypeName[T: WeakTypeTag]: TypeName =
     c.weakTypeOf[T].typeSymbol.name.toTypeName
 
+  /** Get the `TypeName` of the class generic type.
+   *
+   *  @tparam T
+   *    Type of the case class.
+   *  @return
+   */
+  def getGenericTypes[T: WeakTypeTag]: List[Type] =
+    c.weakTypeOf[T].dealias.typeArgs
+
   /** Get the list of case class constructor parameters and return the column index and parameter type that zip as a
    *  `FieldZipInformation`.
    *
