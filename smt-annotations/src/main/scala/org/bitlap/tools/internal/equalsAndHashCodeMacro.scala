@@ -53,7 +53,7 @@ object equalsAndHashCodeMacro {
      */
     private def getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
       if (annotteeClassDefinitions.exists(f => isNotLocalClassMember(f))) {
-        c.info(c.enclosingPosition, s"There is a non private class definition inside the class", true)
+        c.info(c.enclosingPosition, s"There is a non private class definition inside the class", force = true)
       }
       getClassMemberValDefs(annotteeClassDefinitions)
         .filter(p =>

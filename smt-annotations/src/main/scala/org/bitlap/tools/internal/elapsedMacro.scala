@@ -21,9 +21,6 @@
 
 package org.bitlap.tools.internal
 
-import org.bitlap.tools.LogLevel.LogLevel
-import org.bitlap.tools.{ LogLevel, PACKAGE }
-
 import scala.reflect.macros.whitebox
 
 /**
@@ -47,16 +44,9 @@ object elapsedMacro {
     private lazy val start: c.universe.TermName  = TermName("$elapsedBegin")
     private lazy val valDef: c.universe.TermName = TermName("$elapsed")
 
-    private def getLogLevel(logLevel: Tree): LogLevel =
-      if (logLevel.children.exists(t => t.toString().contains(PACKAGE))) {
-        evalTree(logLevel)
-      } else {
-        LogLevel.getLogLevel(logLevel.toString())
-      }
-
-    private val extractOptions: (Int, LogLevel) = c.prefix.tree match {
+    private val extractOptions: (Int, String) = c.prefix.tree match {
       case q"new elapsed(limit=$limit, logLevel=$logLevel)" =>
-        (evalTree(limit.asInstanceOf[Tree]), getLogLevel(logLevel.asInstanceOf[Tree]))
+        (evalTree(limit.asInstanceOf[Tree]), evalTree[String](logLevel.asInstanceOf[Tree]))
       case _ => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
     }
 
@@ -74,10 +64,15 @@ object elapsedMacro {
       if (log.isEmpty) { // if there is no slf4j log, print it to the console
         getLog(classNameAndMethodName, q"_root_.scala.Predef.println")
       } else {
-        extractOptions._2 match {
-          case LogLevel.INFO  => getLog(classNameAndMethodName, q"${log.get}.info")
-          case LogLevel.DEBUG => getLog(classNameAndMethodName, q"${log.get}.debug")
-          case LogLevel.WARN  => getLog(classNameAndMethodName, q"${log.get}.warn")
+        extractOptions._2.toLowerCase match {
+          case "info"  => getLog(classNameAndMethodName, q"${log.get}.info")
+          case "debug" => getLog(classNameAndMethodName, q"${log.get}.debug")
+          case "warn"  => getLog(classNameAndMethodName, q"${log.get}.warn")
+          case _ =>
+            c.abort(
+              c.enclosingPosition,
+              s"${extractOptions._2.toLowerCase} is not in the supported list: info,debug,warn"
+            )
         }
       }
     }

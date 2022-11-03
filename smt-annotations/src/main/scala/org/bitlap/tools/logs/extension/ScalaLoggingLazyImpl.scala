@@ -21,8 +21,7 @@
 
 package org.bitlap.tools.logs.extension
 
-import org.bitlap.tools.logs.LogType.LogType
-import org.bitlap.tools.logs.{ BaseLog, LogArgument, LogType }
+import org.bitlap.tools.logs._
 
 import scala.reflect.macros.whitebox
 
@@ -35,7 +34,7 @@ import scala.reflect.macros.whitebox
  */
 object ScalaLoggingLazyImpl extends BaseLog {
 
-  override val `type`: LogType = LogType.ScalaLoggingLazy
+  override val `type`: String = LogType.ScalaLoggingLazy
 
   override def getTemplate(c: whitebox.Context)(logArgument: LogArgument): c.Tree = {
     import c.universe._

@@ -23,8 +23,9 @@ package org.bitlap.csv.test
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.bitlap.csv.{ CsvableBuilder, DefaultCsvFormat, ScalableBuilder, StringUtils }
+import org.bitlap.csv._
 import java.io.File
+import org.bitlap.csv.FileUtils
 
 /** Complex use of common tests
  *
@@ -32,7 +33,7 @@ import java.io.File
  *    梦境迷离
  *  @version 1.0,2022/5/1
  */
-class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
+class WriterAndReaderTest extends AnyFlatSpec with Matchers {
 
   val csvData =
     """100,1,"{""city"":""北京"",""os"":""Mac""}",vv,1
@@ -52,12 +53,12 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
       |200,3,"{""city"":""北京"",""os"":""Mac""}",vv,1
       |200,3,"{""city"":""北京"",""os"":""Mac""}",pv,2""".stripMargin
 
-  "CsvableAndScalable1" should "ok" in {
+  "WriterAndReaderTest1" should "ok" in {
     val metrics = csvData
       .split("\n")
       .toList
       .map(csv =>
-        ScalableBuilder[Metric]
+        ReaderBuilder[Metric]
           .setField(
             _.dimensions,
             dims => {
@@ -79,7 +80,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.head.get.dimensions.head.value == "北京")
 
     val csv = metrics.map(metric =>
-      CsvableBuilder[Metric]
+      WriterBuilder[Metric]
         .setField(
           _.dimensions,
           (ds: List[Dimension3]) =>
@@ -94,12 +95,12 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     )
   }
 
-  "CsvableAndScalable2" should "ok" in {
+  "WriterAndReaderTest2" should "ok" in {
     val metrics = csvData
       .split("\n")
       .toList
       .map(csv =>
-        ScalableBuilder[Metric2]
+        ReaderBuilder[Metric2]
           .setField[Seq[Dimension3]](
             _.dimensions,
             dims => {
@@ -121,11 +122,11 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.head.get.dimensions.head.value == "北京")
   }
 
-  "CsvableAndScalable3" should "ok when using StringUtils" in {
+  "WriterAndReaderTest3" should "ok when using StringUtils" in {
     val metrics = csvData
       .split("\n")
       .map(csv =>
-        ScalableBuilder[Metric2]
+        ReaderBuilder[Metric2]
           .setField[Seq[Dimension3]](
             _.dimensions,
             dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
@@ -139,10 +140,9 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.head.get.dimensions.head.value == "北京")
   }
 
-  "CsvableAndScalable4" should "ok when reading from file" in {
-    import org.bitlap.csv.ScalableHelper
-    val metrics = ScalableHelper.readCsvFromClassPath[Metric2]("simple_data.csv") { line =>
-      ScalableBuilder[Metric2]
+  "WriterAndReaderTest4" should "ok when reading from file" in {
+    val metrics = FileUtils.readCsvFromClassPath[Metric2]("simple_data.csv") { line =>
+      ReaderBuilder[Metric2]
         .setField[Seq[Dimension3]](
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
@@ -155,14 +155,14 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.head.get.dimensions.head.value == "北京")
   }
 
-  "CsvableAndScalable5" should "ok when using convert method" in {
+  "WriterAndReaderTest5" should "ok when using convert method" in {
 
     val csvLines = csvData.split("\n").toList
 
-    val metrics = ScalableBuilder[Metric3].convert(csvLines)
+    val metrics = ReaderBuilder[Metric3].convert(csvLines)
 
     // if we don't define a custom function for convert `Metric3#dimension`
-    val csv = CsvableBuilder[Metric3].convert(metrics.filter(_.isDefined).map(_.get))
+    val csv = WriterBuilder[Metric3].convert(metrics.filter(_.isDefined).map(_.get))
 
     println(metrics)
     println(csv)
@@ -170,8 +170,8 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(csvData.replace("\"", "") == csv.replace("\"", ""))
   }
 
-  "CsvableAndScalable6" should "ok when using convert and StringUtils" in {
-    val metrics = ScalableBuilder[Metric2]
+  "WriterAndReaderTest6" should "ok when using convert and StringUtils" in {
+    val metrics = ReaderBuilder[Metric2]
       .setField[Seq[Dimension3]](
         _.dimensions,
         dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
@@ -183,7 +183,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.head.get.dimensions.head.key == "city")
     assert(metrics.head.get.dimensions.head.value == "北京")
 
-    val csv = CsvableBuilder[Metric2]
+    val csv = WriterBuilder[Metric2]
       .setField(
         _.dimensions,
         (ds: Seq[Dimension3]) =>
@@ -194,9 +194,9 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     println(csv)
   }
 
-  "CsvableAndScalable8" should "ok when reading from file" in {
+  "WriterAndReaderTest7" should "ok when reading from file" in {
     val metrics =
-      ScalableBuilder[Metric2]
+      ReaderBuilder[Metric2]
         .setField[Seq[Dimension3]](
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
@@ -207,7 +207,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.nonEmpty)
 
     val file = new File("./simple_data.csv")
-    CsvableBuilder[Metric2]
+    WriterBuilder[Metric2]
       .setField[Seq[Dimension3]](
         _.dimensions,
         ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
@@ -217,14 +217,14 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     file.delete()
   }
 
-  "CsvableAndScalable9" should "ok when use custom format" in {
+  "WriterAndReaderTest8" should "ok when use custom format" in {
     implicit val format = new DefaultCsvFormat {
       override val ignoreEmptyLines: Boolean   = true
       override val ignoreHeader: Boolean       = true
       override val prependHeader: List[String] = List("time", "entity", "dimensions", "metricName", "metricValue")
     }
     val metrics =
-      ScalableBuilder[Metric2]
+      ReaderBuilder[Metric2]
         .setField[Seq[Dimension3]](
           _.dimensions,
           dims => StringUtils.extractJsonValues[Dimension3](dims)((k, v) => Dimension3(k, v))
@@ -235,7 +235,7 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     assert(metrics.nonEmpty)
 
     val file = new File("./simple_data_header.csv")
-    CsvableBuilder[Metric2]
+    WriterBuilder[Metric2]
       .setField[Seq[Dimension3]](
         _.dimensions,
         ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
@@ -244,20 +244,20 @@ class CsvableAndScalableTest extends AnyFlatSpec with Matchers {
     file.delete()
   }
 
-  "CsvableAndScalable10" should "failure if not setField" in {
+  "WriterAndReaderTest9" should "failure if not setField" in {
     """
-      |val metrics = ScalableBuilder[Metric].convert(csvData.split("\n").toList)
-      |val csv = CsvableBuilder[Metric].convert(metrics.filter(_.isDefined).map(_.get))
+      |val metrics = ReaderBuilder[Metric].convert(csvData.split("\n").toList)
+      |val csv = WriterBuilder[Metric].convert(metrics.filter(_.isDefined).map(_.get))
       |
-      |val metrics2 = ScalableBuilder[Metric2].convert(csvData.split("\n").toList)
-      |val csv2 = CsvableBuilder[Metric2].convert(metrics2.filter(_.isDefined).map(_.get))
+      |val metrics2 = ReaderBuilder[Metric2].convert(csvData.split("\n").toList)
+      |val csv2 = WriterBuilder[Metric2].convert(metrics2.filter(_.isDefined).map(_.get))
       |
       |
-      |val metrics3 = ScalableBuilder[Metric4].convert(csvData.split("\n").toList)
-      |val csv3 = CsvableBuilder[Metric4].convert(metrics3.filter(_.isDefined).map(_.get))
+      |val metrics3 = ReaderBuilder[Metric4].convert(csvData.split("\n").toList)
+      |val csv3 = WriterBuilder[Metric4].convert(metrics3.filter(_.isDefined).map(_.get))
       |
-      |val metrics4 = ScalableBuilder[Metric5].convert(csvData.split("\n").toList)
-      |val csv4 = CsvableBuilder[Metric5].convert(metrics4.filter(_.isDefined).map(_.get))
+      |val metrics4 = ReaderBuilder[Metric5].convert(csvData.split("\n").toList)
+      |val csv4 = WriterBuilder[Metric5].convert(metrics4.filter(_.isDefined).map(_.get))
       |""".stripMargin shouldNot compile
   }
 

@@ -21,10 +21,9 @@
 
 package org.bitlap.tools
 
-import org.bitlap.tools.LogLevel.LogLevel
 import org.bitlap.tools.internal.elapsedMacro.ElapsedProcessor
 
-import scala.annotation.{ compileTimeOnly, StaticAnnotation }
+import scala.annotation._
 
 /** annotation to record method cost time.
  *
@@ -38,6 +37,6 @@ import scala.annotation.{ compileTimeOnly, StaticAnnotation }
  *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
-final class elapsed(limit: Int, logLevel: LogLevel) extends StaticAnnotation {
+final class elapsed(limit: Int, logLevel: String) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro ElapsedProcessor.impl
 }

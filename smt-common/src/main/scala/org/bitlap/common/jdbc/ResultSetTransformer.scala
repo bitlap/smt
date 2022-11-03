@@ -40,6 +40,9 @@ trait ResultSetTransformer[T <: GenericRow] {
         case Types.INTEGER   => resultSet.getInt(name)
         case Types.DOUBLE    => resultSet.getDouble(name)
         case Types.TIMESTAMP => resultSet.getTimestamp(name)
+        case Types.TIME      => resultSet.getTime(name)
+        case Types.FLOAT     => resultSet.getFloat(name)
+        case Types.DATE      => resultSet.getDate(name)
         case _               => resultSet.getObject(name)
       }
     }

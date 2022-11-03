@@ -19,28 +19,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bitlap.tools
+package org.bitlap.csv
 
-/** Log Level for elapsed
+/** a Custom Csv decoder.
  *
  *  @author
  *    梦境迷离
- *  @since 2021/8/7
+ *  @since 2022/04/30
  *  @version 1.0
  */
-object LogLevel extends Enumeration {
+trait Reader[T] {
 
-  type LogLevel = Value
-  val INFO, WARN, DEBUG = Value
+  /** API for processing a specific column value of CSV line data.
+   *
+   *  @param column
+   *    The column value of CSV line data.
+   *  @return
+   */
+  def transform(column: String): Option[T]
+}
 
-  private[bitlap] def getLogLevel(shortType: String): LogLevel = {
-    // TODO not good way
-    val tpe1 = s"$PACKAGE.$shortType"          // LogLevel.INFO
-    val tpe2 = s"$PACKAGE.LogLevel.$shortType" // INFO
-    val v = LogLevel.values.find { p =>
-      s"$PACKAGE.LogLevel.${p.toString}" == tpe1 ||
-      s"$PACKAGE.LogLevel.${p.toString}" == tpe2 || s"$PACKAGE.LogLevel.${p.toString}" == shortType
-    }.get.toString
-    LogLevel.withName(v)
-  }
+object Reader extends ReaderImplicits {
+
+  def apply[T](implicit st: Reader[T]): Reader[T] = st
+
 }

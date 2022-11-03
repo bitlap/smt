@@ -29,12 +29,12 @@ sealed trait Options
 
 object Options {
 
-  case object enableOptionDefaultsToNone extends Options
+  final case object enableOptionDefaultsToNone extends Options
 
-  case object enableCollectionDefaultsToEmpty extends Options
+  final case object enableCollectionDefaultsToEmpty extends Options
 
-  case object disableCollectionDefaultsToEmpty extends Options
+  final case object disableCollectionDefaultsToEmpty extends Options
 
-  case object disableOptionDefaultsToNone extends Options
+  final case object disableOptionDefaultsToNone extends Options
 
 }

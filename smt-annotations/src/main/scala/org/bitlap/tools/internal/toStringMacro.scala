@@ -30,8 +30,6 @@ import scala.reflect.macros.whitebox
  */
 object toStringMacro {
 
-  private final case class Argument(includeInternalFields: Boolean, includeFieldNames: Boolean, callSuper: Boolean)
-
   class ToStringProcessor(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
     import c.universe._

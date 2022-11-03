@@ -21,7 +21,7 @@
 
 package org.bitlap.csv
 
-import org.bitlap.csv.internal.CsvableBuilderMacro
+import org.bitlap.csv.internal.WriterBuilderMacro
 import java.io.File
 
 /** Builder to create a custom Csv Encoder.
@@ -30,7 +30,7 @@ import java.io.File
  *    梦境迷离
  *  @version 1.0,2022/4/30
  */
-class CsvableBuilder[T] {
+class WriterBuilder[T] {
 
   /** Convert this CSV column string to any Scala types.
    *
@@ -42,8 +42,8 @@ class CsvableBuilder[T] {
    *    The field type, generally, it is not necessary to specify, but it is safer if specify.
    *  @return
    */
-  def setField[SF](scalaField: T => SF, value: SF => String): CsvableBuilder[T] =
-    macro CsvableBuilderMacro.setFieldImpl[T, SF]
+  def setField[SF](scalaField: T => SF, value: SF => String): WriterBuilder[T] =
+    macro WriterBuilderMacro.setFieldImpl[T, SF]
 
   /** Create a custom builder for converting this scala value to CSV line string.
    *
@@ -54,7 +54,7 @@ class CsvableBuilder[T] {
    *  @return
    *    The string of one CSV line.
    */
-  def convert(t: T)(implicit format: CsvFormat): String = macro CsvableBuilderMacro.convertOneImpl[T]
+  def convert(t: T)(implicit format: CsvFormat): String = macro WriterBuilderMacro.convertOneImpl[T]
 
   /** Convert the sequence of Scala case class to CSV string.
    *
@@ -65,7 +65,7 @@ class CsvableBuilder[T] {
    *  @return
    *    The string of all CSV lines.
    */
-  def convert(ts: List[T])(implicit format: CsvFormat): String = macro CsvableBuilderMacro.convertAllImpl[T]
+  def convert(ts: List[T])(implicit format: CsvFormat): String = macro WriterBuilderMacro.convertAllImpl[T]
 
   /** Convert the sequence of Scala case class to CSV string and write to file.
    *
@@ -79,12 +79,12 @@ class CsvableBuilder[T] {
    *    The string of all CSV lines.
    */
   def convertTo(ts: List[T], file: File)(implicit format: CsvFormat): Boolean =
-    macro CsvableBuilderMacro.convertToFileImpl[T]
+    macro WriterBuilderMacro.convertToFileImpl[T]
 
 }
 
-object CsvableBuilder {
+object WriterBuilder {
 
-  def apply[T <: Product]: CsvableBuilder[T] = macro CsvableBuilderMacro.applyImpl[T]
+  def apply[T <: Product]: WriterBuilder[T] = macro WriterBuilderMacro.applyImpl[T]
 
 }

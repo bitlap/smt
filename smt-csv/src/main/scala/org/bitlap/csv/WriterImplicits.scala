@@ -21,23 +21,41 @@
 
 package org.bitlap.csv
 
-import java.io.{ BufferedReader, File, FileReader, InputStreamReader }
-
-/** Tool class for parsing CSV files.
- *
- *  @author
+/** @author
  *    梦境迷离
- *  @version 1.0,2022/5/13
+ *  @version 1.0,2022/5/1
  */
-object ScalableHelper {
+trait WriterImplicits {
 
-  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
-    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
-    FileUtils.readFileFunc[T](new BufferedReader(reader), func)
+  implicit final val stringWriter: Writer[String] = new Writer[String] {
+    override def transform(s: String): String = s
   }
 
-  def readCsvFromFile[T <: Product](file: File)(func: String => Option[T]): List[Option[T]] = {
-    val reader = new BufferedReader(new FileReader(file))
-    FileUtils.readFileFunc[T](reader, func)
+  implicit final val intWriter: Writer[Int] = new Writer[Int] {
+    override def transform(column: Int): String = column.toString
+  }
+
+  implicit final val charWriter: Writer[Char] = new Writer[Char] {
+    override def transform(t: Char): String = t.toString
+  }
+
+  implicit final val longWriter: Writer[Long] = new Writer[Long] {
+    override def transform(column: Long): String = column.toString
+  }
+
+  implicit final val shortWriter: Writer[Short] = new Writer[Short] {
+    override def transform(column: Short): String = column.toString
+  }
+
+  implicit final val doubleWriter: Writer[Double] = new Writer[Double] {
+    override def transform(column: Double): String = column.toString
+  }
+
+  implicit final val floatWriter: Writer[Float] = new Writer[Float] {
+    override def transform(column: Float): String = column.toString
+  }
+
+  implicit final val booleanWriter: Writer[Boolean] = new Writer[Boolean] {
+    override def transform(column: Boolean): String = column.toString
   }
 }

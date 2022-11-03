@@ -23,7 +23,7 @@ package org.bitlap.csv.internal
 
 import org.bitlap.common.MacroCache
 import org.bitlap.common.internal.AbstractMacroProcessor
-import org.bitlap.csv.{ CsvFormat, ScalableBuilder }
+import org.bitlap.csv.{ CsvFormat, ReaderBuilder }
 
 import java.io.InputStream
 import scala.collection.mutable
@@ -33,59 +33,59 @@ import scala.reflect.macros.whitebox
  *    梦境迷离
  *  @version 1.0,2022/4/29
  */
-class ScalableBuilderMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
 
   protected val packageName = q"_root_.org.bitlap.csv"
 
-  private val annoBuilderPrefix = "_AnonScalableBuilder$"
+  private val annoBuilderPrefix = "_AnonReaderBuilder$"
 
-  private val builderFunctionPrefix = "_ScalableBuilderFunction$"
+  private val builderFunctionPrefix = "_ReaderBuilderFunction$"
 
-  private val innerColumnFuncTermName     = TermName("_columns")
-  private val innerLName                  = q"_l"
-  private val innerTempTermName           = TermName("_line")
-  private val scalableInstanceTermName    = TermName("_scalableInstance")
-  private val scalableImplClassNamePrefix = "_ScalaAnno$"
+  private val innerColumnFuncTermName   = TermName("_columns")
+  private val innerLName                = q"_l"
+  private val innerTempTermName         = TermName("_line")
+  private val readerInstanceTermName    = TermName("_ReaderInstance")
+  private val readerImplClassNamePrefix = "_ScalaAnno$"
 
   // scalafmt: { maxColumn = 400 }
   @unchecked
-  def setFieldImpl[T, SF](scalaField: Expr[T => SF], value: Expr[String => SF]): Expr[ScalableBuilder[T]] = {
+  def setFieldImpl[T, SF](scalaField: Expr[T => SF], value: Expr[String => SF]): Expr[ReaderBuilder[T]] = {
     val Function(_, Select(_, termName)) = scalaField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[ScalableBuilder[T]](force = false, tree)
+    exprPrintTree[ReaderBuilder[T]](force = false, tree)
   }
 
-  def applyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] =
+  def applyImpl[T: WeakTypeTag]: Expr[ReaderBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
   def convertOneImpl[T: WeakTypeTag](line: Expr[String])(format: c.Expr[CsvFormat]): Expr[Option[T]] = {
     val clazzName = resolveClassTypeName[T]
-    deriveScalableImpl[T](clazzName, line, format)
+    deriveReaderImpl[T](clazzName, line, format)
   }
 
   def convertAllImpl[T: WeakTypeTag](lines: Expr[List[String]])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
     val clazzName = resolveClassTypeName[T]
-    deriveFullScalableImpl[T](clazzName, lines, format)
+    deriveFullReaderImpl[T](clazzName, lines, format)
   }
 
   def convertFromFileImpl[T: WeakTypeTag](file: Expr[InputStream])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
     val clazzName = resolveClassTypeName[T]
-    deriveFullFromFileScalableImpl[T](clazzName, file, format)
+    deriveFullFromFileReaderImpl[T](clazzName, file, format)
   }
 
-  private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[ScalableBuilder[T]] = {
+  private def deriveBuilderApplyImpl[T: WeakTypeTag]: Expr[ReaderBuilder[T]] = {
     val className     = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
     val caseClazzName = weakTypeOf[T].typeSymbol.name.toTypeName
     val tree =
       q"""
-        class $className extends $packageName.ScalableBuilder[$caseClazzName]
+        class $className extends $packageName.ReaderBuilder[$caseClazzName]
         new $className
        """
-    exprPrintTree[ScalableBuilder[T]](force = false, tree)
+    exprPrintTree[ReaderBuilder[T]](force = false, tree)
   }
 
   private def getPreTree: Iterable[Tree] = {
@@ -101,57 +101,57 @@ class ScalableBuilderMacro(override val c: whitebox.Context) extends AbstractMac
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveFullFromFileScalableImpl[T: WeakTypeTag](clazzName: TypeName, file: Expr[InputStream], format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
-    // NOTE: preTrees must be at the same level as Scalable
+  private def deriveFullFromFileReaderImpl[T: WeakTypeTag](clazzName: TypeName, file: Expr[InputStream], format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
+    // NOTE: preTrees must be at the same level as Reader
     val tree =
       q"""
          ..$getPreTree
          ..${getAnnoClassObject[T](clazzName, format)}
          $packageName.FileUtils.reader($file, $format).map { ($innerLName: String) =>
-             $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
-             $scalableInstanceTermName.transform($innerLName) 
+             $readerInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
+             $readerInstanceTermName.transform($innerLName) 
          }
       """
     exprPrintTree[List[Option[T]]](force = false, tree)
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveFullScalableImpl[T: WeakTypeTag](clazzName: TypeName, lines: Expr[List[String]], format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
-    // NOTE: preTrees must be at the same level as Scalable
+  private def deriveFullReaderImpl[T: WeakTypeTag](clazzName: TypeName, lines: Expr[List[String]], format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
+    // NOTE: preTrees must be at the same level as Reader
     val tree =
       q"""
          ..$getPreTree
          ..${getAnnoClassObject[T](clazzName, format)}
          $lines.map { ($innerLName: String) =>
-             $scalableInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
-             $scalableInstanceTermName.transform($innerLName) 
+             $readerInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
+             $readerInstanceTermName.transform($innerLName) 
          }
       """
     exprPrintTree[List[Option[T]]](force = false, tree)
   }
 
   private def getAnnoClassObject[T: WeakTypeTag](clazzName: TypeName, format: c.Expr[CsvFormat]): Tree = {
-    val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
+    val annoClassName = TermName(readerImplClassNamePrefix + MacroCache.getIdentityId)
     q"""
-       object $annoClassName extends $packageName.Scalable[$clazzName] {
+       object $annoClassName extends $packageName.Reader[$clazzName] {
            var $innerTempTermName: String = _
            private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns(${annoClassName.toTermName}.$innerTempTermName, $format)
-            ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
+            ..${readerBody[T](clazzName, innerColumnFuncTermName)}
        }
-       private final lazy val $scalableInstanceTermName = $annoClassName
+       private final lazy val $readerInstanceTermName = $annoClassName
      """
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def deriveScalableImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], format: c.Expr[CsvFormat]): Expr[Option[T]] = {
-    val annoClassName = TermName(scalableImplClassNamePrefix + MacroCache.getIdentityId)
-    // NOTE: preTrees must be at the same level as Scalable
+  private def deriveReaderImpl[T: WeakTypeTag](clazzName: TypeName, line: Expr[String], format: c.Expr[CsvFormat]): Expr[Option[T]] = {
+    val annoClassName = TermName(readerImplClassNamePrefix + MacroCache.getIdentityId)
+    // NOTE: preTrees must be at the same level as Reader
     val tree =
       q"""
          ..$getPreTree
-         object $annoClassName extends $packageName.Scalable[$clazzName] {
+         object $annoClassName extends $packageName.Reader[$clazzName] {
             final lazy private val $innerColumnFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
-            ..${scalableBody[T](clazzName, innerColumnFuncTermName)}
+            ..${readerBody[T](clazzName, innerColumnFuncTermName)}
          }
          $annoClassName.transform($line)
       """
@@ -159,7 +159,7 @@ class ScalableBuilderMacro(override val c: whitebox.Context) extends AbstractMac
   }
 
   // scalafmt: { maxColumn = 400 }
-  private def scalableBody[T: WeakTypeTag](clazzName: TypeName, innerFuncTermName: TermName): Tree = {
+  private def readerBody[T: WeakTypeTag](clazzName: TypeName, innerFuncTermName: TermName): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val params      = getCaseClassFieldInfoList[T]()
     val fieldNames  = params.map(_.fieldName)
@@ -175,25 +175,25 @@ class ScalableBuilderMacro(override val c: whitebox.Context) extends AbstractMac
         case Nil if !customTrees.contains(fieldNames(idx)) =>
           fieldType match {
             case t if t =:= typeOf[Int] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[String] =>
-              q"""$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"""
+              q"""$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"""
             case t if t =:= typeOf[Float] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse[Float](${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse[Float](${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Double] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse[Double](${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse[Double](${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Char] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Byte] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Short] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Boolean] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case t if t =:= typeOf[Long] =>
-              q"$packageName.Scalable[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
+              q"$packageName.Reader[$fieldTypeName].transform($columnValues).getOrElse(${fieldTreeInformation.zeroValue})"
             case _ =>
-              tryOptionGetOrElse(q"$packageName.Scalable[$fieldTypeName].transform($columnValues)", fieldTreeInformation.zeroValue)
+              tryOptionGetOrElse(q"$packageName.Reader[$fieldTypeName].transform($columnValues)", fieldTreeInformation.zeroValue)
           }
         case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isList =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.List[$generic]]", fieldTreeInformation.zeroValue)
@@ -206,7 +206,7 @@ class ScalableBuilderMacro(override val c: whitebox.Context) extends AbstractMac
         case generic :: Nil if customTrees.contains(fieldNames(idx)) && fieldTreeInformation.collectionsFlags.isSeq =>
           tryGetOrElse(q"${customFunction()}.asInstanceOf[_root_.scala.Seq[$generic]]", fieldTreeInformation.zeroValue)
         case generic :: Nil if fieldTreeInformation.collectionsFlags.isOption =>
-          tryOption(q"$packageName.Scalable[$generic].transform($columnValues)")
+          tryOption(q"$packageName.Reader[$generic].transform($columnValues)")
         case generic =>
           c.abort(
             c.enclosingPosition,

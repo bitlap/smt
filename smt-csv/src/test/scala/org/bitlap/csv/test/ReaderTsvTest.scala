@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.test
 
-import org.bitlap.csv.{ CsvableBuilder, ScalableBuilder, TsvFormat }
+import org.bitlap.csv.{ ReaderBuilder, TsvFormat, WriterBuilder }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -31,9 +31,9 @@ import java.io.File
  *    梦境迷离
  *  @version 1.0,6/4/22
  */
-class ScalableTsvTest extends AnyFlatSpec with Matchers {
+class ReaderTsvTest extends AnyFlatSpec with Matchers {
 
-  "ScalableTsvTest1" should "ok when file is tsv" in {
+  "ReaderTsvTest1" should "ok when file is tsv" in {
     implicit val format = new TsvFormat {
       override val delimiter: Char             = ' '
       override val ignoreEmptyLines: Boolean   = true
@@ -41,7 +41,7 @@ class ScalableTsvTest extends AnyFlatSpec with Matchers {
       override val prependHeader: List[String] = List("time", "entity", "dimensions", "metricName", "metricValue")
     }
     val metrics =
-      ScalableBuilder[Metric3]
+      ReaderBuilder[Metric3]
         .convertFrom(ClassLoader.getSystemResourceAsStream("simple_data_header.tsv"))
     println(metrics)
     assert(metrics.nonEmpty)
@@ -51,7 +51,7 @@ class ScalableTsvTest extends AnyFlatSpec with Matchers {
     )
 
     val file = new File("./simple_data_header.tsv")
-    CsvableBuilder[Metric3]
+    WriterBuilder[Metric3]
       // NOTE: not support pass anonymous object to convertTo method.
       .convertTo(metrics.filter(_.isDefined).map(_.get), file)
     file.delete()
