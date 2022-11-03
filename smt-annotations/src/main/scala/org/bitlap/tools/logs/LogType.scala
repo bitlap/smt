@@ -47,6 +47,9 @@ object LogType {
   val values = types.keySet
 
   def getLogImpl(logType: String): BaseLog =
-    types.getOrElse(logType.toLowerCase, default = throw new Exception(s"Not support log type: $logType"))
+    types.getOrElse(
+      logType.toLowerCase,
+      default = throw new Exception(s"$logType is not in the supported list: ${values.mkString(",")}")
+    )
 
 }

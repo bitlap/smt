@@ -44,10 +44,7 @@ object logMacro {
         evalTree(logType.asInstanceOf[Tree])
       case q"new log()" => LogType.JLog
       case _ =>
-        c.abort(
-          c.enclosingPosition,
-          s"${ErrorMessage.UNEXPECTED_PATTERN}, only support: ${LogType.values.mkString(",")}"
-        )
+        c.abort(c.enclosingPosition, s"${ErrorMessage.UNEXPECTED_PATTERN}")
     }
 
     private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {

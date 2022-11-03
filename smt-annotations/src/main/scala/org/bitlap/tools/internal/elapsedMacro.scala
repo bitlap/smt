@@ -68,6 +68,11 @@ object elapsedMacro {
           case "info"  => getLog(classNameAndMethodName, q"${log.get}.info")
           case "debug" => getLog(classNameAndMethodName, q"${log.get}.debug")
           case "warn"  => getLog(classNameAndMethodName, q"${log.get}.warn")
+          case _ =>
+            c.abort(
+              c.enclosingPosition,
+              s"${extractOptions._2.toLowerCase} is not in the supported list: info,debug,warn"
+            )
         }
       }
     }
