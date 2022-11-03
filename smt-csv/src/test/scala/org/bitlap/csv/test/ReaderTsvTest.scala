@@ -33,7 +33,7 @@ import java.io.File
  */
 class ReaderTsvTest extends AnyFlatSpec with Matchers {
 
-  "ScalableTsvTest1" should "ok when file is tsv" in {
+  "ReaderTsvTest1" should "ok when file is tsv" in {
     implicit val format = new TsvFormat {
       override val delimiter: Char             = ' '
       override val ignoreEmptyLines: Boolean   = true

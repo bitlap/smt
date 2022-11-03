@@ -27,35 +27,35 @@ package org.bitlap.csv
  */
 trait WriterImplicits {
 
-  implicit final val stringCsvable: Writer[String] = new Writer[String] {
+  implicit final val stringWriter: Writer[String] = new Writer[String] {
     override def transform(s: String): String = s
   }
 
-  implicit final val intCsvable: Writer[Int] = new Writer[Int] {
+  implicit final val intWriter: Writer[Int] = new Writer[Int] {
     override def transform(column: Int): String = column.toString
   }
 
-  implicit final val charCsvable: Writer[Char] = new Writer[Char] {
+  implicit final val charWriter: Writer[Char] = new Writer[Char] {
     override def transform(t: Char): String = t.toString
   }
 
-  implicit final val longCsvable: Writer[Long] = new Writer[Long] {
+  implicit final val longWriter: Writer[Long] = new Writer[Long] {
     override def transform(column: Long): String = column.toString
   }
 
-  implicit final val shortCsvable: Writer[Short] = new Writer[Short] {
+  implicit final val shortWriter: Writer[Short] = new Writer[Short] {
     override def transform(column: Short): String = column.toString
   }
 
-  implicit final val doubleCsvable: Writer[Double] = new Writer[Double] {
+  implicit final val doubleWriter: Writer[Double] = new Writer[Double] {
     override def transform(column: Double): String = column.toString
   }
 
-  implicit final val floatCsvable: Writer[Float] = new Writer[Float] {
+  implicit final val floatWriter: Writer[Float] = new Writer[Float] {
     override def transform(column: Float): String = column.toString
   }
 
-  implicit final val booleanCsvable: Writer[Boolean] = new Writer[Boolean] {
+  implicit final val booleanWriter: Writer[Boolean] = new Writer[Boolean] {
     override def transform(column: Boolean): String = column.toString
   }
 }

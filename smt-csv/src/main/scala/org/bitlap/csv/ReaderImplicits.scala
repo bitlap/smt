@@ -29,35 +29,35 @@ import scala.util.Try
  */
 trait ReaderImplicits {
 
-  implicit final val stringScalable: Reader[String] = new Reader[String] {
+  implicit final val stringReader: Reader[String] = new Reader[String] {
     override def transform(column: String): Option[String] = if (column.isEmpty) None else Some(column)
   }
 
-  implicit final val intScalable: Reader[Int] = new Reader[Int] {
+  implicit final val intReader: Reader[Int] = new Reader[Int] {
     override def transform(column: String): Option[Int] = Try(column.toInt).toOption
   }
 
-  implicit final val charScalable: Reader[Char] = new Reader[Char] {
+  implicit final val charReader: Reader[Char] = new Reader[Char] {
     override def transform(column: String): Option[Char] = if (column.isEmpty) None else Try(column.charAt(0)).toOption
   }
 
-  implicit final val longScalable: Reader[Long] = new Reader[Long] {
+  implicit final val longReader: Reader[Long] = new Reader[Long] {
     override def transform(column: String): Option[Long] = Try(column.toLong).toOption
   }
 
-  implicit final val shortScalable: Reader[Short] = new Reader[Short] {
+  implicit final val shortReader: Reader[Short] = new Reader[Short] {
     override def transform(column: String): Option[Short] = Try(column.toShort).toOption
   }
 
-  implicit final val doubleScalable: Reader[Double] = new Reader[Double] {
+  implicit final val doubleReader: Reader[Double] = new Reader[Double] {
     override def transform(column: String): Option[Double] = Try(column.toDouble).toOption
   }
 
-  implicit final val floatScalable: Reader[Float] = new Reader[Float] {
+  implicit final val floatReader: Reader[Float] = new Reader[Float] {
     override def transform(column: String): Option[Float] = Try(column.toFloat).toOption
   }
 
-  implicit final val booleanScalable: Reader[Boolean] = new Reader[Boolean] {
+  implicit final val booleanReader: Reader[Boolean] = new Reader[Boolean] {
     override def transform(column: String): Option[Boolean] = Try(column.toBoolean).toOption
   }
 }
