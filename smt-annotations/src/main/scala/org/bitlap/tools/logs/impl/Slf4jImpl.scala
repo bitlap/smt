@@ -21,8 +21,7 @@
 
 package org.bitlap.tools.logs.impl
 
-import org.bitlap.tools.logs.{ BaseLog, LogArgument, LogType }
-import org.bitlap.tools.logs.LogType.LogType
+import org.bitlap.tools.logs._
 
 import scala.reflect.macros.whitebox
 
@@ -32,17 +31,17 @@ import scala.reflect.macros.whitebox
  */
 object Slf4jImpl extends BaseLog {
 
-  override val `type`: LogType = LogType.Slf4j
+  override val `type`: String = LogType.Slf4j
 
   override def getTemplate(c: whitebox.Context)(logArgument: LogArgument): c.Tree = {
     import c.universe._
     if (logArgument.isClass) {
       q"""@transient private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(classOf[${TypeName(
-          logArgument.classNameStr
+          logArgument.className
         )}])"""
     } else {
       q"""@transient private final val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(${TermName(
-          logArgument.classNameStr
+          logArgument.className
         )}.getClass)"""
     }
   }

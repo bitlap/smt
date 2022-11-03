@@ -21,7 +21,7 @@
 
 package org.bitlap.csv
 
-import org.bitlap.csv.internal.ScalableBuilderMacro
+import org.bitlap.csv.internal.ReaderBuilderMacro
 import java.io.InputStream
 
 /** Builder to create a custom Csv Decoder.
@@ -30,7 +30,7 @@ import java.io.InputStream
  *    梦境迷离
  *  @version 1.0,2022/4/30
  */
-class ScalableBuilder[T] {
+class ReaderBuilder[T] {
 
   /** Convert any Scala types to this CSV column string.
    *
@@ -42,8 +42,8 @@ class ScalableBuilder[T] {
    *    The field type, generally, it is not necessary to specify, but it is safer if specify.
    *  @return
    */
-  def setField[SF](scalaField: T => SF, value: String => SF): ScalableBuilder[T] =
-    macro ScalableBuilderMacro.setFieldImpl[T, SF]
+  def setField[SF](scalaField: T => SF, value: String => SF): ReaderBuilder[T] =
+    macro ReaderBuilderMacro.setFieldImpl[T, SF]
 
   /** Create a custom builder for converting this CSV line to scala values.
    *
@@ -53,7 +53,7 @@ class ScalableBuilder[T] {
    *    For processing CSV in the specified format.
    *  @return
    */
-  def convert(line: String)(implicit format: CsvFormat): Option[T] = macro ScalableBuilderMacro.convertOneImpl[T]
+  def convert(line: String)(implicit format: CsvFormat): Option[T] = macro ReaderBuilderMacro.convertOneImpl[T]
 
   /** Convert all CSV lines to the sequence of Scala case class.
    *
@@ -64,7 +64,7 @@ class ScalableBuilder[T] {
    *  @return
    */
   def convert(lines: List[String])(implicit format: CsvFormat): List[Option[T]] =
-    macro ScalableBuilderMacro.convertAllImpl[T]
+    macro ReaderBuilderMacro.convertAllImpl[T]
 
   /** Read all CSV lines of the file and convert them to the sequence of Scala case class.
    *
@@ -75,12 +75,12 @@ class ScalableBuilder[T] {
    *  @return
    */
   def convertFrom(file: InputStream)(implicit format: CsvFormat): List[Option[T]] =
-    macro ScalableBuilderMacro.convertFromFileImpl[T]
+    macro ReaderBuilderMacro.convertFromFileImpl[T]
 
 }
 
-object ScalableBuilder {
+object ReaderBuilder {
 
-  def apply[T <: Product]: ScalableBuilder[T] = macro ScalableBuilderMacro.applyImpl[T]
+  def apply[T <: Product]: ReaderBuilder[T] = macro ReaderBuilderMacro.applyImpl[T]
 
 }

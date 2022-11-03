@@ -21,7 +21,7 @@
 
 package org.bitlap.csv.test
 
-import org.bitlap.csv.{ CsvableBuilder, DefaultCsvFormat, ScalableBuilder }
+import org.bitlap.csv.{ DefaultCsvFormat, ReaderBuilder, WriterBuilder }
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -29,27 +29,27 @@ import org.scalatest.matchers.should.Matchers
  *    梦境迷离
  *  @version 1.0,2022/4/29
  */
-class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
+class CustomBuilderTest extends AnyFlatSpec with Matchers {
 
-  "CustomConverterBuilder1" should "ok" in {
+  "CustomBuilderTest1" should "ok" in {
     val line      = "abc,cdf,d,12,2,false,0.1,0.23333"
-    val dimension = ScalableBuilder[Dimension2].convert(line)
+    val dimension = ReaderBuilder[Dimension2].convert(line)
     assert(dimension.toString == "Some(Dimension2(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
-    val csv = CsvableBuilder[Dimension2].convert(dimension.get)
+    val csv = WriterBuilder[Dimension2].convert(dimension.get)
     println(csv)
     assert(csv == line)
   }
 
-  "CustomConverterBuilder2" should "ok when using json value" in {
+  "CustomBuilderTest2" should "ok when using json value" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
-    val dimension1 = ScalableBuilder[Dimension2]
+    val dimension1 = ReaderBuilder[Dimension2]
       .setField(_.c, _ => 12L)
       .convert(line)
 
     println(dimension1)
     assert(dimension1.toString == "Some(Dimension2(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
 
-    val csv = CsvableBuilder[Dimension2]
+    val csv = WriterBuilder[Dimension2]
       .setField[Char](_.d, _ => "????????")
       .setField[Option[String]](_.value, js => s"""\"${js.get.replace("\"", "\"\"")}\"""")
       .convert(dimension1.get)
@@ -58,111 +58,111 @@ class CustomConverterBuilderTest extends AnyFlatSpec with Matchers {
     assert(csv == "abc,\"{\"\"a\"\":\"\"b\"\",\"\"c\"\":\"\"d\"\"}\",????????,12,2,false,0.1,0.23333")
   }
 
-  "CustomConverterBuilder3" should "ok when using json value" in {
+  "CustomBuilderTest3" should "ok when using json value" in {
     val line = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
-    val d = ScalableBuilder[Dimension2]
+    val d = ReaderBuilder[Dimension2]
       .setField(_.value, _ => None)
       .convert(line)
     assert(d.toString == "Some(Dimension2(abc,None,d,12,2,false,0.1,0.23333))")
 
-    val d2 = ScalableBuilder[Dimension2]
+    val d2 = ReaderBuilder[Dimension2]
       .setField(_.value, _ => None)
       .convert("""abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333""")
     assert(d2.toString == "Some(Dimension2(abc,None,d,12,2,false,0.1,0.23333))")
 
-    val e = ScalableBuilder[Dimension2]
+    val e = ReaderBuilder[Dimension2]
       .convert(line)
     println(e)
 
     assert(e.toString == "Some(Dimension2(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
   }
 
-  "CustomConverterBuilder4" should "ok when using toCsvString" in {
+  "CustomBuilderTest4" should "ok when using toCsvString" in {
     val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
-    val dimension1 = CsvableBuilder[Dimension2]
+    val dimension1 = WriterBuilder[Dimension2]
       .convert(e)
     assert(dimension1 == "1,hello,c,1,1,false,0.1,0.2")
 
-    val dimension2 = CsvableBuilder[Dimension2]
+    val dimension2 = WriterBuilder[Dimension2]
       .setField[Option[String]](_.value, _ => "hello world")
       .convert(e)(new DefaultCsvFormat {
         override val delimiter: Char = '*'
       })
     assert(dimension2 == "1*hello world*c*1*1*false*0.1*0.2")
 
-    val dimension3 = CsvableBuilder[Dimension2]
+    val dimension3 = WriterBuilder[Dimension2]
       .setField[Option[String]](_.value, _ => "hello world")
       .convert(Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2))
     assert(dimension3 == "1,hello world,c,1,1,false,0.1,0.2")
   }
 
-  "CustomConverterBuilder5" should "ok when using list" in {
+  "CustomBuilderTest5" should "ok when using list" in {
     val es = List(
       Dimension2("1", Some("hello"), 'c', 1L, 1, true, 0.1f, 0.2),
       Dimension2("2", Some("hello bitlap"), 'c', 1L, 1, false, 0.1f, 0.2)
     )
 
-    val dimension1 = es.map(e => CsvableBuilder[Dimension2].convert(e))
+    val dimension1 = es.map(e => WriterBuilder[Dimension2].convert(e))
     assert(dimension1 == List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2"))
 
     val csv   = List("1,hello,c,1,1,true,0.1,0.2", "2,hello bitlap,c,1,1,false,0.1,0.2")
-    val scala = csv.map(f => ScalableBuilder[Dimension2].convert(f))
+    val scala = csv.map(f => ReaderBuilder[Dimension2].convert(f))
     assert(
       scala.toString() == "List(Some(Dimension2(1,Some(hello),c,1,1,true,0.1,0.2)), Some(Dimension2(2,Some(hello bitlap),c,1,1,false,0.1,0.2)))"
     )
 
   }
 
-  "CustomConverterBuilder6" should "fail when find List or Seq but without using setFiled" in {
+  "CustomBuilderTest6" should "fail when find List or Seq but without using setFiled" in {
     """
-      |ScalableBuilder[Metric2].convert(csv)
+      |ReaderBuilder[Metric2].convert(csv)
       |""".stripMargin shouldNot compile
 
     """
-      |CsvableBuilder[Metric2].convert(metric)
+      |WriterBuilder[Metric2].convert(metric)
       |""".stripMargin shouldNot compile
 
   }
 
-  "CustomConverterBuilder7" should "fail when find List or Seq but without using setFiled" in {
+  "CustomBuilderTest7" should "fail when find List or Seq but without using setFiled" in {
     """
-      |ScalableBuilder[Metric2].convert(csv)
+      |ReaderBuilder[Metric2].convert(csv)
       |""".stripMargin shouldNot compile
 
     """
-      |CsvableBuilder[Metric2].convert(metric2)
+      |WriterBuilder[Metric2].convert(metric2)
       |""".stripMargin shouldNot compile
   }
 
-  "CustomConverterBuilder8" should "ok when not pass columnSeparator" in {
+  "CustomBuilderTest8" should "ok when not pass columnSeparator" in {
     val e   = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.2)
-    val csv = CsvableBuilder[Dimension2].convert(e)
+    val csv = WriterBuilder[Dimension2].convert(e)
     println(csv)
     assert(csv == "1,hello,c,1,1,false,0.1,0.2")
 
-    val scala = ScalableBuilder[Dimension2].convert(csv)
+    val scala = ReaderBuilder[Dimension2].convert(csv)
     println(scala)
     assert(scala.get == e)
   }
 
-  "CustomConverterBuilder9" should "fail if case class has currying" in {
+  "CustomBuilderTest9" should "fail if case class has currying" in {
     """
       |case class Test(i:Int)(j:String)
       |    val t = Test(1)("hello")
-      |    CsvableBuilder[Test].convert(t)
+      |    WriterBuilder[Test].convert(t)
       |""".stripMargin shouldNot compile
   }
 
-  "CustomConverterBuilder10" should "get None when error" in {
+  "CustomBuilderTest10" should "get None when error" in {
     val e = Dimension2("1", Some("hello"), 'c', 1L, 1, false, 0.1f, 0.0)
     // aaa should be Double, but failure, can get 0.0D
     val csv   = "1,hello,c,1,1,false,0.1,aaa"
-    val scala = ScalableBuilder[Dimension2].convert(csv)
+    val scala = ReaderBuilder[Dimension2].convert(csv)
     println(scala)
     assert(scala.get == e)
-    val scala2 = ScalableBuilder[Dimension2].setField(_.h, _ => throw new Exception).convert(csv)
+    val scala2 = ReaderBuilder[Dimension2].setField(_.h, _ => throw new Exception).convert(csv)
     assert(scala2.get == e)
-    val scala3 = ScalableBuilder[Dimension2].setField(_.value, _ => throw new Exception).convert(csv)
+    val scala3 = ReaderBuilder[Dimension2].setField(_.value, _ => throw new Exception).convert(csv)
     assert(scala3.get == Dimension2("1", None, 'c', 1L, 1, false, 0.1f, 0.0))
   }
 }

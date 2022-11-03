@@ -25,37 +25,37 @@ package org.bitlap.csv
  *    梦境迷离
  *  @version 1.0,2022/5/1
  */
-trait CsvableImplicits {
+trait WriterImplicits {
 
-  implicit final val stringCsvable: Csvable[String] = new Csvable[String] {
+  implicit final val stringCsvable: Writer[String] = new Writer[String] {
     override def transform(s: String): String = s
   }
 
-  implicit final val intCsvable: Csvable[Int] = new Csvable[Int] {
+  implicit final val intCsvable: Writer[Int] = new Writer[Int] {
     override def transform(column: Int): String = column.toString
   }
 
-  implicit final val charCsvable: Csvable[Char] = new Csvable[Char] {
+  implicit final val charCsvable: Writer[Char] = new Writer[Char] {
     override def transform(t: Char): String = t.toString
   }
 
-  implicit final val longCsvable: Csvable[Long] = new Csvable[Long] {
+  implicit final val longCsvable: Writer[Long] = new Writer[Long] {
     override def transform(column: Long): String = column.toString
   }
 
-  implicit final val shortCsvable: Csvable[Short] = new Csvable[Short] {
+  implicit final val shortCsvable: Writer[Short] = new Writer[Short] {
     override def transform(column: Short): String = column.toString
   }
 
-  implicit final val doubleCsvable: Csvable[Double] = new Csvable[Double] {
+  implicit final val doubleCsvable: Writer[Double] = new Writer[Double] {
     override def transform(column: Double): String = column.toString
   }
 
-  implicit final val floatCsvable: Csvable[Float] = new Csvable[Float] {
+  implicit final val floatCsvable: Writer[Float] = new Writer[Float] {
     override def transform(column: Float): String = column.toString
   }
 
-  implicit final val booleanCsvable: Csvable[Boolean] = new Csvable[Boolean] {
+  implicit final val booleanCsvable: Writer[Boolean] = new Writer[Boolean] {
     override def transform(column: Boolean): String = column.toString
   }
 }

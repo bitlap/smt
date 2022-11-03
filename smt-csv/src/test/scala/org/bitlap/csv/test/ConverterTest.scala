@@ -29,9 +29,9 @@ import org.scalatest.matchers.should.Matchers
  *    梦境迷离
  *  @version 1.0,2022/4/29
  */
-class CsvConverterTest extends AnyFlatSpec with Matchers {
+class ConverterTest extends AnyFlatSpec with Matchers {
 
-  "CsvConverter1" should "ok" in {
+  "Converter1" should "ok" in {
     val line      = "abc,cdf,d,12,2,false,0.1,0.23333"
     val dimension = Converter[Dimension].toScala(line)
     assert(dimension.toString == "Some(Dimension(abc,Some(cdf),d,12,2,false,0.1,0.23333))")
@@ -40,7 +40,7 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     assert(csv == line)
   }
 
-  "CsvConverter2" should "ok when csv column empty" in {
+  "Converter2" should "ok when csv column empty" in {
     val line =
       "abc,,d,12,2,false,0.1,0.23333"
     val dimension = Converter[Dimension].toScala(line)
@@ -52,7 +52,7 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
 
   }
 
-  "CsvConverter3" should "failed when case class currying" in {
+  "Converter3" should "failed when case class currying" in {
     """
       | case class Dimension(key: String, value: Option[String], d: Char, c: Long, e: Short, f: Boolean, g: Float)(h: Double)
       |    object Dimension {
@@ -64,7 +64,7 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
       |""".stripMargin shouldNot compile
   }
 
-  "CsvConverter4" should "ok when using list" in {
+  "Converter4" should "ok when using list" in {
     val line =
       """1,cdf,d,12,2,false,0.1,0.2
         |2,cdf,d,12,2,false,0.1,0.1""".stripMargin
@@ -78,7 +78,7 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
 
   }
 
-  "CsvConverter5" should "ok when input empty" in {
+  "Converter5" should "ok when input empty" in {
     val empty1 = Converter[List[Dimension]].toCsvString(Nil)
     println(empty1)
     assert(empty1 == "")
@@ -88,14 +88,14 @@ class CsvConverterTest extends AnyFlatSpec with Matchers {
     assert(empty2 == "")
   }
 
-  "CsvConverter6" should "ok when using json value" in {
+  "Converter6" should "ok when using json value" in {
     val line      = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,false,0.1,0.23333"""
     val dimension = Converter[Dimension].toScala(line)
     println(dimension)
     assert(dimension.toString == "Some(Dimension(abc,Some({\"a\":\"b\",\"c\":\"d\"}),d,12,2,false,0.1,0.23333))")
   }
 
-  "CsvConverter7" should "get None when error" in {
+  "Converter7" should "get None when error" in {
     // xxx should be Boolean, but failure, can get false
     val line      = """abc,"{""a"":""b"",""c"":""d""}",d,12,2,xxx,0.1,0.23333"""
     val dimension = Converter[Dimension].toScala(line)

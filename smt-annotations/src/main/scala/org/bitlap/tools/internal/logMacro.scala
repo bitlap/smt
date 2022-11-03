@@ -21,9 +21,8 @@
 
 package org.bitlap.tools.internal
 
+import org.bitlap.tools.logs._
 import org.bitlap.tools.logs.LogType._
-import org.bitlap.tools.logs.{ LogArgument, LogType }
-import org.bitlap.tools.{ logs, PACKAGE }
 
 import scala.reflect.macros.whitebox
 
@@ -38,23 +37,18 @@ object logMacro {
 
     import c.universe._
 
-    private val extractOptions: logs.LogType.Value = c.prefix.tree match {
+    private val extractOptions: String = c.prefix.tree match {
       case q"new log(logType=$logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        tpe
+        evalTree(logType.asInstanceOf[Tree])
       case q"new log($logType)" =>
-        val tpe = getLogType(logType.asInstanceOf[Tree])
-        tpe
+        evalTree(logType.asInstanceOf[Tree])
       case q"new log()" => LogType.JLog
-      case _            => c.abort(c.enclosingPosition, ErrorMessage.UNEXPECTED_PATTERN)
+      case _ =>
+        c.abort(
+          c.enclosingPosition,
+          s"${ErrorMessage.UNEXPECTED_PATTERN}, only support: ${LogType.values.mkString(",")}"
+        )
     }
-
-    private def getLogType(logType: Tree): LogType =
-      if (logType.children.exists(t => t.toString().contains(PACKAGE))) {
-        evalTree(logType)
-      } else {
-        LogType.getLogType(logType.toString())
-      }
 
     private def logTree(annottees: Seq[c.universe.Expr[Any]]): c.universe.Tree = {
       val buildArg = (name: Name) => LogArgument(name.toTermName.decodedName.toString, isClass = true)

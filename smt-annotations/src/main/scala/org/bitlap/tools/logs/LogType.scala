@@ -21,40 +21,32 @@
 
 package org.bitlap.tools.logs
 
-import org.bitlap.tools.PACKAGE
-import org.bitlap.tools.logs.extension.{ ScalaLoggingLazyImpl, ScalaLoggingStrictImpl }
-import org.bitlap.tools.logs.impl.{ JLogImpl, Log4J2Impl, Slf4jImpl }
+import org.bitlap.tools.logs.extension._
+import org.bitlap.tools.logs.impl._
 
 /** @author
  *    梦境迷离
  *  @version 1.0,2022/3/29
  */
-object LogType extends Enumeration {
+object LogType {
 
-  type LogType = Value
-  val JLog, Log4j2, Slf4j, ScalaLoggingLazy, ScalaLoggingStrict = Value
+  val JLog               = "JLog"
+  val Log4j2             = "Log4j2"
+  val Slf4j              = "Slf4j"
+  val ScalaLoggingLazy   = "ScalaLoggingLazy"
+  val ScalaLoggingStrict = "ScalaLoggingStrict"
 
-  private lazy val types: Map[LogType, BaseLog] = Map(
+  private lazy val types: Map[String, BaseLog] = Map(
     JLogImpl.`type`               -> JLogImpl,
     Log4J2Impl.`type`             -> Log4J2Impl,
     Slf4jImpl.`type`              -> Slf4jImpl,
     ScalaLoggingStrictImpl.`type` -> ScalaLoggingStrictImpl,
     ScalaLoggingLazyImpl.`type`   -> ScalaLoggingLazyImpl
-  )
+  ).map(kv => kv._1.toLowerCase -> kv._2)
 
-  def getLogImpl(logType: LogType): BaseLog =
-    types.getOrElse(logType, default = throw new Exception(s"Not support log type: $logType"))
+  val values = types.keySet
 
-  // TODO not use Enumeration
-  def getLogType(shortType: String): LogType = {
-    val tpe1 = s"$PACKAGE.logs.$shortType"         // LogType.JLog
-    val tpe2 = s"$PACKAGE.logs.LogType.$shortType" // JLog
-    val v = LogType.values.find { p =>
-      s"$PACKAGE.logs.LogType.${p.toString}" == tpe1 ||
-      s"$PACKAGE.logs.LogType.${p.toString}" == tpe2 || s"$PACKAGE.logs.LogType.${p.toString}" == shortType
-    }
-      .getOrElse(throw new Exception(s"Not support log type: $shortType"))
-      .toString
-    LogType.withName(v)
-  }
+  def getLogImpl(logType: String): BaseLog =
+    types.getOrElse(logType.toLowerCase, default = throw new Exception(s"Not support log type: $logType"))
+
 }

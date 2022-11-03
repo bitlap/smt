@@ -25,7 +25,7 @@ package org.bitlap.common
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-case class TestEntity(
+final case class TestEntity(
   name: String,
   id: String,
   key: String,

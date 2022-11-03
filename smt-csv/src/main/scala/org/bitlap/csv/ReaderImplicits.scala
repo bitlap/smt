@@ -27,37 +27,37 @@ import scala.util.Try
  *    梦境迷离
  *  @version 1.0,2022/5/1
  */
-trait ScalableImplicits {
+trait ReaderImplicits {
 
-  implicit final val stringScalable: Scalable[String] = new Scalable[String] {
+  implicit final val stringScalable: Reader[String] = new Reader[String] {
     override def transform(column: String): Option[String] = if (column.isEmpty) None else Some(column)
   }
 
-  implicit final val intScalable: Scalable[Int] = new Scalable[Int] {
+  implicit final val intScalable: Reader[Int] = new Reader[Int] {
     override def transform(column: String): Option[Int] = Try(column.toInt).toOption
   }
 
-  implicit final val charScalable: Scalable[Char] = new Scalable[Char] {
+  implicit final val charScalable: Reader[Char] = new Reader[Char] {
     override def transform(column: String): Option[Char] = if (column.isEmpty) None else Try(column.charAt(0)).toOption
   }
 
-  implicit final val longScalable: Scalable[Long] = new Scalable[Long] {
+  implicit final val longScalable: Reader[Long] = new Reader[Long] {
     override def transform(column: String): Option[Long] = Try(column.toLong).toOption
   }
 
-  implicit final val shortScalable: Scalable[Short] = new Scalable[Short] {
+  implicit final val shortScalable: Reader[Short] = new Reader[Short] {
     override def transform(column: String): Option[Short] = Try(column.toShort).toOption
   }
 
-  implicit final val doubleScalable: Scalable[Double] = new Scalable[Double] {
+  implicit final val doubleScalable: Reader[Double] = new Reader[Double] {
     override def transform(column: String): Option[Double] = Try(column.toDouble).toOption
   }
 
-  implicit final val floatScalable: Scalable[Float] = new Scalable[Float] {
+  implicit final val floatScalable: Reader[Float] = new Reader[Float] {
     override def transform(column: String): Option[Float] = Try(column.toFloat).toOption
   }
 
-  implicit final val booleanScalable: Scalable[Boolean] = new Scalable[Boolean] {
+  implicit final val booleanScalable: Reader[Boolean] = new Reader[Boolean] {
     override def transform(column: String): Option[Boolean] = Try(column.toBoolean).toOption
   }
 }

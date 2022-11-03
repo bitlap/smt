@@ -103,4 +103,14 @@ object FileUtils {
     }
     ts.result()
   }
+
+  def readCsvFromClassPath[T <: Product](fileName: String)(func: String => Option[T]): List[Option[T]] = {
+    val reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(fileName))
+    FileUtils.readFileFunc[T](new BufferedReader(reader), func)
+  }
+
+  def readCsvFromFile[T <: Product](file: File)(func: String => Option[T]): List[Option[T]] = {
+    val reader = new BufferedReader(new FileReader(file))
+    FileUtils.readFileFunc[T](reader, func)
+  }
 }

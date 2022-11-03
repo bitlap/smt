@@ -34,7 +34,7 @@
 
 - 通用的宏操作API的封装。
 - 对象转换器（零依赖，类型安全）。
-- JDBC `ResultSet`对象转样例类。
+- JDBC `ResultSet`转换器。
 
 ```scala
 "org.bitlap" %% "smt-common" % "<VERSION>"
@@ -42,7 +42,7 @@
 
 ## csv
 
-- CSV/TSV文件解析器（零依赖，类型安全）。
+- CSV/TSV文件读写工具（零依赖，类型安全）。
 
 ```scala
 "org.bitlap" %% "smt-csv" % "<VERSION>" 
@@ -50,7 +50,7 @@
 
 ## csv-derive
 
-- 为Scala`case class`自动派生`Converter`实例。
+- 自动派生CSV/TSV文件读写工具。
 
 ```scala
 "org.bitlap" %% "smt-csv-derive" % "<VERSION>" 

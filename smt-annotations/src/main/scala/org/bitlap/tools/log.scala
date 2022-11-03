@@ -21,10 +21,9 @@
 
 package org.bitlap.tools
 
-import org.bitlap.tools.logs.LogType
 import org.bitlap.tools.internal.logMacro
 
-import scala.annotation.{ compileTimeOnly, StaticAnnotation }
+import scala.annotation._
 
 /** annotation to generate log.
  *
@@ -36,6 +35,6 @@ import scala.annotation.{ compileTimeOnly, StaticAnnotation }
  *  @version 1.0
  */
 @compileTimeOnly("enable macro to expand macro annotations")
-final class log(logType: LogType.LogType = LogType.JLog) extends StaticAnnotation {
+final class log(logType: String = "JLog") extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro logMacro.LogProcessor.impl
 }
