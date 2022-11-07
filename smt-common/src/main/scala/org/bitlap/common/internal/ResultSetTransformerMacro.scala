@@ -40,8 +40,8 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
 
   def applyImpl[T <: GenericRow: WeakTypeTag]: Expr[ResultSetTransformer[T]] = {
     val className    = classTypeName[T]
-    val genericTypes = genericTypes[T]
-    val fieldValues = genericTypes.zipWithIndex.map { case (tpe, i) =>
+    val genericTypeList = genericTypes[T]
+    val fieldValues = genericTypeList.zipWithIndex.map { case (tpe, i) =>
       q"$valuesTermName($i).asInstanceOf[$tpe]"
     }
     // scalafmt: { maxColumn = 400 }

@@ -170,9 +170,9 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
   // scalafmt: { maxColumn = 400 }
   private def fieldsToString[T: WeakTypeTag](innerVarTermName: TermName, customTrees: mutable.Map[String, Any]): List[Tree] = {
     val clazzName           = classTypeName[T]
-    val fieldZipInformation = fieldZipInformation
-    val fieldNames          = fieldZipInformation.fieldNames
-    val indexTypes          = fieldZipInformation.fieldIndexTypeMapping
+    val fieldZipInformationList = fieldZipInformation[T]
+    val fieldNames          = fieldZipInformationList.fieldNames
+    val indexTypes          = fieldZipInformationList.fieldIndexTypeMapping
     val indexByName         = (i: Int) => TermName(fieldNames(i))
     indexTypes.map { indexType =>
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(indexType._1))}.apply($innerVarTermName.${indexByName(indexType._1)})"
