@@ -45,7 +45,7 @@ object ToCaseClassMacro {
       val clazzName         = c.weakTypeOf[T].typeSymbol.name
       val innerFuncTermName = TermName("_columns")
       val fields = (columnsFunc: TermName) =>
-        checkGetFieldTreeInformationList[T](columnsFunc).map { fieldTreeInformation =>
+        fieldTreeInformation[T](columnsFunc).map { fieldTreeInformation =>
           val columnValues = fieldTreeInformation.fieldTerm
           val fieldType    = fieldTreeInformation.fieldType
           fieldTreeInformation.genericType match {
@@ -95,7 +95,7 @@ object ToCaseClassMacro {
            lazy val $innerFuncTermName = () => $packageName.StringUtils.splitColumns($line, $format)
            _root_.scala.Option(${clazzName.toTermName}(..${fields(innerFuncTermName)}))
            """
-      exprPrintTree[T](force = false, tree)
+      c.Expr[T](tree)
 
     }.asInstanceOf[c.Expr[Option[T]]]
 

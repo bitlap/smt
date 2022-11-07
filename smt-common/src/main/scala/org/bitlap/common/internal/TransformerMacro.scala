@@ -50,7 +50,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(fromName.decodedName.toString, map)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[Transformable[From, To]](force = false, tree)
+    c.Expr[Transformable[From, To]](tree)
   }
 
   def setDefaultValueImpl[From, To, ToField](
@@ -63,7 +63,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(toName.decodedName.toString, defaultValue)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[Transformable[From, To]](force = false, tree)
+    c.Expr[Transformable[From, To]](tree)
   }
 
   def mapNameImpl[From, To, FromField, ToField](
@@ -77,7 +77,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
       .getOrElseUpdate(builderId, mutable.Map.empty)
       .update(toName.decodedName.toString, fromName.decodedName.toString)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[Transformable[From, To]](force = false, tree)
+    c.Expr[Transformable[From, To]](tree)
   }
 
   def enableOptionDefaultsToNoneImpl[From, To] =
@@ -125,12 +125,12 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     enable(builderId)
     disable(builderId)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[Transformable[From, To]](force = false, tree)
+    c.Expr[Transformable[From, To]](tree)
   }
 
   def instanceImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[BitlapTransformer[From, To]] = {
-    val fromClassName = resolveClassTypeName[From]
-    val toClassName   = resolveClassTypeName[To]
+    val fromClassName = classTypeName[From]
+    val toClassName   = classTypeName[To]
     val tree =
       q"""
        ..$getPreTree  
@@ -140,7 +140,7 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
           }
       }
      """
-    exprPrintTree[BitlapTransformer[From, To]](force = false, tree)
+    c.Expr[BitlapTransformer[From, To]](tree)
   }
 
   def applyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[Transformable[From, To]] =
@@ -148,15 +148,15 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
 
   private def deriveTransformableApplyImpl[From: WeakTypeTag, To: WeakTypeTag]: Expr[Transformable[From, To]] = {
     val builderClassName = TypeName(annoBuilderPrefix + MacroCache.getBuilderId)
-    val fromClassName    = resolveClassTypeName[From]
-    val toClassName      = resolveClassTypeName[To]
+    val fromClassName    = classTypeName[From]
+    val toClassName      = classTypeName[To]
 
     val tree =
       q"""
         class $builderClassName extends $packageName.Transformable[$fromClassName, $toClassName]
         new $builderClassName
        """
-    exprPrintTree[Transformable[From, To]](force = false, tree)
+    c.Expr[Transformable[From, To]](tree)
   }
 
   private def getPreTree: Iterable[Tree] = {
@@ -185,9 +185,9 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   private def getTransformBody[From: WeakTypeTag, To: WeakTypeTag]: Tree = {
-    val toClassName   = resolveClassTypeName[To]
-    val toClassInfo   = getCaseClassFieldInfoList[To]()
-    val fromClassInfo = getCaseClassFieldInfoList[From]()
+    val toClassName   = classTypeName[To]
+    val toClassInfo   = caseClassFieldInfos[To]()
+    val fromClassInfo = caseClassFieldInfos[From]()
     val customFieldNameMapping =
       MacroCache.classFieldNameMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
     val customFieldTypeMapping =
@@ -224,8 +224,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     toField: FieldInformation,
     customFieldNameMapping: mutable.Map[String, String]
   ): Tree = {
-    val toClassInfo   = getCaseClassFieldInfoList[To]()
-    val fromClassInfo = getCaseClassFieldInfoList[From]()
+    val toClassInfo   = caseClassFieldInfos[To]()
+    val fromClassInfo = caseClassFieldInfos[From]()
 
     val customOptionsMapping =
       MacroCache.transformerOptionsMapping.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Set.empty)
@@ -292,8 +292,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     customFieldNameMapping: mutable.Map[String, String],
     customOptionsMapping: mutable.Set[Options]
   ) = {
-    val toClassName               = resolveClassTypeName[To]
-    val fromClassName             = resolveClassTypeName[From]
+    val toClassName               = classTypeName[To]
+    val fromClassName             = classTypeName[From]
     val missingFields             = toClassInfo.filterNot(t => fromClassInfo.map(_.fieldName).contains(t.fieldName))
     val missingExcludeMappingName = missingFields.filterNot(m => customFieldNameMapping.contains(m.fieldName))
     if (missingExcludeMappingName.nonEmpty) {

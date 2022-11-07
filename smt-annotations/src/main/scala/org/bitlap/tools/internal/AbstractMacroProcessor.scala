@@ -21,8 +21,6 @@
 
 package org.bitlap.tools.internal
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import scala.annotation.tailrec
 import scala.reflect.macros.whitebox
 
@@ -56,7 +54,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def impl(annottees: Expr[Any]*): Expr[Any] = {
     checkAnnottees(annottees)
     val resTree = collectCustomExpr(annottees)(createCustomExpr)
-    printTree(force = false, resTree.tree)
     resTree
   }
 
@@ -74,26 +71,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    */
   def evalTree[T: WeakTypeTag](tree: Tree): T = c.eval(c.Expr[T](c.untypecheck(tree.duplicate)))
 
-  /** Output ast result.
-   *
-   *  @param force
-   *  @param resTree
-   */
-  def printTree(force: Boolean, resTree: Tree): Unit =
-    c.info(
-      c.enclosingPosition,
-      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} " +
-        s"Expanded macro start ######\n" + resTree.toString() + "\n###### Expanded macro end ######\n",
-      force = false
-    )
-
   /** Check the class and its companion object, and return the class definition.
    *
    *  @param annottees
    *  @return
    *    Return a [[scala.reflect.api.Trees#ClassDef]]
    */
-  def checkGetClassDef(annottees: Seq[Expr[Any]]): ClassDef =
+  def checkClassDef(annottees: Seq[Expr[Any]]): ClassDef =
     annottees.map(_.tree).toList match {
       case (classDecl: ClassDef) :: Nil                   => classDecl
       case (classDecl: ClassDef) :: (_: ModuleDef) :: Nil => classDecl
@@ -106,7 +90,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a optional [[scala.reflect.api.Trees#ModuleDef]]
    */
-  def getModuleDefOption(annottees: Seq[Expr[Any]]): Option[ModuleDef] =
+  def moduleDef(annottees: Seq[Expr[Any]]): Option[ModuleDef] =
     annottees.map(_.tree).toList match {
       case (moduleDef: ModuleDef) :: Nil                  => Some(moduleDef)
       case (_: ClassDef) :: Nil                           => None
@@ -126,8 +110,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   def collectCustomExpr(
     annottees: Seq[Expr[Any]]
   )(modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
-    val classDef = checkGetClassDef(annottees)
-    val compDecl = getModuleDefOption(annottees)
+    val classDef = checkClassDef(annottees)
+    val compDecl = moduleDef(annottees)
     modifyAction(classDef, compDecl).asInstanceOf[Expr[Nothing]]
   }
 
@@ -149,7 +133,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return false if mods exists `private[this]` or `protected[this]`
    */
-  def isNotLocalClassMember(tree: Tree): Boolean = {
+  def nonLocalMember(tree: Tree): Boolean = {
     lazy val modifierNotLocal = (mods: Modifiers) =>
       !(
         mods.hasFlag(Flag.PRIVATE | Flag.LOCAL) | mods.hasFlag(Flag.PROTECTED | Flag.LOCAL)
@@ -167,7 +151,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a sequence of [[scala.reflect.api.Trees#Tree]], each one is `tname: tpt`
    */
-  def getConstructorParamsNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] =
+  def classParamsTermNameWithType(annotteeClassParams: Seq[Tree]): Seq[Tree] =
     annotteeClassParams.map(_.asInstanceOf[ValDef]).map(v => q"${v.name}: ${v.tpt}")
 
   /** Modify companion object or object.
@@ -193,7 +177,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a sequence of [[scala.reflect.api.Trees#ValDef]]
    */
-  def getClassMemberValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] =
+  def classValDefs(annotteeClassDefinitions: Seq[Tree]): Seq[ValDef] =
     annotteeClassDefinitions
       .filter(_ match {
         case _: ValDef => true
@@ -207,7 +191,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a sequence of [[scala.reflect.api.Trees#ValDef]]
    */
-  def getClassConstructorValDefsFlatten(annotteeClassParams: List[List[Tree]]): Seq[ValDef] =
+  def classConstructorValDefs(annotteeClassParams: List[List[Tree]]): Seq[ValDef] =
     annotteeClassParams.flatten.map(_.asInstanceOf[ValDef])
 
   /** Extract the constructor params [[scala.reflect.api.Trees#ValDef]] not flatten.
@@ -216,7 +200,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a double sequence of [[scala.reflect.api.Trees#ValDef]]
    */
-  def getClassConstructorValDefsNotFlatten(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] =
+  def classConstructorValDefss(annotteeClassParams: List[List[Tree]]): Seq[Seq[ValDef]] =
     annotteeClassParams.map(_.map(_.asInstanceOf[ValDef]))
 
   /** Extract the methods belonging to the class, contains Secondary Constructor.
@@ -225,7 +209,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a sequence of [[scala.reflect.api.Trees#DefDef]]
    */
-  def getClassMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] =
+  def classMemberDefDefs(annotteeClassDefinitions: Seq[Tree]): Seq[DefDef] =
     annotteeClassDefinitions
       .filter(_ match {
         case _: DefDef => true
@@ -243,8 +227,8 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @example
    *    Return a tree, such as `new TestClass12(i)(j)(k)(t)`
    */
-  def getConstructorWithCurrying(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
-    val fieldssValDefNotFlatten = getClassConstructorValDefsNotFlatten(fieldss)
+  def curriedConstructor(typeName: TypeName, fieldss: List[List[Tree]], isCase: Boolean): Tree = {
+    val fieldssValDefNotFlatten = classConstructorValDefss(fieldss)
     val allFieldsTermName       = fieldssValDefNotFlatten.map(_.map(_.name.toTermName))
     // not currying
     val constructor = if (fieldss.isEmpty || fieldss.size == 1) {
@@ -266,7 +250,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Scala type name
    */
-  def toScalaType(javaType: String): String = {
+  def java2ScalaType(javaType: String): String = {
     val types = Map(
       "java.lang.Integer"   -> "Int",
       "java.lang.Long"      -> "Long",
@@ -288,7 +272,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *  @return
    *    Return a sequence of [[scala.reflect.api.Names#TypeName]]
    */
-  def extractClassTypeParamsTypeName(tpParams: List[Tree]): List[TypeName] =
+  def typeParams(tpParams: List[Tree]): List[TypeName] =
     tpParams.map(_.asInstanceOf[TypeDef].name)
 
   /** Is there a parent class? Does not contains sdk class, such as AnyRef and Object.

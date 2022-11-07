@@ -39,8 +39,8 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
   protected val packageName       = q"_root_.org.bitlap.common.jdbc"
 
   def applyImpl[T <: GenericRow: WeakTypeTag]: Expr[ResultSetTransformer[T]] = {
-    val className    = resolveClassTypeName[T]
-    val genericTypes = getGenericTypes[T]
+    val className    = classTypeName[T]
+    val genericTypes = genericTypes[T]
     val fieldValues = genericTypes.zipWithIndex.map { case (tpe, i) =>
       q"$valuesTermName($i).asInstanceOf[$tpe]"
     }
@@ -59,7 +59,7 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
           }
        }
      """
-    exprPrintTree[ResultSetTransformer[T]](force = false, tree)
+    c.Expr[ResultSetTransformer[T]](tree)
 
   }
 }

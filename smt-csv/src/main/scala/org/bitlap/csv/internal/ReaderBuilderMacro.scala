@@ -56,24 +56,24 @@ class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
     val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[ReaderBuilder[T]](force = false, tree)
+    c.Expr[ReaderBuilder[T]](tree)
   }
 
   def applyImpl[T: WeakTypeTag]: Expr[ReaderBuilder[T]] =
     deriveBuilderApplyImpl[T]
 
   def convertOneImpl[T: WeakTypeTag](line: Expr[String])(format: c.Expr[CsvFormat]): Expr[Option[T]] = {
-    val clazzName = resolveClassTypeName[T]
+    val clazzName = classTypeName[T]
     deriveReaderImpl[T](clazzName, line, format)
   }
 
   def convertAllImpl[T: WeakTypeTag](lines: Expr[List[String]])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
-    val clazzName = resolveClassTypeName[T]
+    val clazzName = classTypeName[T]
     deriveFullReaderImpl[T](clazzName, lines, format)
   }
 
   def convertFromFileImpl[T: WeakTypeTag](file: Expr[InputStream])(format: c.Expr[CsvFormat]): Expr[List[Option[T]]] = {
-    val clazzName = resolveClassTypeName[T]
+    val clazzName = classTypeName[T]
     deriveFullFromFileReaderImpl[T](clazzName, file, format)
   }
 
@@ -85,7 +85,7 @@ class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
         class $className extends $packageName.ReaderBuilder[$caseClazzName]
         new $className
        """
-    exprPrintTree[ReaderBuilder[T]](force = false, tree)
+    c.Expr[ReaderBuilder[T]](tree)
   }
 
   private def getPreTree: Iterable[Tree] = {
@@ -112,7 +112,7 @@ class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
              $readerInstanceTermName.transform($innerLName) 
          }
       """
-    exprPrintTree[List[Option[T]]](force = false, tree)
+    c.Expr[List[Option[T]]](tree)
   }
 
   // scalafmt: { maxColumn = 400 }
@@ -127,7 +127,7 @@ class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
              $readerInstanceTermName.transform($innerLName) 
          }
       """
-    exprPrintTree[List[Option[T]]](force = false, tree)
+    c.Expr[List[Option[T]]](tree)
   }
 
   private def getAnnoClassObject[T: WeakTypeTag](clazzName: TypeName, format: c.Expr[CsvFormat]): Tree = {
@@ -155,15 +155,15 @@ class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
          }
          $annoClassName.transform($line)
       """
-    exprPrintTree[Option[T]](force = false, tree)
+    c.Expr[Option[T]](tree)
   }
 
   // scalafmt: { maxColumn = 400 }
   private def readerBody[T: WeakTypeTag](clazzName: TypeName, innerFuncTermName: TermName): Tree = {
     val customTrees = MacroCache.builderFunctionTrees.getOrElse(getBuilderId(annoBuilderPrefix), mutable.Map.empty)
-    val params      = getCaseClassFieldInfoList[T]()
+    val params      = caseClassFieldInfos[T]()
     val fieldNames  = params.map(_.fieldName)
-    val fields = checkGetFieldTreeInformationList[T](innerFuncTermName).map { fieldTreeInformation =>
+    val fields = fieldTreeInformation[T](innerFuncTermName).map { fieldTreeInformation =>
       val idx            = fieldTreeInformation.index
       val columnValues   = fieldTreeInformation.fieldTerm
       val fieldType      = fieldTreeInformation.fieldType

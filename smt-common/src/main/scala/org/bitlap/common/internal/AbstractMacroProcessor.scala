@@ -21,8 +21,6 @@
 
 package org.bitlap.common.internal
 
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import scala.reflect.macros.blackbox
 
 /** This is a generic implementation of macro handling, and subclasses need to inherit it to reduce redundant code.
@@ -86,9 +84,9 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *    Type of the case class.
    *  @return
    */
-  def checkGetFieldTreeInformationList[T: WeakTypeTag](columnsFunc: TermName): List[FieldTreeInformation] = {
+  def fieldTreeInformation[T: WeakTypeTag](columnsFunc: TermName): List[FieldTreeInformation] = {
     val idxColumn    = (i: Int) => q"$columnsFunc()($i)"
-    val params       = getCaseClassFieldInfoList[T]()
+    val params       = caseClassFieldInfos[T]()
     val paramsSize   = params.size
     val types        = params.map(_.fieldType)
     val indexColumns = (0 until paramsSize).toList.map(i => i -> idxColumn(i))
@@ -114,7 +112,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     }
   }
 
-  def getFieldDefaultValueMap[T: WeakTypeTag](init: MethodSymbol): Map[String, Tree] = {
+  def fieldDefaultValues[T: WeakTypeTag](init: MethodSymbol): Map[String, Tree] = {
     val classSym = weakTypeOf[T].typeSymbol
     init.paramLists.head
       .map(_.asTerm)
@@ -135,9 +133,9 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *    Type of the case class.
    *  @return
    */
-  def getCaseClassFieldInfoList[T: WeakTypeTag](): List[FieldInformation] = {
+  def caseClassFieldInfos[T: WeakTypeTag](): List[FieldInformation] = {
     val init              = c.weakTypeOf[T].resultType.member(TermName("<init>")).asMethod
-    val defaultValuesTerm = getFieldDefaultValueMap[T](init)
+    val defaultValuesTerm = fieldDefaultValues[T](init)
     val parameters        = init.typeSignature.paramLists
     if (parameters.size > 1) {
       c.abort(c.enclosingPosition, "The constructor of case class has currying!")
@@ -160,30 +158,13 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
     }
   }
 
-  /** Print the expanded code of macro.
-   *
-   *  @param force
-   *  @param resTree
-   *  @tparam T
-   *  @return
-   */
-  def exprPrintTree[T: WeakTypeTag](force: Boolean, resTree: Tree): Expr[T] = {
-    c.info(
-      c.enclosingPosition,
-      s"\n###### Time: ${ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME)} Expanded macro start ######\n" + resTree
-        .toString() + "\n###### Expanded macro end ######\n",
-      force = force
-    )
-    c.Expr[T](resTree)
-  }
-
   /** Get the `TypeName` of the class.
    *
    *  @tparam T
    *    Type of the case class.
    *  @return
    */
-  def resolveClassTypeName[T: WeakTypeTag]: TypeName =
+  def classTypeName[T: WeakTypeTag]: TypeName =
     c.weakTypeOf[T].typeSymbol.name.toTypeName
 
   /** Get the `TypeName` of the class generic type.
@@ -192,7 +173,7 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *    Type of the case class.
    *  @return
    */
-  def getGenericTypes[T: WeakTypeTag]: List[Type] =
+  def genericTypes[T: WeakTypeTag]: List[Type] =
     c.weakTypeOf[T].dealias.typeArgs
 
   /** Get the list of case class constructor parameters and return the column index and parameter type that zip as a
@@ -202,8 +183,8 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
    *    Type of the case class.
    *  @return
    */
-  def checkGetFieldZipInformation[T: WeakTypeTag]: FieldZipInformation = {
-    val params     = getCaseClassFieldInfoList[T]()
+  def fieldZipInformation[T: WeakTypeTag]: FieldZipInformation = {
+    val params     = caseClassFieldInfos[T]()
     val paramsSize = params.size
     val names      = params.map(_.fieldName)
     FieldZipInformation(

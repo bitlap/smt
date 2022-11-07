@@ -44,7 +44,7 @@ object builderMacro {
 
     private def getFieldSetMethod(typeName: TypeName, field: Tree, classTypeParams: List[Tree]): Tree = {
       val builderClassName = getBuilderClassName(typeName)
-      val returnTypeParams = extractClassTypeParamsTypeName(classTypeParams)
+      val returnTypeParams = typeParams(classTypeParams)
       lazy val valDefMapTo = (v: ValDef) => q"""
           def ${v.name}(${v.name}: ${v.tpt}): $builderClassName[..$returnTypeParams] = {
               this.${v.name} = ${v.name}
@@ -64,7 +64,7 @@ object builderMacro {
       val builderClassName        = getBuilderClassName(typeName)
       val builderFieldMethods     = fields.map(f => getFieldSetMethod(typeName, f, classTypeParams))
       val builderFieldDefinitions = fields.map(f => getFieldDefinition(f))
-      val returnTypeParams        = extractClassTypeParamsTypeName(classTypeParams)
+      val returnTypeParams        = typeParams(classTypeParams)
       val builderMethod =
         q"def builder[..$classTypeParams](): $builderClassName[..$returnTypeParams] = new $builderClassName()"
       val buulderClass =
@@ -75,7 +75,7 @@ object builderMacro {
 
             ..$builderFieldMethods
 
-            def build(): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase)}
+            def build(): $typeName[..$returnTypeParams] = ${curriedConstructor(typeName, fieldss, isCase)}
           }
         """
       List(builderMethod, buulderClass)
