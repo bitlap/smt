@@ -39,7 +39,7 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
   protected val packageName       = q"_root_.org.bitlap.common.jdbc"
 
   def applyImpl[T <: GenericRow: WeakTypeTag]: Expr[ResultSetTransformer[T]] = {
-    val className    = classTypeName[T]
+    val className       = classTypeName[T]
     val genericTypeList = genericTypes[T]
     val fieldValues = genericTypeList.zipWithIndex.map { case (tpe, i) =>
       q"$valuesTermName($i).asInstanceOf[$tpe]"
