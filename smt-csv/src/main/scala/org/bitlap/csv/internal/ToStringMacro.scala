@@ -41,7 +41,7 @@ object ToStringMacro {
     protected val packageName = q"_root_.org.bitlap.csv"
 
     def macroImpl[T: c.WeakTypeTag](t: c.Expr[T])(csvFormat: c.Expr[CsvFormat]): c.Expr[String] = {
-      val fieldZipInformation = super.checkGetFieldZipInformation[T]
+      val fieldZipInformation = super.fieldZipInformation[T]
       val names               = fieldZipInformation.fieldNames
       val indexTypes          = fieldZipInformation.fieldIndexTypeMapping
       val clazzName           = c.weakTypeOf[T].typeSymbol.name
@@ -80,7 +80,7 @@ object ToStringMacro {
         val values = if (null == fields) _root_.scala.List.empty else $fieldsToString
         $packageName.StringUtils.combineColumns(values, $csvFormat)
        """
-      exprPrintTree[String](force = false, tree)
+      c.Expr[String](tree)
     }
 
   }

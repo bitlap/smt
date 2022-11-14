@@ -52,7 +52,7 @@ object DeriveCsvConverter {
             override def toCsvString($tTermName: $typeName): String = $packageName.internal.ToStringMacro[$typeName]($tTermName)($csvFormat)
         }
        """
-      exprPrintTree[CC](force = false, tree)
+      c.Expr[CC](tree)
     }
   }
 }

@@ -43,7 +43,7 @@ object constructorMacro {
       }
 
     private def getMutableValDefAndExcludeFields(annotteeClassDefinitions: Seq[Tree]): Seq[c.universe.ValDef] =
-      getClassMemberValDefs(annotteeClassDefinitions).filter(v =>
+      classValDefs(annotteeClassDefinitions).filter(v =>
         v.mods.hasFlag(Flag.MUTABLE) &&
         !extractOptions.contains(v.name.decodedName.toString)
       )
@@ -54,7 +54,7 @@ object constructorMacro {
       getMutableValDefAndExcludeFields(annotteeClassDefinitions).map { v =>
         if (v.tpt.isEmpty) { // val i = 1, tpt is `<type ?>`
           // TODO getClass RETURN a java type, maybe we can try use class reflect to get the fields type name.
-          q"${v.name}: ${TypeName(toScalaType(evalTree(v.rhs).getClass.getTypeName))}"
+          q"${v.name}: ${TypeName(java2ScalaType(evalTree(v.rhs).getClass.getTypeName))}"
         } else {
           q"${v.name}: ${v.tpt}"
         }
@@ -76,9 +76,9 @@ object constructorMacro {
       }
       // Extract the internal fields of members belonging to the class， but not in primary constructor.
       val annotteeClassFieldNames = getMutableValDefAndExcludeFields(annotteeClassDefinitions).map(_.name)
-      val allFieldsTermName = getClassConstructorValDefsNotFlatten(annotteeClassParams).map(_.map(_.name.toTermName))
+      val allFieldsTermName       = classConstructorValDefss(annotteeClassParams).map(_.map(_.name.toTermName))
       // Extract the field of the primary constructor.
-      val classParamsNameWithType = getConstructorParamsNameWithType(annotteeClassParams.flatten)
+      val classParamsNameWithType = classParamsTermNameWithType(annotteeClassParams.flatten)
       val applyMethod = if (annotteeClassParams.isEmpty || annotteeClassParams.size == 1) {
         q"""
           def this(..${classParamsNameWithType ++ classInternalFieldsWithType}) = {
@@ -88,7 +88,7 @@ object constructorMacro {
          """
       } else {
         // NOTE: currying constructor overload must be placed in the first bracket block.
-        val allClassCtorParamsNameWithType = annotteeClassParams.map(cc => getConstructorParamsNameWithType(cc))
+        val allClassCtorParamsNameWithType = annotteeClassParams.map(cc => classParamsTermNameWithType(cc))
         q"""
           def this(..${allClassCtorParamsNameWithType.head ++ classInternalFieldsWithType})(...${allClassCtorParamsNameWithType.tail}) = {
             this(..${allFieldsTermName.head})(...${allFieldsTermName.tail})
@@ -110,7 +110,7 @@ object constructorMacro {
 
     override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
       super.checkAnnottees(annottees)
-      val annotateeClass: ClassDef = checkGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }

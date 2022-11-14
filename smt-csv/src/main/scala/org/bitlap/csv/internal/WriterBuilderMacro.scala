@@ -55,7 +55,7 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
     val builderId                        = getBuilderId(annoBuilderPrefix)
     MacroCache.builderFunctionTrees.getOrElseUpdate(builderId, mutable.Map.empty).update(termName.toString, value)
     val tree = q"new ${c.prefix.actualType}"
-    exprPrintTree[WriterBuilder[T]](force = false, tree)
+    c.Expr[WriterBuilder[T]](tree)
   }
 
   def applyImpl[T: WeakTypeTag]: Expr[WriterBuilder[T]] =
@@ -78,7 +78,7 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
         class $className extends $packageName.WriterBuilder[$caseClazzName]
         new $className
       """
-    exprPrintTree[WriterBuilder[T]](force = false, tree)
+    c.Expr[WriterBuilder[T]](tree)
   }
 
   private def getCustomPreTress: (mutable.Map[String, Any], Iterable[Tree]) = {
@@ -95,7 +95,7 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
 
   // scalafmt: { maxColumn = 400 }
   private def deriveFullIntoFileWriterImpl[T: WeakTypeTag](ts: Expr[List[T]], file: Expr[File], format: c.Expr[CsvFormat]): Expr[Boolean] = {
-    val clazzName               = resolveClassTypeName[T]
+    val clazzName               = classTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val tree =
       q"""
@@ -107,12 +107,12 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
            }, $format
          )
       """
-    exprPrintTree[Boolean](force = false, tree)
+    c.Expr[Boolean](tree)
   }
 
   // scalafmt: { maxColumn = 400 }
   private def deriveFullWriterImpl[T: WeakTypeTag](ts: Expr[List[T]], format: c.Expr[CsvFormat]): Expr[String] = {
-    val clazzName               = resolveClassTypeName[T]
+    val clazzName               = classTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val tree =
       q"""
@@ -124,11 +124,11 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
          }
          $packageName.StringUtils.combineRows(lines, $format)
       """
-    exprPrintTree[String](force = false, tree)
+    c.Expr[String](tree)
   }
 
   private def getAnnoClassObject[T: WeakTypeTag](customTrees: mutable.Map[String, Any], format: c.Expr[CsvFormat]): Tree = {
-    val clazzName     = resolveClassTypeName[T]
+    val clazzName     = classTypeName[T]
     val annoClassName = TermName(writerImplClassNamePrefix + MacroCache.getIdentityId)
     q"""
        object $annoClassName extends $packageName.Writer[$clazzName] {
@@ -147,7 +147,7 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
   }
 
   private def deriveWriterImpl[T: WeakTypeTag](t: Expr[T], format: c.Expr[CsvFormat]): Expr[String] = {
-    val clazzName               = resolveClassTypeName[T]
+    val clazzName               = classTypeName[T]
     val (customTrees, preTrees) = getCustomPreTress
     val annoClassName           = TermName(writerImplClassNamePrefix + MacroCache.getIdentityId)
     val tree =
@@ -164,16 +164,16 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
          }
          $annoClassName.transform($t)
       """
-    exprPrintTree[String](force = false, tree)
+    c.Expr[String](tree)
   }
 
   // scalafmt: { maxColumn = 400 }
   private def fieldsToString[T: WeakTypeTag](innerVarTermName: TermName, customTrees: mutable.Map[String, Any]): List[Tree] = {
-    val clazzName           = resolveClassTypeName[T]
-    val fieldZipInformation = checkGetFieldZipInformation
-    val fieldNames          = fieldZipInformation.fieldNames
-    val indexTypes          = fieldZipInformation.fieldIndexTypeMapping
-    val indexByName         = (i: Int) => TermName(fieldNames(i))
+    val clazzName               = classTypeName[T]
+    val fieldZipInformationList = fieldZipInformation[T]
+    val fieldNames              = fieldZipInformationList.fieldNames
+    val indexTypes              = fieldZipInformationList.fieldIndexTypeMapping
+    val indexByName             = (i: Int) => TermName(fieldNames(i))
     indexTypes.map { indexType =>
       val customFunction = () => q"${TermName(builderFunctionPrefix + fieldNames(indexType._1))}.apply($innerVarTermName.${indexByName(indexType._1)})"
       indexType._2 match {

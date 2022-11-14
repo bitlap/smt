@@ -68,27 +68,26 @@ object logMacro {
           }
           val newClass = extractOptions match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
-              appendImplDefSuper(checkGetClassDef(annottees), _ => List(logTree(annottees)))
+              appendImplDefSuper(checkClassDef(annottees), _ => List(logTree(annottees)))
             case _ =>
-              prependImplDefBody(checkGetClassDef(annottees), _ => List(logTree(annottees)))
+              prependImplDefBody(checkClassDef(annottees), _ => List(logTree(annottees)))
           }
-          val moduleDef = getModuleDefOption(annottees)
+          val md = moduleDef(annottees)
           q"""
-             ${if (moduleDef.isEmpty) EmptyTree else moduleDef.get}
+             ${if (md.isEmpty) EmptyTree else md.get}
              $newClass
            """
         case (_: ModuleDef) :: _ =>
           extractOptions match {
             case ScalaLoggingLazy | ScalaLoggingStrict =>
-              appendImplDefSuper(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
-            case _ => prependImplDefBody(getModuleDefOption(annottees).get, _ => List(logTree(annottees)))
+              appendImplDefSuper(moduleDef(annottees).get, _ => List(logTree(annottees)))
+            case _ => prependImplDefBody(moduleDef(annottees).get, _ => List(logTree(annottees)))
           }
         // Note: If a class is annotated and it has a companion, then both are passed into the macro.
         // (But not vice versa - if an object is annotated and it has a companion class, only the object itself is expanded).
         // see https://docs.scala-lang.org/overviews/macros/annotations.html
       }
 
-      printTree(force = false, resTree)
       c.Expr[Any](resTree)
     }
   }

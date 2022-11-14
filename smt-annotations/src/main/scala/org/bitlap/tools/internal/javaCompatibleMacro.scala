@@ -102,7 +102,7 @@ object javaCompatibleMacro {
 
     override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
       super.checkAnnottees(annottees)
-      val annotateeClass: ClassDef = checkGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkClassDef(annottees)
       if (!isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }

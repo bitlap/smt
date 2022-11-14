@@ -49,15 +49,15 @@ object applyMacro {
       fieldss: List[List[Tree]],
       classTypeParams: List[Tree]
     ): Tree = {
-      val allFieldsTermName = fieldss.map(f => getConstructorParamsNameWithType(f))
-      val returnTypeParams  = extractClassTypeParamsTypeName(classTypeParams)
+      val allFieldsTermName = fieldss.map(f => classParamsTermNameWithType(f))
+      val returnTypeParams  = typeParams(classTypeParams)
       // not currying
       val applyMethod = if (fieldss.isEmpty || fieldss.size == 1) {
-        q"def apply[..$classTypeParams](..${allFieldsTermName.flatten}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
+        q"def apply[..$classTypeParams](..${allFieldsTermName.flatten}): $typeName[..$returnTypeParams] = ${curriedConstructor(typeName, fieldss, isCase = false)}"
       } else {
         // currying
         val first = allFieldsTermName.head
-        q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${getConstructorWithCurrying(typeName, fieldss, isCase = false)}"
+        q"def apply[..$classTypeParams](..$first)(...${allFieldsTermName.tail}): $typeName[..$returnTypeParams] = ${curriedConstructor(typeName, fieldss, isCase = false)}"
       }
       applyMethod
     }
@@ -78,7 +78,7 @@ object applyMacro {
 
     override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
       super.checkAnnottees(annottees)
-      val annotateeClass: ClassDef = checkGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CASE_CLASS)
       }

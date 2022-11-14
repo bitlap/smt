@@ -43,7 +43,7 @@ object equalsAndHashCodeMacro {
 
     override def checkAnnottees(annottees: Seq[c.universe.Expr[Any]]): Unit = {
       super.checkAnnottees(annottees)
-      val annotateeClass: ClassDef = checkGetClassDef(annottees)
+      val annotateeClass: ClassDef = checkClassDef(annottees)
       if (isCaseClass(annotateeClass)) {
         c.abort(c.enclosingPosition, ErrorMessage.ONLY_CLASS)
       }
@@ -52,12 +52,12 @@ object equalsAndHashCodeMacro {
     /** Extract the internal fields of members belonging to the class.
      */
     private def getInternalFieldsTermNameExcludeLocal(annotteeClassDefinitions: Seq[Tree]): Seq[TermName] = {
-      if (annotteeClassDefinitions.exists(f => isNotLocalClassMember(f))) {
+      if (annotteeClassDefinitions.exists(f => nonLocalMember(f))) {
         c.info(c.enclosingPosition, s"There is a non private class definition inside the class", force = true)
       }
-      getClassMemberValDefs(annotteeClassDefinitions)
+      classValDefs(annotteeClassDefinitions)
         .filter(p =>
-          isNotLocalClassMember(p) &&
+          nonLocalMember(p) &&
           !extractOptions.contains(p.name.decodedName.toString)
         )
         .map(_.name.toTermName)
@@ -70,7 +70,7 @@ object equalsAndHashCodeMacro {
       superClasses: Seq[Tree],
       annotteeClassDefinitions: Seq[Tree]
     ): List[Tree] = {
-      val existsCanEqual = getClassMemberDefDefs(annotteeClassDefinitions).exists {
+      val existsCanEqual = classMemberDefDefs(annotteeClassDefinitions).exists {
         case defDef: DefDef if defDef.name.decodedName.toString == "canEqual" && defDef.vparamss.nonEmpty =>
           val safeValDefs = valDefAccessors(defDef.vparamss.flatten)
           safeValDefs.exists(_.paramType.toString == "Any") && safeValDefs.exists(_.name.decodedName.toString == "that")
@@ -113,8 +113,8 @@ object equalsAndHashCodeMacro {
 
     override def createCustomExpr(classDecl: ClassDef, compDeclOpt: Option[ModuleDef]): Any = {
       lazy val map = (classDefinition: ClassDefinition) =>
-        getClassConstructorValDefsFlatten(classDefinition.classParamss)
-          .filter(cf => isNotLocalClassMember(cf))
+        classConstructorValDefs(classDefinition.classParamss)
+          .filter(cf => nonLocalMember(cf))
           .map(_.name.toTermName) ++
           getInternalFieldsTermNameExcludeLocal(classDefinition.body)
       val classDefinition = mapToClassDeclInfo(classDecl)

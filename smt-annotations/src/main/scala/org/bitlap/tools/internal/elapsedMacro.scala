@@ -128,7 +128,6 @@ object elapsedMacro {
             getNewMethod(defDef)
           }
       }
-      printTree(force = false, resTree)
       c.Expr[Any](resTree)
     }
   }
