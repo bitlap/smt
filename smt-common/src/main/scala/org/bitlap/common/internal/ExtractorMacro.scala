@@ -29,7 +29,7 @@ import scala.reflect.macros.whitebox
  *    梦境迷离
  *  @version 1.0,6/15/22
  */
-class ResultSetTransformerMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
+class ExtractorMacro(override val c: whitebox.Context) extends AbstractMacroProcessor(c) {
 
   import c.universe._
 
@@ -38,7 +38,7 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
   private val columnSizeTermName  = TermName("columnSize")
   protected val packageName       = q"_root_.org.bitlap.common.jdbc"
 
-  def applyImpl[T <: GenericRow: WeakTypeTag]: Expr[ResultSetTransformer[T]] = {
+  def applyImpl[T <: GenericRow: WeakTypeTag]: Expr[Extractor[T]] = {
     val className       = classTypeName[T]
     val genericTypeList = genericTypes[T]
     val fieldValues = genericTypeList.zipWithIndex.map { case (tpe, i) =>
@@ -46,8 +46,8 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
     }
     // scalafmt: { maxColumn = 400 }
     val tree = q"""
-       new $packageName.ResultSetTransformer[$className[..$genericTypes]] {
-          override def toResults(resultSet: java.sql.ResultSet, $typeMappingTermName: (java.sql.ResultSet, Int) => _root_.scala.IndexedSeq[Any] = super.getColumnValues): _root_.scala.Seq[$className[..$genericTypes]] = {
+       new $packageName.Extractor[$className[..$genericTypes]] {
+          override def from(resultSet: java.sql.ResultSet, $typeMappingTermName: (java.sql.ResultSet, Int) => _root_.scala.IndexedSeq[Any] = super.getColumnValues): _root_.scala.Seq[$className[..$genericTypes]] = {
               val $columnSizeTermName   = resultSet.getMetaData.getColumnCount
               val result = _root_.scala.collection.mutable.ListBuffer[$className[..$genericTypes]]()
               while (resultSet.next()) {
@@ -59,7 +59,7 @@ class ResultSetTransformerMacro(override val c: whitebox.Context) extends Abstra
           }
        }
      """
-    c.Expr[ResultSetTransformer[T]](tree)
+    c.Expr[Extractor[T]](tree)
 
   }
 }
