@@ -20,11 +20,11 @@
  */
 
 package org.bitlap.common.jdbc
-import org.bitlap.common.internal.ResultSetTransformerMacro
+import org.bitlap.common.internal.ExtractorMacro
 
 import java.sql._
 
-trait ResultSetTransformer[T <: GenericRow] {
+trait Extractor[T <: GenericRow] {
 
   protected def getColumnValues(resultSet: ResultSet, size: Int): IndexedSeq[Any] = {
     val metadata = resultSet.getMetaData
@@ -48,9 +48,9 @@ trait ResultSetTransformer[T <: GenericRow] {
     }
   }
 
-  def toResults(resultSet: ResultSet, typeMapping: (ResultSet, Int) => IndexedSeq[Any] = getColumnValues): Seq[T]
+  def from(resultSet: ResultSet, typeMapping: (ResultSet, Int) => IndexedSeq[Any] = getColumnValues): Seq[T]
 }
-object ResultSetTransformer {
+object Extractor {
 
-  def apply[T <: GenericRow]: ResultSetTransformer[T] = macro ResultSetTransformerMacro.applyImpl[T]
+  def apply[T <: GenericRow]: Extractor[T] = macro ExtractorMacro.applyImpl[T]
 }

@@ -33,12 +33,12 @@ import java.sql.Types
  *    梦境迷离
  *  @version 1.0,2022/10/21
  */
-class RowTransformerTest extends AnyFlatSpec with Matchers {
+class ExtractorTest extends AnyFlatSpec with Matchers {
 
   Class.forName("org.h2.Driver")
 
   // TODO  need bitlap server
-  "RowTransformerTest simple case" should "ok for GenericRow2" in {
+  "ExtractorTest simple case" should "ok for GenericRow2" in {
     val statement = DriverManager
       .getConnection(
         "jdbc:h2:mem:zim?caseSensitive=false;MODE=MYSQL;TRACE_LEVEL_FILE=2;INIT=RUNSCRIPT FROM 'classpath:test.sql'"
@@ -49,7 +49,7 @@ class RowTransformerTest extends AnyFlatSpec with Matchers {
     val rowSet: ResultSet = statement.getResultSet
 
     // default type mapping
-    val ret1 = ResultSetTransformer[GenericRow4[Int, String, String, String]].toResults(rowSet)
+    val ret1 = Extractor[GenericRow4[Int, String, String, String]].from(rowSet)
     assert(ret1.size == 2)
     println(ret1)
 
@@ -58,7 +58,7 @@ class RowTransformerTest extends AnyFlatSpec with Matchers {
     val rowSet2: ResultSet = statement.getResultSet
 
     // custom type mapping
-    val ret2 = ResultSetTransformer[GenericRow4[Int, String, String, String]].toResults(
+    val ret2 = Extractor[GenericRow4[Int, String, String, String]].from(
       rowSet2,
       (resultSet, columnSize) => {
         val metadata = resultSet.getMetaData

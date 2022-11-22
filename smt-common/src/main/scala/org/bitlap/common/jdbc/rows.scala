@@ -25,11 +25,11 @@ package org.bitlap.common.jdbc
  *    梦境迷离
  *  @version 1.0,2022/10/21
  */
-sealed trait GenericRow
-final case class GenericRow1[T1](col1: T1)                                                         extends GenericRow
-final case class GenericRow2[T1, T2](col1: T1, col2: T2)                                           extends GenericRow
-final case class GenericRow3[T1, T2, T3](col1: T1, col2: T2, col3: T3)                             extends GenericRow
-final case class GenericRow4[T1, T2, T3, T4](col1: T1, col2: T2, col3: T3, col4: T4)               extends GenericRow
+trait GenericRow                                                                     extends Product with Serializable
+final case class GenericRow1[T1](col1: T1)                                           extends GenericRow
+final case class GenericRow2[T1, T2](col1: T1, col2: T2)                             extends GenericRow
+final case class GenericRow3[T1, T2, T3](col1: T1, col2: T2, col3: T3)               extends GenericRow
+final case class GenericRow4[T1, T2, T3, T4](col1: T1, col2: T2, col3: T3, col4: T4) extends GenericRow
 final case class GenericRow5[T1, T2, T3, T4, T5](col1: T1, col2: T2, col3: T3, col4: T4, col5: T5) extends GenericRow
 final case class GenericRow6[T1, T2, T3, T4, T5, T6](
   col1: T1,
