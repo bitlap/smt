@@ -46,7 +46,7 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
   private val innerTName                = q"_t"
   private val innerTmpTermName          = TermName("_tt")
   private val writerInstanceTermName    = TermName("_WriterInstance")
-  private val writerImplClassNamePrefix = "_CSVAnno$"
+  private val writerImplClassNamePrefix = "_WriterAnno$"
   private val funcArgsTempTermName      = TermName("temp")
 
   // scalafmt: { maxColumn = 400 }
@@ -101,7 +101,7 @@ class WriterBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
       q"""
          ..$preTrees
          ..${getAnnoClassObject[T](customTrees, format)}
-         $packageName.FileUtils.writer($file, $ts.map { ($innerTName: $clazzName) =>
+         $packageName.FileUtils.write($file, $ts.map { ($innerTName: $clazzName) =>
                $writerInstanceTermName.$innerTmpTermName = $innerTName
                $writerInstanceTermName.transform($innerTName)
            }, $format

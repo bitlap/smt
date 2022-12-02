@@ -37,7 +37,7 @@ object StringUtils {
   private val kvr: Regex       = "(.*):(.*)".r
   private val pattern: Pattern = Pattern.compile(regex.toString())
 
-  def extraJsonPairs(input: String): String = {
+  @inline private def extraJsonPairs(input: String): String = {
     val matcher = pattern.matcher(input)
     while (matcher.find) {
       val tail = matcher.group().tail.init
@@ -48,6 +48,9 @@ object StringUtils {
 
     null
   }
+
+  def asJsonString[K, V](kvs: Seq[(K, V)]): String =
+    s"""\"{${kvs.map(kv => s"""\"\"${kv._1}\"\":\"\"${kv._2}\"\"""").mkString(",")}}\""""
 
   def extractJsonValues[T <: Product](jsonString: String)(func: (String, String) => T): List[T] = {
     val pairs = extraJsonPairs(jsonString)
