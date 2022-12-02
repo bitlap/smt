@@ -61,15 +61,7 @@ class WriterAndReaderTest extends AnyFlatSpec with Matchers {
         ReaderBuilder[Metric]
           .setField(
             _.dimensions,
-            dims => {
-              val jsonElements = dims
-                .replace("\"", "")
-                .split(",")
-                .map(_.replace("{", "").replace("}", ""))
-              println(jsonElements.toList)
-              val kvs = jsonElements.map(f => f.split(":")(0) -> f.split(":")(1))
-              kvs.map(kv => Dimension3(kv._1, kv._2)).toList
-            }
+            dims => StringUtils.extractJsonValues(dims)((k, v) => Dimension3(k, v))
           )
           .convert(csv)
       )
@@ -83,8 +75,7 @@ class WriterAndReaderTest extends AnyFlatSpec with Matchers {
       WriterBuilder[Metric]
         .setField(
           _.dimensions,
-          (ds: List[Dimension3]) =>
-            s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+          (ds: List[Dimension3]) => StringUtils.asJsonString(ds.map(f => f.key -> f.value))
         )
         .convert(metric.get)
     )
@@ -103,15 +94,7 @@ class WriterAndReaderTest extends AnyFlatSpec with Matchers {
         ReaderBuilder[Metric2]
           .setField[Seq[Dimension3]](
             _.dimensions,
-            dims => {
-              val jsonElements = dims
-                .replace("\"", "")
-                .split(",")
-                .map(_.replace("{", "").replace("}", ""))
-              println(jsonElements.toList)
-              val kvs = jsonElements.map(f => f.split(":")(0) -> f.split(":")(1))
-              kvs.map(kv => Dimension3(kv._1, kv._2)).toSeq
-            }
+            dims => StringUtils.extractJsonValues(dims)((k, v) => Dimension3(k, v))
           )
           .convert(csv)
       )
@@ -186,8 +169,7 @@ class WriterAndReaderTest extends AnyFlatSpec with Matchers {
     val csv = WriterBuilder[Metric2]
       .setField(
         _.dimensions,
-        (ds: Seq[Dimension3]) =>
-          s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+        (ds: Seq[Dimension3]) => StringUtils.asJsonString(ds.map(f => f.key -> f.value).toList)
       )
       .convert(metrics.filter(_.isDefined).map(_.get))
 
@@ -210,7 +192,7 @@ class WriterAndReaderTest extends AnyFlatSpec with Matchers {
     WriterBuilder[Metric2]
       .setField[Seq[Dimension3]](
         _.dimensions,
-        ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+        ds => StringUtils.asJsonString(ds.map(f => f.key -> f.value).toList)
       )
       .convertTo(metrics.filter(_.isDefined).map(_.get), file)
 
@@ -238,7 +220,7 @@ class WriterAndReaderTest extends AnyFlatSpec with Matchers {
     WriterBuilder[Metric2]
       .setField[Seq[Dimension3]](
         _.dimensions,
-        ds => s"""\"{${ds.map(kv => s"""\"\"${kv.key}\"\":\"\"${kv.value}\"\"""").mkString(",")}}\""""
+        ds => StringUtils.asJsonString(ds.map(f => f.key -> f.value).toList)
       ) // NOTE: not support pass anonymous object to convertTo method.
       .convertTo(metrics.filter(_.isDefined).map(_.get), file)
     file.delete()

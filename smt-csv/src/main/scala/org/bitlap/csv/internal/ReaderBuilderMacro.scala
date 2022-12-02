@@ -107,7 +107,7 @@ class ReaderBuilderMacro(override val c: whitebox.Context) extends AbstractMacro
       q"""
          ..$getPreTree
          ..${getAnnoClassObject[T](clazzName, format)}
-         $packageName.FileUtils.reader($file, $format).map { ($innerLName: String) =>
+         $packageName.FileUtils.read($file, $format).map { ($innerLName: String) =>
              $readerInstanceTermName.$innerTempTermName = ${TermName(innerLName.toString())}
              $readerInstanceTermName.transform($innerLName) 
          }

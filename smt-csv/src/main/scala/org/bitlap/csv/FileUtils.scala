@@ -45,7 +45,7 @@ object FileUtils {
         resource.close()
       }
 
-  def writer(file: File, lines: List[String], format: CsvFormat): Boolean = {
+  def write(file: File, lines: List[String], format: CsvFormat): Boolean = {
     checkFile(file)
     val bufferedWriter = new BufferedWriter(
       new OutputStreamWriter(new FileOutputStream(file, format.append), format.encoding)
@@ -59,6 +59,7 @@ object FileUtils {
           } else {
             r.println(line)
           }
+          r.flush()
         }
       }
     finally bufferedWriter.close()
@@ -66,7 +67,7 @@ object FileUtils {
   }
 
   // TODO read url
-  def reader(file: InputStream, format: CsvFormat): List[String] =
+  def read(file: InputStream, format: CsvFormat): List[String] =
     try
       using(Source.fromInputStream(file, format.encoding)) { lines =>
         val ls = if (format.ignoreHeader) {
