@@ -31,59 +31,34 @@ import scala.concurrent.{ ExecutionContext, Future }
  */
 object Cache {
 
-  def getAsyncCache[K, T <: Product](implicit
+  def apply[K, T <: Product](implicit
     cache: Aux[K, T, Future],
     executionContext: ExecutionContext,
-    keyBuilder: CacheKeyBuilder[K]
+    keySerde: CacheKeySerde[K]
   ): CacheRef[K, T, Future] =
     new CacheRef[K, cache.Out, Future] {
-      override def batchPutT(data: => Map[K, cache.Out]): Future[Unit] =
+      override def batchPutF(data: => Map[K, cache.Out]): Future[Unit] =
         cache.putAll(data)
 
-      override def getT(key: K): Future[Option[cache.Out]] =
+      override def getF(key: K): Future[Option[cache.Out]] =
         cache.get(key)
 
-      override def putT(key: K, value: cache.Out): Future[Unit] =
+      override def putF(key: K, value: cache.Out): Future[Unit] =
         cache.put(key, value)
 
-      override def clear(): Future[Unit] = cache.clear()
+      override def clearF(): Future[Unit] = cache.clear()
 
-      override def remove(key: K): Future[Unit] = cache.remove(key)
+      override def removeF(key: K): Future[Unit] = cache.remove(key)
 
-      override def getAllT: Future[Map[K, cache.Out]] = cache.getAll
+      override def getAllF: Future[Map[K, cache.Out]] = cache.getAll
 
-      override def safeRefreshT(allNewData: Map[K, cache.Out]): Future[Unit] =
-        this.getAllT.map { t =>
-          val invalidData = t.keySet.filterNot(allNewData.keySet)
-          this.batchPutT(allNewData).map(_ => invalidData.foreach(this.remove))
+      override def refreshF(allNewData: Map[K, cache.Out]): Future[Unit] =
+        this.synchronized {
+          this.getAllF.map { t =>
+            val invalidData = t.keySet.filterNot(allNewData.keySet)
+            this.batchPutF(allNewData).map(_ => invalidData.foreach(this.removeF))
+          }
         }
-    }
-
-  def getSyncCache[K, T <: Product](implicit
-    cache: Aux[K, T, Identity],
-    keyBuilder: CacheKeyBuilder[K]
-  ): CacheRef[K, T, Identity] =
-    new CacheRef[K, cache.Out, Identity] {
-      override def batchPutT(data: => Map[K, cache.Out]): Identity[Unit] =
-        data.foreach(kv => cache.put(kv._1, kv._2))
-
-      override def getT(key: K): Identity[Option[cache.Out]] =
-        cache.get(key)
-
-      override def putT(key: K, value: cache.Out): Identity[Unit] =
-        cache.put(key, value)
-
-      override def clear(): Identity[Unit] = cache.clear()
-
-      override def getAllT: Identity[Map[K, cache.Out]] = cache.getAll
-
-      override def remove(key: K): Identity[Unit] = cache.remove(key)
-
-      override def safeRefreshT(allNewData: Map[K, cache.Out]): Identity[Unit] = {
-        val invalidData = this.getAllT.keySet.filterNot(allNewData.keySet)
-        this.batchPutT(allNewData)
-        invalidData.foreach(this.remove)
-      }
     }
 
 }

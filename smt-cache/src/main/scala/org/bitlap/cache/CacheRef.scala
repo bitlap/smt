@@ -27,17 +27,17 @@ package org.bitlap.cache
  */
 trait CacheRef[In, T <: Product, F[_]] {
 
-  def batchPutT(data: => Map[In, T]): F[Unit]
+  def batchPutF(data: => Map[In, T]): F[Unit]
 
-  def getT(key: In): F[Option[T]]
+  def getF(key: In): F[Option[T]]
 
-  def putT(key: In, value: T): F[Unit]
+  def putF(key: In, value: T): F[Unit]
 
-  def getAllT: F[Map[In, T]]
+  def getAllF: F[Map[In, T]]
 
-  def clear(): F[Unit]
+  def clearF(): F[Unit]
 
-  def remove(key: In): F[Unit]
+  def removeF(key: In): F[Unit]
 
-  def safeRefreshT(allNewData: Map[In, T]): F[Unit]
+  def refreshF(allNewData: Map[In, T]): F[Unit]
 }

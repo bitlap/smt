@@ -27,39 +27,39 @@ import java.util.UUID
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-trait CacheKeyBuilder[T] {
+trait CacheKeySerde[T] {
   def serialize(key: T): String
 
   def deserialize(key: String): T
 }
 
-object CacheKeyBuilder {
+object CacheKeySerde {
 
-  implicit val intKey: CacheKeyBuilder[Int] = new CacheKeyBuilder[Int] {
+  implicit val intKey: CacheKeySerde[Int] = new CacheKeySerde[Int] {
     override def serialize(key: Int): String = key.toString
 
     override def deserialize(key: String): Int = key.toInt
   }
 
-  implicit val stringKey: CacheKeyBuilder[String] = new CacheKeyBuilder[String] {
+  implicit val stringKey: CacheKeySerde[String] = new CacheKeySerde[String] {
     override def serialize(key: String): String = key
 
     override def deserialize(key: String): String = key
   }
 
-  implicit val longKey: CacheKeyBuilder[Long] = new CacheKeyBuilder[Long] {
+  implicit val longKey: CacheKeySerde[Long] = new CacheKeySerde[Long] {
     override def serialize(key: Long): String = key.toString
 
     override def deserialize(key: String): Long = key.toLong
   }
 
-  implicit val doubleKey: CacheKeyBuilder[Double] = new CacheKeyBuilder[Double] {
+  implicit val doubleKey: CacheKeySerde[Double] = new CacheKeySerde[Double] {
     override def serialize(key: Double): String = String.valueOf(key)
 
     override def deserialize(key: String): Double = key.toDouble
   }
 
-  implicit val uuidKey: CacheKeyBuilder[UUID] = new CacheKeyBuilder[UUID] {
+  implicit val uuidKey: CacheKeySerde[UUID] = new CacheKeySerde[UUID] {
     override def serialize(key: UUID): String = key.toString
 
     override def deserialize(key: String): UUID = UUID.fromString(key)
