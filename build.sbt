@@ -1,11 +1,33 @@
 import sbt.{ Def, Test }
-import sbtrelease.ReleaseStateTransformations._
 
 ThisBuild / resolvers ++= Seq(
   Resolver.mavenLocal,
-  Resolver.sonatypeRepo("public"),
-  Resolver.sonatypeRepo("snapshots"),
-  "New snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+  "Sonatype OSS Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/",
+  "Sonatype OSS Releases" at "https://s01.oss.sonatype.org/content/repositories/releases"
+)
+
+inThisBuild(
+  List(
+    organization           := "org.bitlap",
+    sonatypeCredentialHost := "s01.oss.sonatype.org",
+    sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
+    homepage               := Some(url("https://github.com/bitlap/smt")),
+    licenses               := Seq(License.MIT),
+    developers := List(
+      Developer(
+        id = "dreamylost",
+        name = "梦境迷离",
+        email = "dreamylost@outlook.com",
+        url = url("https://blog.dreamylost.cn")
+      ),
+      Developer(
+        id = "IceMimosa",
+        name = "ChenKai",
+        email = "chk19940609@gmail.com",
+        url = url("http://patamon.me")
+      )
+    )
+  )
 )
 
 lazy val scala212 = "2.12.17"
@@ -21,7 +43,7 @@ lazy val h2                           = "2.1.214"
 lazy val commonSettings =
   Seq(
     organization := "org.bitlap",
-    startYear    := Some(2022),
+    startYear    := Some(2023),
     scalaVersion := scala213,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % Provided,
@@ -50,7 +72,6 @@ lazy val `smt-csv` = (project in file("smt-csv"))
     crossScalaVersions := List(scala213, scala212, scala211)
   )
   .dependsOn(`smt-common` % "compile->compile;test->test")
-  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -63,7 +84,6 @@ lazy val `smt-common` = (project in file("smt-common"))
       "com.h2database" % "h2" % h2 % Test
     )
   )
-  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -74,7 +94,6 @@ lazy val `smt-cache` = (project in file("smt-cache"))
     crossScalaVersions                              := List(scala213, scala212, scala211),
     libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % scalaCollectionCompatVersion
   )
-  .settings(Publishing.publishSettings)
   .settings(paradise())
   .dependsOn(`smt-common` % "compile->compile;test->test")
   .enablePlugins(HeaderPlugin)
@@ -85,7 +104,6 @@ lazy val `smt-csv-derive` = (project in file("smt-csv-derive"))
     name               := "smt-csv-derive",
     crossScalaVersions := List(scala213, scala212, scala211)
   )
-  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
   .dependsOn(`smt-csv` % "compile->compile;test->test")
@@ -102,7 +120,6 @@ lazy val `smt-annotations` = (project in file("smt-annotations"))
       "org.apache.logging.log4j"    % "log4j-slf4j-impl" % log4jVersion % Test
     )
   )
-  .settings(Publishing.publishSettings)
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
 
@@ -116,27 +133,9 @@ lazy val `smt` = (project in file("."))
   )
   .settings(
     commands ++= Commands.value,
-    crossScalaVersions            := Nil,
-    publish / skip                := true,
-    headerLicense                 := Some(HeaderLicense.MIT("2022", "bitlap")),
-    releaseIgnoreUntrackedFiles   := true,
-    releaseCrossBuild             := false, // @see https://www.scala-sbt.org/1.x/docs/Cross-Build.html
-    releaseTagName                := (ThisBuild / version).value,
-    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-    releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      releaseStepCommandAndRemaining("+compile"),
-      releaseStepCommandAndRemaining("test"),
-      setReleaseVersion,
-      commitReleaseVersion,
-      tagRelease,
-      releaseStepCommandAndRemaining("+publishSigned"),
-      setNextVersion,
-      commitNextVersion,
-      pushChanges
-    )
+    crossScalaVersions := Nil,
+    publish / skip     := true,
+    headerLicense      := Some(HeaderLicense.MIT("2022", "bitlap"))
   )
 
 def paradise(): Def.Setting[Seq[ModuleID]] =

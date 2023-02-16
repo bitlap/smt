@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+        scala: [ '2.11.12', '2.12.17', '2.13.8', ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "adopt@1.11"
+      - name: Coursier cache
+        uses: coursier/cache-action@v5
+      - name: Checking Code style
+        run: sbt check
+      - name: Build and Publish to Local
+        run: sbt ++${{ matrix.scala }} clean publishLocal
+  
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ 8 ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+
+      - name: Cache scala dependencies
+        uses: coursier/cache-action@v6
+
+      - name: Test
+        run: sbt clean coverage test coverageReport coverageAggregate && bash <(curl -s https://codecov.io/bash)
+
+  ci:
+    runs-on: ubuntu-20.04
+    needs: [ build, test ]
+    steps:
+      - name: Aggregate outcomes
+        run: echo "build succeeded"

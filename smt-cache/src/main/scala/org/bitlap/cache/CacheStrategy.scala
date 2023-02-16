@@ -25,7 +25,7 @@ package org.bitlap.cache
  *    梦境迷离
  *  @version 1.0,6/8/22
  */
-trait CacheStrategy
+sealed trait CacheStrategy
 
 object CacheStrategy {
 

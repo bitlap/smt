@@ -27,6 +27,7 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 import org.bitlap.common.TestEntity
+import scala.concurrent.ExecutionContext
 
 /** @author
  *    梦境迷离
@@ -34,38 +35,8 @@ import org.bitlap.common.TestEntity
  */
 class CacheSpec extends AnyFlatSpec with Matchers {
 
-  private implicit val syncCache  = CacheImplicits.testEntitySyncCache
-  private implicit val asyncCache = CacheImplicits.testEntityAsyncCache
-
-  private val data = Map(
-    "btc" -> TestEntity("btc", "hello1", "world1"),
-    "etc" -> TestEntity("eth", "hello2", "world2")
-  )
-
-  "cache1" should "get entity from cache successfully" in {
-    val cache = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-    val result: Option[TestEntity] = cache.getT("etc")
-    result shouldBe data.get("etc")
-
-    val result2 = cache.getAllT
-    result2 shouldBe data
-  }
-
-  "cache3" should "get entity's field after refresh" in {
-    val cache = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-    val newData = Map(
-      "btc"       -> TestEntity("btc", "hello1", "world1"),
-      "btc-zh-cn" -> TestEntity("btc", "你好啊", "你好哦"),
-      "etc"       -> TestEntity("eth", "hello2", "world2")
-    )
-    cache.clear()
-    cache.batchPutT(newData)
-
-    val result: Option[TestEntity] = cache.getT("btc-zh-cn")
-    result shouldBe newData.get("btc-zh-cn")
-  }
+  implicit lazy val testEntityAsyncCache =
+    GenericCache[String, TestEntity](CacheStrategy.Normal)(ExecutionContext.Implicits.global)
 
   "cache4" should "async cache" in {
     val newData = Map(
@@ -77,13 +48,13 @@ class CacheSpec extends AnyFlatSpec with Matchers {
       "btc-zh-cn" -> TestEntity("btc", "id456", "btc_zh_key456"),
       "eth"       -> TestEntity("btc", "id456", "eth_key456")
     )
-    val cache = Cache.getAsyncCache[String, TestEntity]
+    val cache = Cache[String, TestEntity]
 
     val ret = for {
-      _      <- cache.batchPutT(newData)
-      btcKey <- cache.getT("btc").map(_.map(_.key))
-      _      <- cache.batchPutT(newData2)
-      ethKey <- cache.getT("eth").map(_.map(_.key))
+      _      <- cache.batchPutF(newData)
+      btcKey <- cache.getF("btc").map(_.map(_.key))
+      _      <- cache.batchPutF(newData2)
+      ethKey <- cache.getF("eth").map(_.map(_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> Option("eth_key456")
@@ -95,34 +66,17 @@ class CacheSpec extends AnyFlatSpec with Matchers {
       "btc"       -> TestEntity("btc", "id123", "btc_key123"),
       "btc-zh-cn" -> TestEntity("btc", "id123", "btc_zh_key123")
     )
-    val cache = Cache.getAsyncCache[String, TestEntity]
+    val cache = Cache[String, TestEntity]
 
     val ret = for {
-      _      <- cache.batchPutT(newData)
-      btcKey <- cache.getT("btc").map(_.map(_.key))
-      _      <- cache.clear()
-      ethKey <- cache.getT("eth").map(_.map(_.key))
+      _      <- cache.batchPutF(newData)
+      btcKey <- cache.getF("btc").map(_.map(_.key))
+      _      <- cache.clearF()
+      ethKey <- cache.getF("eth").map(_.map(_.key))
     } yield btcKey -> ethKey
 
     Await.result(ret, 3.seconds) shouldBe Option("btc_key123") -> None
 
-  }
-
-  "cache7" should "refresh successfully" in {
-    val cache = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-    val result: Option[TestEntity] = cache.getT("etc")
-    result shouldBe data.get("etc")
-
-    val newData = Map(
-      "btc"       -> TestEntity("btc", "id123", "btc_key123"),
-      "btc-zh-cn" -> TestEntity("btc", "id123", "btc_zh_key123")
-    )
-
-    cache.safeRefreshT(newData)
-
-    val result2 = cache.getT("eth")
-    result2 shouldBe None
   }
 
 }
