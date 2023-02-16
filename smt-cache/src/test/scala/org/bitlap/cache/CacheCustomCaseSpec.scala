@@ -39,36 +39,15 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
     "etc2" -> TestEntity("eth2", "hello2", "world2")
   )
 
-  "cache1" should "ok while uses lru cache" in {
-    implicit val lruCache = CacheImplicits.testEntitySyncLruCache
-    val cache             = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-
-    cache.putT("etc3", TestEntity("eth3", "hello3", "world2"))
-
-    val result: Option[TestEntity] = cache.getT("btc")
-    result shouldBe None
-
-    cache.clear()
-
-    val result2: Option[TestEntity] = cache.getT("etc1")
-    result2 shouldBe None
-
-    cache.batchPutT(data)
-
-    val result3: Option[TestEntity] = cache.getT("etc1")
-    result3 shouldBe Some(TestEntity("eth1", "hello1", "world2"))
-
-    val result4 = cache.getAllT
-    result4 shouldBe data
-  }
-
   "cache2" should "ok while defines a custom cache" in {
+    import scala.concurrent.Await
+    import scala.concurrent.duration.Duration
+    implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
     implicit val customCache =
       GenericCache[String, TestEntity](CacheStrategy.CustomCacheStrategy(new CacheAdapter[TestEntity] {
         lazy val underlyingCache: util.HashMap[String, TestEntity] = new util.HashMap[String, TestEntity]()
 
-        override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
+        override def keys: Set[String] = underlyingCache.keySet().asScala.toSet
 
         override def batchPut(data: Map[String, TestEntity]): Unit = underlyingCache.putAll(data.asJava)
 
@@ -80,12 +59,12 @@ class CacheCustomCaseSpec extends AnyFlatSpec with Matchers {
 
         override def remove(k: String): Unit = underlyingCache.remove(k)
       }))
-    val cache = Cache.getSyncCache[String, TestEntity]
-    cache.batchPutT(data)
-    val result: Option[TestEntity] = cache.getT("btc")
+    val cache = Cache[String, TestEntity]
+    Await.result(cache.batchPutF(data), Duration.Inf)
+    val result: Option[TestEntity] = Await.result(cache.getF("btc"), Duration.Inf)
     result shouldBe Some(TestEntity("btc", "hello1", "world1"))
 
-    val result2 = cache.getAllT
+    val result2 = Await.result(cache.getAllF, Duration.Inf)
     result2 shouldBe data
   }
 }

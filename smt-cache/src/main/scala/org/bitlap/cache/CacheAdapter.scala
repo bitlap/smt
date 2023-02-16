@@ -31,7 +31,7 @@ import java.util.Collections
  */
 trait CacheAdapter[V] {
 
-  def getAllKeys: Set[String]
+  def keys: Set[String]
 
   def batchPut(data: Map[String, V]): Unit
 
@@ -61,7 +61,7 @@ object CacheAdapter {
 
   class LruHashMapCacheAdapter[V](underlyingCache: java.util.Map[String, V]) extends CacheAdapter[V] {
 
-    override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
+    override def keys: Set[String] = underlyingCache.keySet().asScala.toSet
 
     override def batchPut(data: Map[String, V]): Unit = underlyingCache.putAll(data.asJava)
 
@@ -77,7 +77,7 @@ object CacheAdapter {
   class ConcurrentMapCacheAdapter[V](underlyingCache: java.util.concurrent.ConcurrentMap[String, V])
       extends CacheAdapter[V] {
 
-    override def getAllKeys: Set[String] = underlyingCache.keySet().asScala.toSet
+    override def keys: Set[String] = underlyingCache.keySet().asScala.toSet
 
     override def batchPut(data: Map[String, V]): Unit = underlyingCache.putAll(data.asJava)
 
