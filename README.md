@@ -97,7 +97,7 @@ This project is developed using JetBrains IDEA.
 Thanks to JetBrains for providing me with a free license, which is a strong support for me.
 
 [Stage]: https://img.shields.io/badge/Project%20Stage-Development-yellowgreen.svg
-[Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ScalaCI.yml/badge.svg
+[Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ci.yml/badge.svg
 [Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-annotations/latest.svg?platform=jvm
 [Badge-Jetbrains]: https://img.shields.io/jetbrains/plugin/v/17202-scala-macro-tools
 [Badge-Codecov]: https://codecov.io/gh/bitlap/smt/branch/master/graph/badge.svg?token=IA596YRTOT
