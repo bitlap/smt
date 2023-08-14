@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 bitlap
+ * Copyright (c) 2023 bitlap
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -32,7 +32,6 @@ package object internal {
     // common error msg
     final lazy val ONLY_CLASS: String         = "Annotation is only supported on class."
     final lazy val ONLY_CASE_CLASS: String    = "Annotation is only supported on case class."
-    final lazy val ONLY_OBJECT_CLASS: String  = "Annotation is only supported on class or object."
     final lazy val UNEXPECTED_PATTERN: String = "Unexpected annotation pattern!"
   }
 
