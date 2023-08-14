@@ -18,20 +18,6 @@
 
 # 如何使用
 
-添加库依赖，下面是如何在 SBT 中使用
-
-> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`，其中，`2.12`表示Scala版本号。原来叫`smt-tools`
-
-## common
-
-- 通用的宏操作API的封装。
-- 对象转换器（零依赖，类型安全）。
-- JDBC `ResultSet` 转换器。
-
-```scala
-"org.bitlap" %% "smt-common" % "<VERSION>"
-```
-
 ## annotations
 
 - `@toString`
@@ -47,7 +33,21 @@
 "org.bitlap" %% "smt-annotations" % "<VERSION>" 
 ```
 
-该库已发布到maven中央仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。还需要配置：
+> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`，其中，`2.12`表示Scala版本号。`smt-annotations`改名自`smt-tools`
+
+在`scala 2.13.x`版本中，需增加scalac参数`-Ymacro-annotations`。
+
+## common
+
+- 通用的宏操作API的封装。
+- 对象转换器（零依赖，类型安全）。
+- JDBC `ResultSet` 转换器。
+
+```scala
+"org.bitlap" %% "smt-common" % "<VERSION>"
+```
+
+该库已发布到[https://s01.oss.sonatype.org/](https://s01.oss.sonatype.org/)仓库，请使用最新版本。仅将本库导入构建系统（例如gradle、sbt）是不够的。不同Scala版本还需要相应配置：
 
 | Scala 2.11           | Scala 2.12           | Scala 2.13                     |
 |----------------------|----------------------|--------------------------------|
@@ -59,7 +59,13 @@
 addCompilerPlugin("org.scalamacros" % "paradise_<your-scala-version>" % "<plugin-version>")
 ```
 
-在`scala 2.13.x`版本中，需增加scalac参数`-Ymacro annotations`。
+如果没有仓库，可以手动添加：
+```
+ThisBuild / resolvers ++= Seq(
+  "Sonatype OSS Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots",
+  "Sonatype OSS Releases" at "https://s01.oss.sonatype.org/content/repositories/releases"
+)
+```
 
 # 特别感谢
 
