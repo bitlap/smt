@@ -20,7 +20,7 @@
 
 添加库依赖，下面是如何在 SBT 中使用
 
-> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`，其中，`2.12`表示Scala版本号。
+> 在gradle，maven中，通常`smt-annotations`被替换为`smt-annotations_2.12`，其中，`2.12`表示Scala版本号。原来叫`smt-tools`
 
 ## common
 
