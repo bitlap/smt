@@ -15,7 +15,7 @@ jobs:
       - name: Setup Scala
         uses: olafurpg/setup-scala@v14
         with:
-          java-version: "adopt@1.11"
+          java-version: ${{ matrix.java-version }}
       - name: Coursier cache
         uses: coursier/cache-action@v6
       - name: Checking Code style
@@ -29,15 +29,14 @@ jobs:
       matrix:
         java-version: [ 8 ]
     steps:
+      - name: Checkout
       - uses: actions/checkout@v3
-      - name: Setup JDK
-        uses: actions/setup-java@v3
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v14
         with:
           java-version: ${{ matrix.java-version }}
-
       - name: Cache scala dependencies
         uses: coursier/cache-action@v6
-
       - name: Test
         run: sbt clean coverage test coverageReport coverageAggregate && bash <(curl -s https://codecov.io/bash)
 
