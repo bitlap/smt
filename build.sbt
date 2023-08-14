@@ -34,8 +34,8 @@ lazy val scala212 = "2.12.17"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.8"
 
-lazy val scalatestVersion             = "3.2.15"
-lazy val h2                           = "2.1.214"
+lazy val scalatestVersion = "3.2.15"
+lazy val h2               = "2.1.214"
 
 lazy val commonSettings =
   Seq(
@@ -78,7 +78,7 @@ lazy val `smt-annotations` = (project in file("smt-annotations"))
   .settings(commonSettings)
   .settings(
     name               := "smt-annotations",
-    crossScalaVersions := List(scala213, scala212, scala211),
+    crossScalaVersions := List(scala213, scala212, scala211)
   )
   .settings(paradise())
   .enablePlugins(HeaderPlugin)
