@@ -7,10 +7,10 @@
 
 # 环境
 
-- Scala 2.11.12
-- Scala 2.12.16
-- Scala 2.13.8 
-- Scala3版本 [bitlap/rolls](https://github.com/bitlap/rolls)
+- Scala 2.11.x
+- Scala 2.12.x
+- Scala 2.13.x 
+- Scala 3.x [bitlap/rolls](https://github.com/bitlap/rolls)
 
 # 文档
 
