@@ -16,7 +16,7 @@ jobs:
         scala: [ '2.11.12', '2.12.18', '2.13.11' ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Scala
         uses: olafurpg/setup-scala@v14
         with:
@@ -36,7 +36,7 @@ jobs:
         scala: [ '2.11.12', '2.12.18', '2.13.11' ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Scala
         uses: olafurpg/setup-scala@v14
         with:
@@ -52,7 +52,7 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Scala
