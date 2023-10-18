@@ -1,5 +1,7 @@
 # smt
 
+[![Project stage](https://img.shields.io/badge/Project%20Stage-Deprecated-red.svg)](https://github.com/bitlap/bitlap/wiki/Project-Stages)
+
 | CI              | Codecov                                   | Scaladex                                                      | Jetbrains Plugin                              |
 |-----------------|-------------------------------------------|---------------------------------------------------------------|-----------------------------------------------|
 | ![CI][Badge-CI] | [![codecov][Badge-Codecov]][Link-Codecov] | [![smt Scala version support][Badge-Scaladex]][Link-Scaladex] | [![Version][Badge-Jetbrains]][Link-Jetbrains] | 
