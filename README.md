@@ -25,9 +25,9 @@
 - `@toString`
 - `@builder`
 - `@apply`
-- `@constructor`
+- `@constructor` 2.13+
 - `@equalsAndHashCode`
-- `@javaCompatible`
+- `@javaCompatible` 2.13+
 
 > Intellij插件 `Scala-Macro-Tools`。
 

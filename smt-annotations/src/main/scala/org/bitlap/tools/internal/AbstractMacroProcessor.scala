@@ -21,7 +21,6 @@
 
 package org.bitlap.tools.internal
 
-import scala.annotation.tailrec
 import scala.reflect.macros.whitebox
 
 /** @author
@@ -347,26 +346,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     )
   }
 
-  /** Extract the necessary structure information of the moduleDef for macro programming.
-   *
-   *  @param moduleDef
-   *  @return
-   *    Return the expansion of the class definition as
-   *    [[org.bitlap.tools.internal.AbstractMacroProcessor#ClassDefinition]]
-   */
-  def mapToModuleDeclInfo(moduleDef: ModuleDef): ClassDefinition = {
-    val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
-    ClassDefinition(
-      self.asInstanceOf[ValDef],
-      mods.asInstanceOf[Modifiers],
-      tpname.asInstanceOf[TermName].toTypeName,
-      Nil,
-      Nil,
-      stats.asInstanceOf[List[Tree]],
-      parents.asInstanceOf[List[Tree]]
-    )
-  }
-
   /** Generate the specified syntax tree and assign it to the tree definition itself. Used only when you modify the
    *  definition of the class itself. Such as add method/add field.
    *
@@ -383,46 +362,6 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     ClassDef(mods, name, tparams, Template(parents, self, body ++ classInfoAction(classInfo)))
   }
 
-  // TODO fix, why cannot use ClassDef apply
-  def prependImplDefBody(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree =
-    implDef match {
-      case classDecl: ClassDef =>
-        val classInfo = mapToClassDeclInfo(classDecl)
-        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =
-          classDecl
-        q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..${classInfoAction(classInfo) ++ stats} }"
-      case moduleDef: ModuleDef =>
-        val classInfo = mapToModuleDeclInfo(moduleDef)
-        val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
-        q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..${classInfoAction(classInfo) ++ stats.toList} }"
-    }
-
-  def appendImplDefSuper(implDef: ImplDef, classInfoAction: ClassDefinition => List[Tree]): c.universe.Tree =
-    implDef match {
-      case classDecl: ClassDef =>
-        val classInfo = mapToClassDeclInfo(classDecl)
-        val q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" =
-          classDecl
-        q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..${parents ++ classInfoAction(classInfo)} { $self => ..$stats }"
-      case moduleDef: ModuleDef =>
-        val classInfo = mapToModuleDeclInfo(moduleDef)
-        val q"$mods object $tpname extends { ..$earlydefns } with ..$parents { $self => ..$stats }" = moduleDef
-        q"$mods object $tpname extends { ..$earlydefns } with ..${parents.toList ++ classInfoAction(classInfo)} { $self => ..$stats }"
-    }
-
-  /** Modify the method body of the method tree.
-   *
-   *  @param defDef
-   *  @param defBodyAction
-   *    Method body of final result
-   *  @return
-   *    Return a new [[scala.reflect.api.Trees#DefDef]] which changed by defBodyAction function
-   */
-  def mapToMethodDef(defDef: DefDef, defBodyAction: => Tree): c.universe.DefDef = {
-    val DefDef(mods, name, tparams, vparamss, tpt, rhs) = defDef
-    DefDef(mods, name, tparams, vparamss, tpt, defBodyAction)
-  }
-
   private[internal] case class ClassDefinition(
     self: ValDef,
     mods: Modifiers,
@@ -433,31 +372,4 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     superClasses: List[Tree],
     earlydefns: List[Tree] = Nil
   )
-
-  /** Find the specified val Name in the enclosingClass definition.
-   *
-   *  @param t
-   *  @return
-   *    Return a optional [[scala.reflect.api.Names#TermName]]
-   */
-  def findValDefInEnclosingClass(t: Name): Option[TermName] = {
-    @tailrec
-    def doFind(trees: List[Tree]): Option[TermName] = trees match {
-      case Nil => None
-      case tree :: tail =>
-        tree match {
-          case ValDef(_, name, tpt, _) =>
-            if (c.typecheck(tq"$tpt", c.TYPEmode).tpe.toString == t.decodedName.toString) // TODO better
-              Some(name.toTermName)
-            else None
-          case _ => doFind(tail)
-        }
-    }
-
-    c.enclosingClass match {
-      case ClassDef(_, _, _, Template(_, _, body)) => doFind(body)
-      case ModuleDef(_, _, Template(_, _, body))   => doFind(body)
-    }
-  }
-
 }
