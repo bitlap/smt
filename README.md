@@ -69,12 +69,6 @@ ThisBuild / resolvers ++= Seq(
 )
 ```
 
-# 特别感谢
-
-<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" alt="IntelliJ IDEA logo.">
-
-This project is developed using JetBrains IDEA.
-Thanks to JetBrains for providing me with a free license, which is a strong support for me.
 
 [Badge-CI]: https://github.com/bitlap/smt/actions/workflows/ci.yml/badge.svg
 [Badge-Scaladex]: https://index.scala-lang.org/bitlap/smt/smt-annotations/latest-by-scala-version.svg?platform=jvm
