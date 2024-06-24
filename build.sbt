@@ -34,7 +34,7 @@ lazy val scala212 = "2.12.19"
 lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.13"
 
-lazy val scalatestVersion = "3.2.15"
+lazy val scalatestVersion = "3.2.19"
 lazy val h2               = "2.2.224"
 
 lazy val commonSettings =
