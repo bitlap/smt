@@ -40,9 +40,9 @@ import scala.annotation.{ compileTimeOnly, StaticAnnotation }
  */
 @compileTimeOnly("enable macro to expand macro annotations")
 final class toString(
-  includeInternalFields: Boolean = true,
-  includeFieldNames: Boolean = true,
-  callSuper: Boolean = false
+    includeInternalFields: Boolean = true,
+    includeFieldNames: Boolean = true,
+    callSuper: Boolean = false
 ) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro toStringMacro.ToStringProcessor.impl
 }

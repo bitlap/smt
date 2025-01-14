@@ -46,8 +46,8 @@ class Transformable[From, To] {
    */
   @unchecked
   def setType[FromField, ToField](
-    selectFromField: From => FromField,
-    map: FromField => ToField
+      selectFromField: From => FromField,
+      map: FromField => ToField
   ): Transformable[From, To] =
     macro TransformerMacro.mapTypeImpl[From, To, FromField, ToField]
 
@@ -67,8 +67,8 @@ class Transformable[From, To] {
    */
   @unchecked
   def setName[FromField, ToField](
-    selectFromField: From => FromField,
-    selectToField: To => ToField
+      selectFromField: From => FromField,
+      selectToField: To => ToField
   ): Transformable[From, To] =
     macro TransformerMacro.mapNameImpl[From, To, FromField, ToField]
 

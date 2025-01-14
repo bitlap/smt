@@ -26,8 +26,8 @@ package org.bitlap.common
  *  @version 1.0,6/8/22
  */
 final case class TestEntity(
-  name: String,
-  id: String,
-  key: String,
-  value: Option[Int] = None
+    name: String,
+    id: String,
+    key: String,
+    value: Option[Int] = None
 )

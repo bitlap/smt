@@ -35,9 +35,9 @@ object toStringMacro {
     import c.universe._
 
     private case class ToStringOptions(
-      includeInternalFields: Boolean,
-      includeFieldNames: Boolean,
-      callSuper: Boolean
+        includeInternalFields: Boolean,
+        includeFieldNames: Boolean,
+        callSuper: Boolean
     )
 
     private def extractTree(aa: Tree, bb: Tree, cc: Tree): ToStringOptions =
@@ -128,7 +128,9 @@ object toStringMacro {
         }
         superClassDef.fold(toString) { _ =>
           val superClass = q"${"super="}"
-          q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (member.nonEmpty) ", "
+          q"override def toString: String = StringContext(${classDefinition.className.toTermName.decodedName.toString} + ${"("} + $superClass, ${if (
+              member.nonEmpty
+            ) ", "
             else ""}+$paramsWithName + ${")"}).s(super.toString)"
         }
       } else {

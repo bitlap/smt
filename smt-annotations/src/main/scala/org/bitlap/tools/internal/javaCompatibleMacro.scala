@@ -37,8 +37,8 @@ object javaCompatibleMacro {
     /** We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
     private def getNoArgsContrWithCurrying(
-      annotteeClassParams: List[List[Tree]],
-      annotteeClassDefinitions: Seq[Tree]
+        annotteeClassParams: List[List[Tree]],
+        annotteeClassDefinitions: Seq[Tree]
     ): Tree = {
       annotteeClassDefinitions.foreach {
         case defDef: DefDef if defDef.name.decodedName.toString == "this" && defDef.vparamss.isEmpty =>
