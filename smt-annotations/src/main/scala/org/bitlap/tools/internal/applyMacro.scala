@@ -45,9 +45,9 @@ object applyMacro {
      *    B3(int)(j)(k)(t)`
      */
     private def getApplyMethodWithCurrying(
-      typeName: TypeName,
-      fieldss: List[List[Tree]],
-      classTypeParams: List[Tree]
+        typeName: TypeName,
+        fieldss: List[List[Tree]],
+        classTypeParams: List[Tree]
     ): Tree = {
       val allFieldsTermName = fieldss.map(f => classParamsTermNameWithType(f))
       val returnTypeParams  = typeParams(classTypeParams)

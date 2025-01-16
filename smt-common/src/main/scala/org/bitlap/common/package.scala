@@ -53,7 +53,7 @@ package object common {
     }
 
   implicit final def transformerMap[K, F, T](implicit
-    e: Transformer[F, T]
+      e: Transformer[F, T]
   ): Transformer[Map[K, F], Map[K, T]] =
     new Transformer[Map[K, F], Map[K, T]] {
       override def transform(from: Map[K, F]): Map[K, T] = from.map(kv => kv._1 -> e.transform(kv._2))

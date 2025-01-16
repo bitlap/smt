@@ -148,22 +148,22 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   "TransformableTest more complex case for two-layer nest field" should "ok for implicit automatically" in {
     case class C1(j: Int)
     case class D1(
-      a1: List[List[C1]],
-      b1: Option[C1],
-      c1: List[Option[C1]],
-      d1: Option[List[C1]],
-      map1: Map[String, String],
-      intMap1: Map[Int, C1]
+        a1: List[List[C1]],
+        b1: Option[C1],
+        c1: List[Option[C1]],
+        d1: Option[List[C1]],
+        map1: Map[String, String],
+        intMap1: Map[Int, C1]
     )
 
     case class C2(j: Int)
     case class D2(
-      a2: List[List[C2]],
-      b2: Option[C1],
-      c2: List[Option[C1]],
-      d2: Option[List[C1]],
-      map2: Map[String, String],
-      intMap2: Map[Int, C2]
+        a2: List[List[C2]],
+        b2: Option[C1],
+        c2: List[Option[C1]],
+        d2: Option[List[C1]],
+        map2: Map[String, String],
+        intMap2: Map[Int, C2]
     )
 
     // NOTE: have collection not support? please implicit val transformer = new Transformer[F, T] { ... }
@@ -270,12 +270,12 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   "TransformableTest assign list to seq" should "ok for implicit automatically" in {
     case class C1(j: Int)
     case class D1(
-      a1: List[C1]
+        a1: List[C1]
     )
 
     case class C2(j: Int)
     case class D2(
-      a2: Seq[C2]
+        a2: Seq[C2]
     )
 
     object C1 {
@@ -303,16 +303,16 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   "TransformableTest support set and vector" should "ok for implicit automatically" in {
     case class C1(j: Int)
     case class D1(
-      a1: Seq[C1],
-      b1: Set[C1],
-      c1: Vector[C1]
+        a1: Seq[C1],
+        b1: Set[C1],
+        c1: Vector[C1]
     )
 
     case class C2(j: Int)
     case class D2(
-      a2: List[C2],
-      b2: Set[C2],
-      c2: Vector[C2]
+        a2: List[C2],
+        b2: Set[C2],
+        c2: Vector[C2]
     )
 
     object C1 {
@@ -388,14 +388,14 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   "TransformableTest enable* method" should "ok" in {
     case class A1(a: String, b: Int, cc: Long)
     case class A2(
-      a: String,
-      b: Int,
-      c: Int,
-      d: Option[String],
-      e: List[String],
-      f: Seq[String],
-      g: Set[String],
-      h: Vector[String]
+        a: String,
+        b: Int,
+        c: Int,
+        d: Option[String],
+        e: List[String],
+        f: Seq[String],
+        g: Set[String],
+        h: Vector[String]
     )
 
     val a = A1("hello", 1, 2)
@@ -450,11 +450,11 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   "TransformableTest disable* method" should "ok" in {
     case class A1(d: Option[String])
     case class A2(
-      d: Option[String],
-      e: Option[String] = Some("option"),
-      f: Option[String] = None,
-      h: List[String] = List("list"),
-      i: List[String] = List.empty
+        d: Option[String],
+        e: Option[String] = Some("option"),
+        f: Option[String] = None,
+        h: List[String] = List("list"),
+        i: List[String] = List.empty
     )
 
     val a = A1(Some("hello a"))
@@ -478,11 +478,11 @@ class TransformableTest extends AnyFlatSpec with Matchers {
   "TransformableTest disable* is ok" should "compile ok" in {
     case class A1(d: Option[String])
     case class A2(
-      d: Option[String],
-      e: Option[String] = Some("option"),
-      f: Option[String] = None,
-      h: List[String] = List("list"),
-      i: List[String] = List.empty
+        d: Option[String],
+        e: Option[String] = Some("option"),
+        f: Option[String] = None,
+        h: List[String] = List("list"),
+        i: List[String] = List.empty
     )
 
     val a                                = A1(Some("hello a"))
@@ -523,9 +523,9 @@ class TransformableTest extends AnyFlatSpec with Matchers {
     }
 
     case class A2(
-      b: Option[String],
-      c: String,
-      e: Option[String] = Some("option")
+        b: Option[String],
+        c: String,
+        e: Option[String] = Some("option")
     )
 
     val a = A1(Some("hello a"), false)
@@ -545,11 +545,11 @@ class TransformableTest extends AnyFlatSpec with Matchers {
 
     }
     case class A2(
-      d: Option[String],
-      e: Option[String] = Some("option"),
-      f: Option[String] = None,
-      h: List[String] = List("list"),
-      i: List[String] = List.empty
+        d: Option[String],
+        e: Option[String] = Some("option"),
+        f: Option[String] = None,
+        h: List[String] = List("list"),
+        i: List[String] = List.empty
     )
 
     val a = A1(Some("hello a"))

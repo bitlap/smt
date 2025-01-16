@@ -41,8 +41,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   private val fromTermName               = TermName("from")
 
   def mapTypeImpl[From, To, FromField, ToField](
-    selectFromField: Expr[From => FromField],
-    map: Expr[FromField => ToField]
+      selectFromField: Expr[From => FromField],
+      map: Expr[FromField => ToField]
   ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, fromName)) = selectFromField.tree
     val builderId                        = getBuilderId(annoBuilderPrefix)
@@ -54,8 +54,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   def setDefaultValueImpl[From, To, ToField](
-    selectToField: Expr[To => ToField],
-    defaultValue: Expr[ToField]
+      selectToField: Expr[To => ToField],
+      defaultValue: Expr[ToField]
   ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, toName)) = selectToField.tree
     val builderId                      = getBuilderId(annoBuilderPrefix)
@@ -67,8 +67,8 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   def mapNameImpl[From, To, FromField, ToField](
-    selectFromField: Expr[From => FromField],
-    selectToField: Expr[To => ToField]
+      selectFromField: Expr[From => FromField],
+      selectToField: Expr[To => ToField]
   ): Expr[Transformable[From, To]] = {
     val Function(_, Select(_, fromName)) = selectFromField.tree
     val Function(_, Select(_, toName))   = selectToField.tree
@@ -219,10 +219,10 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
   }
 
   private def checkForNoMappingField[From: WeakTypeTag, To: WeakTypeTag](
-    realFromFieldName: String,
-    fromFieldOpt: Option[FieldInformation],
-    toField: FieldInformation,
-    customFieldNameMapping: mutable.Map[String, String]
+      realFromFieldName: String,
+      fromFieldOpt: Option[FieldInformation],
+      toField: FieldInformation,
+      customFieldNameMapping: mutable.Map[String, String]
   ): Tree = {
     val toClassInfo   = caseClassFieldInfos[To]()
     val fromClassInfo = caseClassFieldInfos[From]()
@@ -286,11 +286,11 @@ class TransformerMacro(override val c: whitebox.Context) extends AbstractMacroPr
     }
 
   private def checkMissingFields[From: WeakTypeTag, To: WeakTypeTag](
-    fromClassInfo: List[FieldInformation],
-    toClassInfo: List[FieldInformation],
-    customDefaultValueMapping: mutable.Map[String, Any],
-    customFieldNameMapping: mutable.Map[String, String],
-    customOptionsMapping: mutable.Set[Options]
+      fromClassInfo: List[FieldInformation],
+      toClassInfo: List[FieldInformation],
+      customDefaultValueMapping: mutable.Map[String, Any],
+      customFieldNameMapping: mutable.Map[String, String],
+      customOptionsMapping: mutable.Set[Options]
   ) = {
     val toClassName               = classTypeName[To]
     val fromClassName             = classTypeName[From]

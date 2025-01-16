@@ -37,11 +37,11 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   final case class FieldZipInformation(fieldNames: List[String], fieldIndexTypeMapping: List[(Int, Type)])
 
   final case class CollectionFlags(
-    isSeq: Boolean = false,
-    isList: Boolean = false,
-    isOption: Boolean = false,
-    isVector: Boolean = false,
-    isSet: Boolean = false
+      isSeq: Boolean = false,
+      isList: Boolean = false,
+      isOption: Boolean = false,
+      isVector: Boolean = false,
+      isSet: Boolean = false
   ) {
     def isCollection: Boolean = isSeq || isList || isOption || isVector || isSet
 
@@ -49,21 +49,21 @@ abstract class AbstractMacroProcessor(val c: blackbox.Context) {
   }
 
   final case class FieldTreeInformation(
-    index: Int,
-    fieldTerm: Tree,
-    fieldType: Type,
-    zeroValue: Tree,
-    collectionsFlags: CollectionFlags,
-    genericType: List[Type] = Nil
+      index: Int,
+      fieldTerm: Tree,
+      fieldType: Type,
+      zeroValue: Tree,
+      collectionsFlags: CollectionFlags,
+      genericType: List[Type] = Nil
   )
 
   final case class FieldInformation(
-    fieldName: String,
-    fieldType: Type,
-    collectionFlags: CollectionFlags,
-    genericType: List[Type] = Nil,
-    hasDefaultValue: Boolean,
-    zeroValue: Tree
+      fieldName: String,
+      fieldType: Type,
+      collectionFlags: CollectionFlags,
+      genericType: List[Type] = Nil,
+      hasDefaultValue: Boolean,
+      zeroValue: Tree
   )
 
   def tryGetOrElse(tree: Tree, default: Tree): Tree =

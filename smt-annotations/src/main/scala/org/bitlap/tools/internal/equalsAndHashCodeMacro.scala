@@ -65,10 +65,10 @@ object equalsAndHashCodeMacro {
 
     // equals method
     private def getEqualsMethod(
-      className: TypeName,
-      termNames: Seq[TermName],
-      superClasses: Seq[Tree],
-      annotteeClassDefinitions: Seq[Tree]
+        className: TypeName,
+        termNames: Seq[TermName],
+        superClasses: Seq[Tree],
+        annotteeClassDefinitions: Seq[Tree]
     ): List[Tree] = {
       val existsCanEqual = classMemberDefDefs(annotteeClassDefinitions).exists {
         case defDef: DefDef if defDef.name.decodedName.toString == "canEqual" && defDef.vparamss.nonEmpty =>

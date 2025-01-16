@@ -55,10 +55,10 @@ object builderMacro {
     }
 
     private def getBuilderClassAndMethod(
-      typeName: TypeName,
-      fieldss: List[List[Tree]],
-      classTypeParams: List[Tree],
-      isCase: Boolean
+        typeName: TypeName,
+        fieldss: List[List[Tree]],
+        classTypeParams: List[Tree],
+        isCase: Boolean
     ): List[Tree] = {
       val fields                  = fieldss.flatten
       val builderClassName        = getBuilderClassName(typeName)

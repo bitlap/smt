@@ -63,8 +63,8 @@ object constructorMacro {
     /** We generate this method with currying, and we have to deal with the first layer of currying alone.
      */
     private def getThisMethodWithCurrying(
-      annotteeClassParams: List[List[Tree]],
-      annotteeClassDefinitions: Seq[Tree]
+        annotteeClassParams: List[List[Tree]],
+        annotteeClassDefinitions: Seq[Tree]
     ): Tree = {
       val classInternalFieldsWithType = getMemberVarDefTermNameWithType(annotteeClassDefinitions)
 

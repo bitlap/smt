@@ -65,8 +65,8 @@ class ApplyTest extends AnyFlatSpec with Matchers {
     @toString class B3(int: Int)(val j: Int)(var k: Option[String] = None)(t: Option[Long] = Some(1L))
     @apply
     @toString class B4(int: Int, a: Seq[Seq[String]])(val j: Int, b: Seq[String])(
-      var k: Option[String] = None,
-      c: Seq[Option[String]]
+        var k: Option[String] = None,
+        c: Seq[Option[String]]
     )(t: Option[Long] = Some(1L))
   }
 

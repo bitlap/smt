@@ -107,7 +107,7 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
    *    Return the result of modifyAction function
    */
   def collectCustomExpr(
-    annottees: Seq[Expr[Any]]
+      annottees: Seq[Expr[Any]]
   )(modifyAction: (ClassDef, Option[ModuleDef]) => Any): Expr[Nothing] = {
     val classDef = checkClassDef(annottees)
     val compDecl = moduleDef(annottees)
@@ -284,10 +284,10 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
     superClasses.nonEmpty && !superClasses.forall(sc => SDKClasses.contains(sc.toString()))
 
   private[internal] final case class ValDefAccessor(
-    mods: Modifiers,
-    name: TermName,
-    tpt: Tree,
-    rhs: Tree
+      mods: Modifiers,
+      name: TermName,
+      tpt: Tree,
+      rhs: Tree
   ) {
 
     def typeName: TypeName = symbol.name.toTypeName
@@ -363,13 +363,13 @@ abstract class AbstractMacroProcessor(val c: whitebox.Context) {
   }
 
   private[internal] case class ClassDefinition(
-    self: ValDef,
-    mods: Modifiers,
-    className: TypeName,
-    classParamss: List[List[Tree]],
-    classTypeParams: List[Tree],
-    body: List[Tree],
-    superClasses: List[Tree],
-    earlydefns: List[Tree] = Nil
+      self: ValDef,
+      mods: Modifiers,
+      className: TypeName,
+      classParamss: List[List[Tree]],
+      classTypeParams: List[Tree],
+      body: List[Tree],
+      superClasses: List[Tree],
+      earlydefns: List[Tree] = Nil
   )
 }
