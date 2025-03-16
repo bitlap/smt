@@ -35,7 +35,7 @@ lazy val scala211 = "2.11.12"
 lazy val scala213 = "2.13.13"
 
 lazy val scalatestVersion = "3.2.19"
-lazy val h2               = "2.3.230"
+lazy val h2               = "2.3.232"
 
 lazy val commonSettings =
   Seq(
